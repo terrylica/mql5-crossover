@@ -13,6 +13,7 @@ from pathlib import Path
 import MetaTrader5 as mt5
 import pandas as pd
 import numpy as np
+from indicators.laguerre_rsi import calculate_laguerre_rsi_indicator
 
 
 def calculate_rsi(prices, period=14):
@@ -72,7 +73,7 @@ def parse_timeframe(period_str):
     return timeframe_map[period_str]
 
 
-def export_data(symbol, period_str, num_bars, output_dir="C:\\Users\\crossover\\exports"):
+def export_data(symbol, period_str, num_bars, output_dir="C:\\Users\\crossover\\exports", laguerre_atr_period=32, laguerre_price_smooth_period=5, laguerre_price_smooth_method='ema'):
     """
     Export MT5 data with RSI to CSV
 
@@ -146,25 +147,42 @@ def export_data(symbol, period_str, num_bars, output_dir="C:\\Users\\crossover\\
         print(f"  Date range: {datetime.fromtimestamp(rates[0]['time'])} to {datetime.fromtimestamp(rates[-1]['time'])}")
         print()
 
-        # Step 5: Calculate RSI
-        print(f"[5/6] Calculating RSI (14-period)...")
+        # Step 5: Calculate indicators
+        print(f"[5/7] Calculating indicators...")
 
         # Convert to DataFrame
         df = pd.DataFrame(rates)
         df['time'] = pd.to_datetime(df['time'], unit='s')
 
         # Calculate RSI
+        print(f"  - RSI (14-period)...")
         df['rsi'] = calculate_rsi(df['close'], period=14)
+
+        # Calculate Laguerre RSI
+        print(f"  - Laguerre RSI (ATR period={laguerre_atr_period}, smoothing={laguerre_price_smooth_method}({laguerre_price_smooth_period}))...")
+        laguerre_result = calculate_laguerre_rsi_indicator(
+            df,
+            atr_period=laguerre_atr_period,
+            price_type='close',
+            price_smooth_period=laguerre_price_smooth_period,
+            price_smooth_method=laguerre_price_smooth_method
+        )
+
+        df['laguerre_rsi'] = laguerre_result['laguerre_rsi']
+        df['laguerre_signal'] = laguerre_result['signal']
+        df['adaptive_period'] = laguerre_result['adaptive_period']
+        df['atr'] = laguerre_result['atr']
 
         # Take only the requested number of bars (most recent)
         df = df.tail(num_bars)
 
-        print(f"[OK] RSI calculated for {len(df)} bars")
-        print(f"  RSI stats: min={df['rsi'].min():.2f}, max={df['rsi'].max():.2f}, mean={df['rsi'].mean():.2f}")
+        print(f"[OK] Indicators calculated for {len(df)} bars")
+        print(f"  RSI: min={df['rsi'].min():.2f}, max={df['rsi'].max():.2f}, mean={df['rsi'].mean():.2f}")
+        print(f"  Laguerre RSI: min={df['laguerre_rsi'].min():.4f}, max={df['laguerre_rsi'].max():.4f}, mean={df['laguerre_rsi'].mean():.4f}")
         print()
 
         # Step 6: Export to CSV
-        print(f"[6/6] Exporting to CSV...")
+        print(f"[6/7] Exporting to CSV...")
 
         # Create output directory if it doesn't exist
         output_path = Path(output_dir)
@@ -175,8 +193,8 @@ def export_data(symbol, period_str, num_bars, output_dir="C:\\Users\\crossover\\
         filepath = output_path / filename
 
         # Select and rename columns to match MT5 export format
-        export_df = df[['time', 'open', 'high', 'low', 'close', 'tick_volume', 'rsi']].copy()
-        export_df.columns = ['Time', 'Open', 'High', 'Low', 'Close', 'Volume', 'RSI']
+        export_df = df[['time', 'open', 'high', 'low', 'close', 'tick_volume', 'rsi', 'laguerre_rsi', 'laguerre_signal', 'adaptive_period', 'atr']].copy()
+        export_df.columns = ['Time', 'Open', 'High', 'Low', 'Close', 'Volume', 'RSI', 'Laguerre_RSI', 'Laguerre_Signal', 'Adaptive_Period', 'ATR']
 
         # Format time column
         export_df['Time'] = export_df['Time'].dt.strftime('%Y.%m.%d %H:%M:%S')
@@ -193,6 +211,7 @@ def export_data(symbol, period_str, num_bars, output_dir="C:\\Users\\crossover\\
 
     finally:
         # Always shutdown MT5
+        print("[7/7] Shutting down MT5...")
         mt5.shutdown()
         print("[OK] MT5 shutdown cleanly")
         print()
@@ -238,6 +257,27 @@ Valid periods: M1, M5, M15, M30, H1, H4, D1, W1, MN1
         help='Output directory (default: C:\\Users\\crossover\\exports)'
     )
 
+    parser.add_argument(
+        '--laguerre-atr-period',
+        type=int,
+        default=32,
+        help='Laguerre RSI ATR period (default: 32)'
+    )
+
+    parser.add_argument(
+        '--laguerre-price-smooth-period',
+        type=int,
+        default=5,
+        help='Laguerre RSI price smoothing period (default: 5)'
+    )
+
+    parser.add_argument(
+        '--laguerre-price-smooth-method',
+        default='ema',
+        choices=['sma', 'ema', 'smma', 'lwma'],
+        help='Laguerre RSI price smoothing method (default: ema)'
+    )
+
     args = parser.parse_args()
 
     try:
@@ -245,7 +285,10 @@ Valid periods: M1, M5, M15, M30, H1, H4, D1, W1, MN1
             symbol=args.symbol.upper(),
             period_str=args.period.upper(),
             num_bars=args.bars,
-            output_dir=args.output
+            output_dir=args.output,
+            laguerre_atr_period=args.laguerre_atr_period,
+            laguerre_price_smooth_period=args.laguerre_price_smooth_period,
+            laguerre_price_smooth_method=args.laguerre_price_smooth_method
         )
 
         print("=" * 70)
