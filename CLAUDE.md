@@ -4,7 +4,8 @@
 
 ## Navigation Index
 
-**Entry Point**: `/Users/terryli/eon/mql5-crossover/README.md ` - Project overview and quick start
+**Current Workspace**: `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c ` (CrossOver bottle root)
+**Project Documentation**: `docs/README.md ` - Project overview and documentation index
 
 ## Core Guides
 
@@ -39,14 +40,64 @@
 ### Directory Structure
 
 ```
-mql5/          # MQL5 source (Scripts/, Include/, Samples/)
-python/        # Python validation tools
-scripts/       # Automation (mq5run wrapper for v2.0.0)
-docs/          # Documentation (guides/, plans/, reports/, archive/)
-config/        # MT5 configuration files
-exports/       # CSV outputs (gitignored)
-logs/          # Execution logs (gitignored)
+Program Files/MetaTrader 5/MQL5/          # MT5 idiomatic structure ⭐
+├── Scripts/DataExport/                    # Export scripts (modular design)
+│   ├── ExportAligned.mq5 + .ex5          # Main export with RSI + Laguerre RSI
+│   └── ExportEURUSD.mq5                  # Legacy EURUSD exporter
+├── Include/DataExport/                    # Custom include libraries
+│   ├── DataExportCore.mqh                # Core export functionality
+│   ├── ExportAlignedCommon.mqh           # Common utilities
+│   └── modules/                          # Modular components
+│       └── RSIModule.mqh                 # RSI calculation module
+└── Indicators/Custom/                     # Project-based organization ⭐
+    ├── ProductionIndicators/              # 6 production-ready indicators
+    │   ├── BB_Width, Bollinger_Bandwidth_Delta
+    │   ├── cci-woodie, M3, tickv
+    │   └── Range Expansion Index (REI)
+    ├── PythonInterop/                     # 7 Python export indicators
+    │   ├── atr_refactor_for_python, custom_interval_demo
+    │   ├── custom_ma, vwap-classic
+    │   └── zigzag_02, zigzag_modular
+    ├── Libraries/                         # 3 shared library files
+    │   ├── BodySizePatterns.mqh
+    │   ├── CandlePatterns.mqh
+    │   └── PatternHelpers.mqh
+    └── Development/                       # Active development
+        ├── ConsecutivePattern/            # cc indicator project ⭐
+        │   ├── cc.mq5 (main, 15 buffers, 5 plots, InsideBar feature)
+        │   ├── cc_backup.mq5 (self-contained, no includes)
+        │   └── lib/ (local dependencies)
+        └── test.mq5
+
+users/crossover/                           # Python workspace ⭐
+├── export_aligned.py                      # Wine Python v3.0.0 export
+├── validate_export.py                     # CSV validation tool
+├── indicators/                            # Python indicator implementations
+│   └── laguerre_rsi.py                   # Laguerre RSI Python version
+└── exports/                               # CSV outputs
+
+docs/                                      # Documentation hub
+├── guides/                                # Implementation guides
+├── plans/                                 # Planning documents
+├── reports/                               # Validation reports
+└── archive/                               # Historical context
+
+archive/                                   # Legacy code preserved
+├── indicators/                            # Archived indicator versions
+│   ├── laguerre_rsi/                     # Laguerre RSI development history
+│   └── compiled_orphans/                 # Orphaned .ex5 files
+├── mt5work_legacy/                       # Old development workspace
+└── scripts/v2.0.0/                       # v2.0.0 legacy wrappers
+
+exports/                                   # CSV exports (repo root, gitignored)
 ```
+
+**Key Changes from v1.0.0**:
+- ✅ MT5 idiomatic structure (Scripts/DataExport, Include/DataExport)
+- ✅ Project-based indicator organization (ProductionIndicators, PythonInterop, Libraries, Development)
+- ✅ Single Python workspace (users/crossover/)
+- ✅ ConsecutivePattern project with local dependencies
+- ✅ Legacy code archived (no deletion, preserved for reference)
 
 ### Single Source of Truth
 
@@ -68,6 +119,59 @@ logs/          # Execution logs (gitignored)
 | Headless Execution Plan     | `docs/plans/HEADLESS_EXECUTION_PLAN.md` |
 | Validation Status           | `docs/reports/VALIDATION_STATUS.md`     |
 | Historical Context          | `docs/archive/historical.txt`           |
+| MT5 Idiomatic Refactoring   | `docs/plans/MT5_IDIOMATIC_REFACTORING.md` |
+| Workspace Refactoring Plan  | `docs/plans/WORKSPACE_REFACTORING_PLAN.md` |
+
+## Indicator Organization
+
+### Project-Based Hierarchy (2025-10-15 Refactoring)
+
+**Navigator Path**: `Indicators → Custom → [Project Folders]`
+
+#### ProductionIndicators/ (6 indicators)
+Production-ready indicators for live trading:
+- **BB_Width.mq5** - Bollinger Bands width indicator
+- **Bollinger_Bandwidth_Delta.mq5** - Bandwidth change rate
+- **cci-woodie.mq5** - Woodies CCI implementation
+- **M3.mq5** - Custom momentum indicator
+- **Range Expansion Index (REI).mq5** - REI indicator
+- **tickv.mq5** - Tick volume analysis
+
+#### PythonInterop/ (7 indicators)
+Indicators designed for Python export workflow:
+- **atr_refactor_for_python.mq5** - ATR calculation for Python integration
+- **custom_interval_demo.mq5** - Custom timeframe demonstration
+- **custom_ma.mq5** - Custom moving average
+- **vwap-classic.mq5** - Volume-weighted average price
+- **zigzag_02.mq5** - ZigZag variant 2
+- **zigzag_modular.mq5** - Modular ZigZag implementation
+
+#### Libraries/ (3 shared libraries)
+Reusable library files (`.mqh`):
+- **BodySizePatterns.mqh** - Candle body size analysis
+- **CandlePatterns.mqh** - Pattern recognition functions
+- **PatternHelpers.mqh** - Helper functions for pattern detection
+
+#### Development/ (active projects)
+Active development with version control:
+
+**ConsecutivePattern/** - cc indicator project:
+- `cc.mq5` - Main version (372 lines, 15 buffers, 5 plots)
+  - Features: Expansion/Contraction + InsideBar detection
+  - Dependencies: PatternHelpers + BodySizePatterns + CandlePatterns
+- `cc_backup.mq5` - Standalone fallback (417 lines, 13 buffers, 3 plots)
+  - All functions embedded (no external dependencies)
+  - Useful for standalone distribution
+- `lib/` - Local project dependencies (isolated from global Libraries/)
+
+**test.mq5** - Development testing indicator
+
+### Benefits
+✅ Clear functional separation (Production / Python / Libraries / Development)
+✅ Scalable as indicator collection grows
+✅ Visible in MT5 Navigator window (organized hierarchy)
+✅ Project self-containment (ConsecutivePattern has local dependencies)
+✅ No confusion (single Custom/ folder, eliminated Customs/)
 
 ## Key Commands
 
@@ -78,8 +182,8 @@ BOTTLE="MetaTrader 5"
 ME="C:/Program Files/MetaTrader 5/MetaEditor64.exe"
 "$CX" --bottle "$BOTTLE" --cx-app "$ME" /log /compile:"C:/YourIndicator.mq5" /inc:"C:/Program Files/MetaTrader 5/MQL5"
 
-# Compile MQL5 (GUI fallback)
-mq5c mql5/Scripts/ExportAligned.mq5
+# Compile MQL5 (GUI fallback - open in MetaEditor, press F7)
+# File → Open → Program Files/MetaTrader 5/MQL5/Scripts/DataExport/ExportAligned.mq5
 
 # Export data (v3.0.0 - true headless, PRODUCTION)
 CX_BOTTLE="MetaTrader 5" \
@@ -91,11 +195,12 @@ wine "C:\\Program Files\\Python312\\python.exe" \
 # Copy CSV to repo
 cp "$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/exports/Export_EURUSD_PERIOD_M1.csv" exports/
 
-# Export data (v2.0.0 - LEGACY, requires GUI initialization)
-./scripts/mq5run --symbol EURUSD --period PERIOD_M1
+# Export data (v2.0.0 - LEGACY, ARCHIVED - use v3.0.0 instead)
+# DEPRECATED: ./scripts/mq5run (archived in archive/scripts/v2.0.0/)
+# Use v3.0.0 Wine Python export above instead
 
 # Validate
-python python/validate_export.py exports/Export_EURUSD_PERIOD_M1.csv
+cd users/crossover && python validate_export.py ../../exports/Export_EURUSD_PERIOD_M1.csv
 ```
 
 ## Service Level Objectives
@@ -201,10 +306,18 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
 
 ## Project Status
 
-- **Version**: 1.0.0 (reorganization complete 2025-10-13)
+- **Version**: 2.0.0 (MT5 idiomatic refactoring complete 2025-10-15)
 - **Headless Execution**: v3.0.0 PRODUCTION (Python API, true headless validated)
-- **Latest Validation**: USDJPY M1 cold start - 0.999920 RSI correlation (2025-10-13 19:45)
-- **Critical Discoveries**:
+- **Latest Validation**: EURUSD M1 - 100 bars exported successfully (2025-10-15)
+- **Structure**: MT5 idiomatic hierarchy with project-based organization
+- **Critical Achievements (2025-10-15)**:
+  - ✅ MT5 idiomatic structure (Scripts/DataExport, Include/DataExport)
+  - ✅ Project-based indicator organization (ProductionIndicators, PythonInterop, Libraries, Development)
+  - ✅ Single Python workspace (users/crossover/)
+  - ✅ ConsecutivePattern (cc) indicator restored with full version history
+  - ✅ Eliminated Custom vs Customs confusion
+  - ✅ Legacy code archived (no deletion, preserved for reference)
+- **Critical Discoveries (2025-10-13)**:
   - CX_BOTTLE environment variable requirement
   - RSI formula fix (span → alpha)
   - Column name normalization
@@ -212,10 +325,10 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
   - MT5 file locations fully documented
   - CLI compilation via `--cx-app` and `--bottle` flags
   - CrossOver path: `~/Applications/` not `/Applications/`
-- **Structure**: Clean organized hierarchy with SLO compliance
 - **Documentation**: Complete empirical workflow guides
   - Production: `WINE_PYTHON_EXECUTION.md ` (v3.0.0 workflow)
   - File Paths: `MT5_FILE_LOCATIONS.md ` (indicator translation)
+  - Refactoring: `MT5_IDIOMATIC_REFACTORING.md ` (project structure)
 
 ## Workflow Robustness Status
 
@@ -232,11 +345,15 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
 
 **Needs Improvement**:
 - ⚠️ Dependency resolution (manual `#include` tracking)
-- ⚠️ Indicator library structure (need `python/indicators/` modules)
 - ⚠️ State management patterns (need class-based indicator templates)
 - ⚠️ Performance benchmarking (add to validation criteria)
 
-**Recently Resolved**:
+**Recently Resolved (2025-10-15)**:
+- ✅ **Indicator Organization** - Project-based hierarchy with functional grouping
+- ✅ **Python Workspace** - Consolidated at users/crossover/
+- ✅ **ConsecutivePattern Restoration** - All development history preserved
+
+**Recently Resolved (2025-10-13)**:
 - ✅ **UTF-8 Encoding Discovery** (2025-10-13 23:53): UTF-8 works perfectly for MQL5 compilation - no conversion needed! Previous UTF-16LE requirement was incorrect.
 - ✅ **Laguerre RSI Temporal Violations** (2025-10-13 23:53): Fixed `atrWork[i+1]` future bar access - removed cache, always recalculate from historical data
 - ✅ **Laguerre RSI Instance Isolation** (2025-10-13 23:53): Added `inpInstanceID` parameter to separate static array memory between indicator instances
