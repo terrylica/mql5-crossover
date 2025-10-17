@@ -20,8 +20,75 @@ input int             InpLaguerreSmoothPeriod = 5;
 input ENUM_MA_METHOD  InpLaguerreSmoothMethod = MODE_EMA;
 input string          InpOutputName         = "";
 
+//+------------------------------------------------------------------+
+//| Load configuration from file (optional, graceful degradation)    |
+//+------------------------------------------------------------------+
+void LoadConfigFromFile()
+  {
+   string configFile="export_config.txt";
+   int handle=FileOpen(configFile,FILE_READ|FILE_TXT|FILE_ANSI);
+
+   if(handle==INVALID_HANDLE)
+     {
+      // Config file not found - silently continue with input parameters
+      return;
+     }
+
+   Print("=== Loading configuration from ",configFile," ===");
+   int linesLoaded=0;
+
+   while(!FileIsEnding(handle))
+     {
+      string line=FileReadString(handle);
+      StringTrimLeft(line);
+      StringTrimRight(line);
+
+      // Skip empty lines and comments
+      if(StringLen(line)==0 || StringGetCharacter(line,0)=='#')
+         continue;
+
+      // Parse key=value
+      string parts[];
+      if(StringSplit(line,'=',parts)!=2)
+        {
+         PrintFormat("WARNING: Invalid config line (skipped): %s",line);
+         continue;
+        }
+
+      string key=parts[0];
+      string value=parts[1];
+      StringTrimLeft(key);
+      StringTrimRight(key);
+      StringTrimLeft(value);
+      StringTrimRight(value);
+
+      // Override input parameters
+      if(key=="InpSymbol")              { InpSymbol=value; linesLoaded++; }
+      else if(key=="InpTimeframe")      { InpTimeframe=(ENUM_TIMEFRAMES)StringToInteger(value); linesLoaded++; }
+      else if(key=="InpBars")           { InpBars=(int)StringToInteger(value); linesLoaded++; }
+      else if(key=="InpUseRSI")         { InpUseRSI=(value=="true"); linesLoaded++; }
+      else if(key=="InpRSIPeriod")      { InpRSIPeriod=(int)StringToInteger(value); linesLoaded++; }
+      else if(key=="InpUseSMA")         { InpUseSMA=(value=="true"); linesLoaded++; }
+      else if(key=="InpSMAPeriod")      { InpSMAPeriod=(int)StringToInteger(value); linesLoaded++; }
+      else if(key=="InpUseLaguerreRSI") { InpUseLaguerreRSI=(value=="true"); linesLoaded++; }
+      else if(key=="InpLaguerreInstanceID")   { InpLaguerreInstanceID=value; linesLoaded++; }
+      else if(key=="InpLaguerreAtrPeriod")    { InpLaguerreAtrPeriod=(int)StringToInteger(value); linesLoaded++; }
+      else if(key=="InpLaguerreSmoothPeriod") { InpLaguerreSmoothPeriod=(int)StringToInteger(value); linesLoaded++; }
+      else if(key=="InpLaguerreSmoothMethod") { InpLaguerreSmoothMethod=(ENUM_MA_METHOD)StringToInteger(value); linesLoaded++; }
+      else if(key=="InpOutputName")     { InpOutputName=value; linesLoaded++; }
+      else
+         PrintFormat("WARNING: Unknown config key (skipped): %s",key);
+     }
+
+   FileClose(handle);
+   PrintFormat("=== Config loaded: %d parameters from %s ===",linesLoaded,configFile);
+  }
+
 void OnStart()
   {
+   // Try to load config from file (optional - falls back to input parameters)
+   LoadConfigFromFile();
+
    // DEBUG: Log all input parameters to diagnose parameter passing
    Print("=== ExportAligned.mq5 Input Parameters ===");
    PrintFormat("InpSymbol: '%s'",InpSymbol);
