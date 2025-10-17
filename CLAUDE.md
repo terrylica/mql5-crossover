@@ -91,10 +91,20 @@ archive/                                   # Legacy code preserved
 ├── docs/                                  # Outdated guides with version markers
 │   ├── QUICKSTART.v2.0.0.md              # v2.0.0 startup.ini approach
 │   ├── AI_AGENT_WORKFLOW.v2.0.0.md       # v2.0.0 development patterns
+│   ├── CROSSOVER_MQ5.v2.0.0.md           # v2.0.0 CrossOver setup
 │   └── MQL5_CLI_COMPILATION_INVESTIGATION.md  # 11+ failed attempts (historical)
-├── indicators/                            # Archived indicator versions
-│   ├── laguerre_rsi/                     # Development history
-│   └── compiled_orphans/                 # Orphaned .ex5 files
+├── indicators/                            # Archived indicator versions (organized by project)
+│   ├── laguerre_rsi/                     # Laguerre RSI development history
+│   │   ├── compiled/                     # Compiled .ex5 files (3)
+│   │   ├── development/                  # Development versions
+│   │   ├── original/                     # Original source files
+│   │   └── test_files/                   # Test/experiment files
+│   ├── cc/                                # Consecutive Pattern (cc) indicator
+│   │   ├── compiled/                     # Compiled .ex5 files (4)
+│   │   ├── development/                  # Development versions (10 files)
+│   │   └── source/                       # Source files and docs
+│   └── vwap/                              # VWAP indicator
+│       └── vwap-multi.ex5                # Compiled file
 ├── mt5work_legacy/                       # Old development workspace
 └── scripts/v2.0.0/                       # v2.0.0 legacy wrappers
 
@@ -339,14 +349,24 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
 - **Latest Validation**: Laguerre RSI - 1.000000 correlation, 5000-bar warmup (2025-10-17)
 - **Python Indicators**: Laguerre RSI v1.0.0 (validated, production-ready)
 - **Structure**: MT5 idiomatic hierarchy with project-based organization
-- **Pruning Status** (2025-10-17 Phase 1 COMPLETE):
-  - ✅ Archived 5 spike test files → `archive/experiments/`
-  - ✅ Archived 8 completed plan documents → `archive/plans/`
-  - ✅ Archived 3 outdated guides with version markers → `archive/docs/`
-  - ✅ Added deprecation warning to `validate_export.py`
-  - ✅ Updated CLAUDE.md (removed 3 guides, cleaned Single Source of Truth table)
-  - **Impact**: 16 files archived, 49% file count reduction in target areas
-  - **Next**: Phase 2-5 pruning available in `docs/reports/PRUNING_ASSESSMENT.md`
+- **Pruning Status** (2025-10-17 Phases 1-2 COMPLETE):
+  - **Phase 1** (2025-10-17 08:00):
+    - ✅ Archived 5 spike test files → `archive/experiments/`
+    - ✅ Archived 8 completed plan documents → `archive/plans/`
+    - ✅ Archived 3 outdated guides with version markers → `archive/docs/`
+    - ✅ Added deprecation warning to `validate_export.py`
+    - ✅ Updated CLAUDE.md (removed 3 guides, cleaned Single Source of Truth table)
+  - **Phase 2** (2025-10-17 08:30):
+    - ✅ Reorganized archive/indicators/ structure
+    - ✅ Created separate subdirectories: laguerre_rsi/compiled, cc/compiled, cc/source, vwap/
+    - ✅ Moved 3 Laguerre RSI .ex5 files to laguerre_rsi/compiled/
+    - ✅ Moved 4 cc .ex5 files to cc/compiled/
+    - ✅ Moved cc source files (.mq5, .md) to cc/source/
+    - ✅ Moved vwap-multi.ex5 to vwap/
+    - ✅ Removed empty compiled_orphans/ directory
+  - **Impact**: 16 files archived (Phase 1), clean indicator organization (Phase 2)
+  - **Next**: Phase 3-5 pruning available in `docs/reports/PRUNING_ASSESSMENT.md`
+  - **Note**: Minor cleanup needed - 10 cc files remain in laguerre_rsi/development/ (can be addressed later)
 - **Key Changes (2025-10-15)**:
   - MT5 idiomatic structure (Scripts/DataExport, Include/DataExport)
   - Project-based indicator folders (ProductionIndicators, PythonInterop, Libraries, Development)
