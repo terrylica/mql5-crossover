@@ -1,15 +1,87 @@
-# Headless Execution Implementation Plan - Python API Bridge
+# Headless Execution Implementation Plan
 
-**Version**: 3.0.0
-**Created**: 2025-10-13
-**Status**: COMPLETE ✅
-**Completed**: 2025-10-13
-**Supersedes**: v2.0.0 (startup.ini approach - conditionally working only)
+**Current Version**: 4.0.0 (File-Based Config - IN PROGRESS)
+**Created**: 2025-10-17
+**Status**: IN PROGRESS 🔄
+
+**Version History**:
+- v4.0.0 (2025-10-17): File-based configuration for custom indicators - IN PROGRESS
+- v3.0.0 (2025-10-13): Python API for market data - COMPLETE ✅
+- v2.1.0 (2025-10-17): Startup.ini parameter passing - FAILED ❌ (NOT VIABLE)
+- v2.0.0 (2025-10-13): Startup.ini basic script launch - CONDITIONALLY WORKING ⚠️
 
 ---
 
-## Implementation Summary
+## v4.0.0: File-Based Configuration (Current - IN PROGRESS)
 
+**Created**: 2025-10-17
+**Status**: IN PROGRESS 🔄
+**Objective**: Enable custom indicator export via file-based parameter passing
+
+**Approach**: MQL5 script reads parameters from `export_config.txt` in `MQL5/Files/` sandbox
+- Bypasses MT5 startup.ini parameter passing complexity
+- Python generates config file before launching MT5
+- Works with custom indicators (unlike v3.0.0 Python API)
+- Full programmatic control
+
+### Implementation Phases
+
+**Phase 1: Design** ⏸️ PENDING
+- [ ] Choose config format (key=value text vs JSON)
+- [ ] Define parameter mappings
+- [ ] Document file location and encoding
+
+**Phase 2: MQL5 Config Reader** ⏸️ PENDING
+- [ ] Implement `LoadConfigFromFile()` function
+- [ ] Add parameter parsing logic
+- [ ] Add fallback to input parameters if no config
+
+**Phase 3: Diagnostic Logging** ⏸️ PENDING
+- [ ] Add parameter value logging
+- [ ] Verify config loading in logs
+- [ ] Test compilation
+
+**Phase 4: Python Config Generator** ⏸️ PENDING
+- [ ] Create `generate_export_config.py` script
+- [ ] Test config file generation
+- [ ] Verify file location and permissions
+
+**Phase 5: Baseline Test (EURUSD)** ⏸️ PENDING
+- [ ] Generate config (100 bars, SMA enabled)
+- [ ] Run export script
+- [ ] Verify logs show config loaded
+- [ ] Verify CSV has 100 bars + SMA column
+
+**Phase 6: Cold-Start Test (XAUUSD)** ⏸️ PENDING
+- [ ] Generate config for XAUUSD
+- [ ] Run export without GUI initialization
+- [ ] Verify success
+
+**Phase 7: Multi-Config Test** ⏸️ PENDING
+- [ ] Test different parameter combinations
+- [ ] Verify flexibility
+
+**Phase 8: Automation Script** ⏸️ PENDING
+- [ ] Create `export_with_config.sh` wrapper
+- [ ] Test end-to-end workflow
+
+**Phase 9: Documentation** ⏸️ PENDING
+- [ ] Document workflow in guides/
+- [ ] Update CLAUDE.md with v4.0.0 status
+
+**Phase 10 (Optional): GUI .set File Test** ⏸️ PENDING
+- [ ] Create one preset via MT5 GUI
+- [ ] Test ScriptParameters with GUI-generated file
+- [ ] Compare with file-based approach
+
+**Current Status**: Phase 1 pending
+
+---
+
+## v3.0.0: Python MetaTrader5 API (COMPLETE ✅)
+
+**Completed**: 2025-10-13
+**Status**: PRODUCTION READY
 **Objective**: True headless MT5 data export without manual GUI initialization
 
 **Result**: ✅ **SUCCESS** - All 5 phases completed
@@ -294,6 +366,72 @@ Exit code: 0 (SUCCESS)
 ```
 
 **Critical Test Result**: This is THE test that FAILED in v2.0.0 - XAUUSD was never opened in the GUI, and the Python API approach successfully selected the symbol and fetched data without ANY manual initialization. **True headless capability confirmed.**
+
+---
+
+## v2.1.0: Startup.ini Parameter Passing (FAILED ❌)
+
+**Date**: 2025-10-17
+**Status**: NOT VIABLE - General MT5 limitation, not Wine-specific
+**Objective**: Pass custom parameters to ExportAligned.mq5 via startup.ini
+
+### Test Results (All Failed)
+
+**Test 1: Named Section Method** - ❌ FAILED
+- Config: `[ExportAligned]` section with all parameters
+- Expected: 100 bars, SMA column, `Export_EURUSD_M1_SMA.csv`
+- Actual: 5000 bars (defaults), RSI column, `Export_EURUSD_PERIOD_M1.csv`
+- **Conclusion**: Named sections NOT supported by MT5 (only `[StartUp]` section documented)
+
+**Test 2: ScriptParameters with .set Preset File** - ❌ FAILED (Script didn't execute)
+- Config: `ScriptParameters=ExportAligned.set`
+- Preset file: UTF-16LE BOM encoded, `MQL5/Presets/ExportAligned.set`
+- Expected: Script executes with preset parameters
+- Actual: Script does NOT execute at all (silent failure)
+- **Conclusion**: ScriptParameters blocks execution when preset file has issues
+
+### Research Findings (4 Parallel Subtasks)
+
+**Finding 1: Named Sections NOT Supported**
+- MT5 documentation only specifies predefined sections (`[StartUp]`, `[Experts]`, etc.)
+- Custom named sections like `[ScriptName]` are NOT documented
+- Windows users report same failure - NOT a Wine bug
+- ✅ Confirmed: Universal MT5 limitation
+
+**Finding 2: ScriptParameters Silent Failure**
+- ScriptParameters IS valid for scripts (not EA-only)
+- Fails silently when:
+  - Wrong encoding (must be UCS-2 LE with BOM)
+  - Wrong location (must be `MQL5/Presets/` root)
+  - Script missing `#property script_show_inputs`
+- MT5 provides ZERO error messages on failure
+- ✅ Confirmed: Strict requirements cause silent failures
+
+**Finding 3: No Wine-Specific Issues**
+- No Wine bugs found for parameter passing
+- All failures replicate on native Windows
+- Community reports confirm same issues on Windows
+- ✅ Confirmed: MT5 design limitation, not Wine compatibility issue
+
+**Finding 4: Alternative Methods Exist**
+- File-based config reading (MQL5 FileOpen/FileReadString)
+- JSON/INI parsing libraries available (JAson.mqh, IniFiles.mqh)
+- Python MetaTrader5 API (v3.0.0 - already working)
+- ✅ Confirmed: Viable alternatives available
+
+### Verdict
+
+**Status**: ❌ NOT VIABLE on CrossOver (or native Windows)
+
+**Reasons**:
+1. Named sections don't work (MT5 limitation, all platforms)
+2. ScriptParameters has strict requirements with silent failures
+3. No error feedback when configuration fails
+4. v3.0.0 Python API + v4.0.0 file-based config are superior solutions
+
+**Recommendation**: Use v3.0.0 for market data, implement v4.0.0 for custom indicators
+
+---
 
 ## Off-the-Shelf Components
 

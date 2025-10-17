@@ -3,17 +3,14 @@
 
 #include <DataExport/DataExportCore.mqh>
 #include <DataExport/modules/RSIModule.mqh>
-#include <DataExport/modules/SMAModule.mqh>
 #include <DataExport/modules/LaguerreRSIModule.mqh>
 
 input string          InpSymbol             = "EURUSD";
 input ENUM_TIMEFRAMES InpTimeframe          = PERIOD_M1;
-input int             InpBars               = 5000;
+input int             InpBars               = 100;
 input bool            InpUseRSI             = true;
 input int             InpRSIPeriod          = 14;
-input bool            InpUseSMA             = false;
-input int             InpSMAPeriod          = 14;
-input bool            InpUseLaguerreRSI     = false;
+input bool            InpUseLaguerreRSI     = true;
 input string          InpLaguerreInstanceID = "A";
 input int             InpLaguerreAtrPeriod  = 32;
 input int             InpLaguerreSmoothPeriod = 5;
@@ -22,23 +19,6 @@ input string          InpOutputName         = "";
 
 void OnStart()
   {
-   // DEBUG: Log all input parameters to diagnose parameter passing
-   Print("=== ExportAligned.mq5 Input Parameters ===");
-   PrintFormat("InpSymbol: '%s'",InpSymbol);
-   PrintFormat("InpTimeframe: %s (%d)",EnumToString(InpTimeframe),InpTimeframe);
-   PrintFormat("InpBars: %d",InpBars);
-   PrintFormat("InpUseRSI: %s",InpUseRSI?"true":"false");
-   PrintFormat("InpRSIPeriod: %d",InpRSIPeriod);
-   PrintFormat("InpUseSMA: %s",InpUseSMA?"true":"false");
-   PrintFormat("InpSMAPeriod: %d",InpSMAPeriod);
-   PrintFormat("InpUseLaguerreRSI: %s",InpUseLaguerreRSI?"true":"false");
-   PrintFormat("InpLaguerreInstanceID: '%s'",InpLaguerreInstanceID);
-   PrintFormat("InpLaguerreAtrPeriod: %d",InpLaguerreAtrPeriod);
-   PrintFormat("InpLaguerreSmoothPeriod: %d",InpLaguerreSmoothPeriod);
-   PrintFormat("InpLaguerreSmoothMethod: %s (%d)",EnumToString(InpLaguerreSmoothMethod),InpLaguerreSmoothMethod);
-   PrintFormat("InpOutputName: '%s'",InpOutputName);
-   Print("========================================");
-
    string symbol=InpSymbol;
    StringTrimLeft(symbol);
    StringTrimRight(symbol);
@@ -49,37 +29,9 @@ void OnStart()
      }
    if(!SymbolSelect(symbol,true))
      {
-      PrintFormat("ERROR: SymbolSelect failed for %s (error %d)",symbol,GetLastError());
+      PrintFormat("SymbolSelect failed for %s (error %d)",symbol,GetLastError());
       return;
      }
-
-   Print("Symbol selected: ",symbol);
-
-   // Wait for history download (Solution A pattern - max 5 seconds)
-   datetime from=TimeCurrent()-PeriodSeconds(InpTimeframe)*1000;
-   int attempts=0;
-   int maxAttempts=50;  // 50 * 100ms = 5 seconds
-
-   while(attempts<maxAttempts)
-     {
-      datetime time[];
-      int copied=CopyTime(symbol,InpTimeframe,0,1,time);
-      if(copied>0)
-         break;
-
-      Sleep(100);
-      attempts++;
-     }
-
-   if(attempts>=maxAttempts)
-     {
-      PrintFormat("ERROR: History download timeout for %s %s after %d ms",
-                  symbol,EnumToString(InpTimeframe),maxAttempts*100);
-      return;
-     }
-
-   PrintFormat("History available for %s %s (waited %d ms)",
-               symbol,EnumToString(InpTimeframe),attempts*100);
 
    BarSeries series;
    if(!LoadRates(symbol,InpTimeframe,InpBars,series))
@@ -107,20 +59,6 @@ void OnStart()
         }
       ArrayResize(columns,columnCount+1);
       columns[columnCount]=rsiColumn;
-      columnCount++;
-     }
-
-   if(InpUseSMA)
-     {
-      IndicatorColumn smaColumn;
-      string smaError="";
-      if(!SMAModule_Load(symbol,InpTimeframe,series.count,InpSMAPeriod,smaColumn,smaError))
-        {
-         PrintFormat("SMA module failed: %s",smaError);
-         return;
-        }
-      ArrayResize(columns,columnCount+1);
-      columns[columnCount]=smaColumn;
       columnCount++;
      }
 
