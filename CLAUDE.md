@@ -9,18 +9,22 @@
 
 ## Core Guides
 
-- **[QUICKSTART.md](docs/guides/QUICKSTART.md)** - 5-minute setup and validation
+### Master Workflow
+- **[MQL5_TO_PYTHON_MIGRATION_GUIDE.md](docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md)** - **⭐ START HERE** - Complete MQL5→Python indicator migration workflow (7 phases, battle-tested, 2-4 hours first time)
+
+### Quick References
 - **[WINE_PYTHON_EXECUTION.md](docs/guides/WINE_PYTHON_EXECUTION.md)** - v3.0.0 Wine Python execution (production) - CX_BOTTLE, path navigation, RSI formula, diagnostics
 - **[MT5_FILE_LOCATIONS.md](docs/guides/MT5_FILE_LOCATIONS.md)** - Complete MT5 file paths and indicator translation workflow
 - **[MQL5_ENCODING_SOLUTIONS.md](docs/guides/MQL5_ENCODING_SOLUTIONS.md)** - MQL5 encoding guide - UTF-8/UTF-16LE both work, chardet, Git integration, Python patterns
 - **[LAGUERRE_RSI_ANALYSIS.md](docs/guides/LAGUERRE_RSI_ANALYSIS.md)** - ATR Adaptive Smoothed Laguerre RSI - Complete algorithm breakdown and Python translation guide
+- **[PYTHON_INDICATOR_VALIDATION_FAILURES.md](docs/guides/PYTHON_INDICATOR_VALIDATION_FAILURES.md)** - Hard-learned lessons from validation failures - NaN traps, warmup requirements, pandas pitfalls (3 hours of debugging)
+- **[EXTERNAL_RESEARCH_BREAKTHROUGHS.md](docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md)** - Critical lessons from external AI research - /inc parameter trap, script automation via config files, Python API limitations, path handling in CrossOver
 - **[LAGUERRE_RSI_TEMPORAL_AUDIT.md](docs/guides/LAGUERRE_RSI_TEMPORAL_AUDIT.md)** - Temporal leakage audit - No look-ahead bias detected, approved for production use
 - **[LAGUERRE_RSI_SHARED_STATE_BUG.md](docs/guides/LAGUERRE_RSI_SHARED_STATE_BUG.md)** - Fixed: Shared laguerreWork array - Separate instances for normal/custom timeframe (root cause)
 - **[LAGUERRE_RSI_ARRAY_INDEXING_BUG.md](docs/guides/LAGUERRE_RSI_ARRAY_INDEXING_BUG.md)** - Fixed: Series indexing direction - Loop backwards for proper EMA calculation
 - **[LAGUERRE_RSI_BUG_FIX_SUMMARY.md](docs/guides/LAGUERRE_RSI_BUG_FIX_SUMMARY.md)** - Fixed: Price smoothing bug - All MA methods now work in custom timeframe mode
 - **[LAGUERRE_RSI_BUG_REPORT.md](docs/guides/LAGUERRE_RSI_BUG_REPORT.md)** - Original bug report (EMA vs SMA inconsistency) - RESOLVED
 - **[MQL5_CLI_COMPILATION_SUCCESS.md](docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md)** - CLI compilation via CrossOver --cx-app flag (~1s compile time, production-ready)
-- **[AI_AGENT_WORKFLOW.md](docs/guides/AI_AGENT_WORKFLOW.md)** - Complete development workflow for AI agents
 - **[CROSSOVER_MQ5.md](docs/guides/CROSSOVER_MQ5.md)** - MT5/CrossOver technical reference and shell setup (v2.0.0 legacy)
 - **[BOTTLE_TRACKING.md](docs/guides/BOTTLE_TRACKING.md)** - CrossOver bottle file tracking via X: drive mapping
 
@@ -33,8 +37,10 @@
 
 ## Validation Reports
 
+- **[DOCUMENTATION_READINESS_ASSESSMENT.md](docs/reports/DOCUMENTATION_READINESS_ASSESSMENT.md)** - **⭐ READINESS AUDIT** - Comprehensive assessment of documentation completeness, workspace structure, and migration readiness (95/100 score)
 - **[VALIDATION_STATUS.md](docs/reports/VALIDATION_STATUS.md)** - Current SLO metrics and test results
 - **[SUCCESS_REPORT.md](docs/reports/SUCCESS_REPORT.md)** - Manual and headless validation (0.999902 correlation)
+- **[LAGUERRE_RSI_VALIDATION_SUCCESS.md](docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md)** - Python Laguerre RSI validation (1.000000 correlation, 5000-bar warmup methodology)
 
 ## Architecture
 
@@ -80,6 +86,12 @@ docs/                                      # Documentation hub
 └── archive/                               # Historical/deprecated
 
 archive/                                   # Legacy code preserved
+├── experiments/                           # Spike tests and prototypes (5 files)
+├── plans/                                 # Completed plan documents (8 files)
+├── docs/                                  # Outdated guides with version markers
+│   ├── QUICKSTART.v2.0.0.md              # v2.0.0 startup.ini approach
+│   ├── AI_AGENT_WORKFLOW.v2.0.0.md       # v2.0.0 development patterns
+│   └── MQL5_CLI_COMPILATION_INVESTIGATION.md  # 11+ failed attempts (historical)
 ├── indicators/                            # Archived indicator versions
 │   ├── laguerre_rsi/                     # Development history
 │   └── compiled_orphans/                 # Orphaned .ex5 files
@@ -100,7 +112,7 @@ exports/                                   # CSV exports (gitignored)
 
 | Topic                       | Authoritative Document                  |
 | --------------------------- | --------------------------------------- |
-| Quick Start                 | `docs/guides/QUICKSTART.md`             |
+| **MQL5→Python Migration Workflow (MASTER)** | **`docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md`** |
 | Wine Python Execution (v3.0.0) | `docs/guides/WINE_PYTHON_EXECUTION.md`  |
 | MT5 File Paths & Translation | `docs/guides/MT5_FILE_LOCATIONS.md`     |
 | MQL5 Encoding (UTF-8/UTF-16LE) | `docs/guides/MQL5_ENCODING_SOLUTIONS.md` |
@@ -110,15 +122,17 @@ exports/                                   # CSV exports (gitignored)
 | Laguerre RSI Array Indexing Bug | `docs/guides/LAGUERRE_RSI_ARRAY_INDEXING_BUG.md` |
 | Laguerre RSI Price Smoothing Bug | `docs/guides/LAGUERRE_RSI_BUG_FIX_SUMMARY.md` |
 | Laguerre RSI Original Bug Report | `docs/guides/LAGUERRE_RSI_BUG_REPORT.md` |
+| Python Indicator Validation Methodology | `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md` |
+| Python Indicator Validation Failures & Debugging | `docs/guides/PYTHON_INDICATOR_VALIDATION_FAILURES.md` |
+| External Research Breakthroughs (MQL5 CLI, Script Automation, Python API) | `docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md` |
 | MQL5 CLI Compilation (Production) | `docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md` |
-| Development Workflow        | `docs/guides/AI_AGENT_WORKFLOW.md`      |
 | MT5/CrossOver Setup (v2.0.0) | `docs/guides/CROSSOVER_MQ5.md`          |
 | Bottle File Tracking        | `docs/guides/BOTTLE_TRACKING.md`        |
 | Headless Execution Plan     | `docs/plans/HEADLESS_EXECUTION_PLAN.md` |
 | Validation Status           | `docs/reports/VALIDATION_STATUS.md`     |
+| Documentation Readiness Assessment | `docs/reports/DOCUMENTATION_READINESS_ASSESSMENT.md` |
+| Pruning Assessment          | `docs/reports/PRUNING_ASSESSMENT.md`    |
 | Historical Context          | `docs/archive/historical.txt`           |
-| MT5 Idiomatic Refactoring   | `docs/plans/MT5_IDIOMATIC_REFACTORING.md` |
-| Workspace Refactoring Plan  | `docs/plans/WORKSPACE_REFACTORING_PLAN.md` |
 
 ## Python Workspace Utilities
 
@@ -126,12 +140,13 @@ exports/                                   # CSV exports (gitignored)
 
 **Core Scripts**:
 - `export_aligned.py` - Wine Python v3.0.0 data export (headless, production)
-- `validate_export.py` - CSV validation with correlation checking (0.999+ requirement)
+- `validate_indicator.py` - Universal indicator validation framework (v1.0.0, production)
+- `validate_export.py` - ⚠️ DEPRECATED - Use validate_indicator.py instead (RSI-only legacy tool)
 - `test_mt5_connection.py` - MT5 connection diagnostics
 - `test_xauusd_info.py` - Symbol information testing
 
 **Python Indicators**:
-- `indicators/laguerre_rsi.py` - Laguerre RSI implementation
+- `indicators/laguerre_rsi.py` - Laguerre RSI implementation (v1.0.0, validated 1.000000 correlation)
 - `indicators/__init__.py` - Package initialization
 
 **Output**:
@@ -146,8 +161,14 @@ wine "C:\\Program Files\\Python312\\python.exe" \
   "C:\\users\\crossover\\export_aligned.py" \
   --symbol EURUSD --period M1 --bars 5000
 
-# Validate correlation
+# Validate correlation (simple)
 python validate_export.py ../../exports/Export_EURUSD_PERIOD_M1.csv
+
+# Validate indicator (comprehensive)
+python validate_indicator.py \
+  --csv /path/to/Export_EURUSD_PERIOD_M1.csv \
+  --indicator laguerre_rsi \
+  --threshold 0.999
 ```
 
 ## Indicator Organization
@@ -287,6 +308,14 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
 - CSV copy: macOS native paths `~/Library/.../drive_c/users/...`
 - See `docs/guides/WINE_PYTHON_EXECUTION.md ` for complete path navigation guide
 
+**Python Indicator Validation Requirements**:
+- **Historical Warmup Requirement**: Python implementations need identical historical context as MQL5
+- Cannot compare MQL5 indicator with full history to Python cold start (will produce ~0.95 correlation)
+- Solution: Fetch 5000+ bars using Wine Python MT5 API, calculate on all bars, compare last N bars
+- ATR requires 32-bar lookback, Adaptive Period requires 64-bar warmup for stable values
+- MQL5 ATR uses expanding window for first N bars (sum/period), not pandas rolling().mean()
+- See `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md ` for complete methodology
+
 ### v2.0.0 (startup.ini) - LEGACY ⚠️
 
 **Status**: Deprecated (use v3.0.0 instead)
@@ -307,8 +336,17 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
 
 - **Version**: 2.0.0 (MT5 idiomatic refactoring 2025-10-15)
 - **Headless Execution**: v3.0.0 (Python API validated)
-- **Latest Validation**: EURUSD M1 - 100 bars (2025-10-15)
+- **Latest Validation**: Laguerre RSI - 1.000000 correlation, 5000-bar warmup (2025-10-17)
+- **Python Indicators**: Laguerre RSI v1.0.0 (validated, production-ready)
 - **Structure**: MT5 idiomatic hierarchy with project-based organization
+- **Pruning Status** (2025-10-17 Phase 1 COMPLETE):
+  - ✅ Archived 5 spike test files → `archive/experiments/`
+  - ✅ Archived 8 completed plan documents → `archive/plans/`
+  - ✅ Archived 3 outdated guides with version markers → `archive/docs/`
+  - ✅ Added deprecation warning to `validate_export.py`
+  - ✅ Updated CLAUDE.md (removed 3 guides, cleaned Single Source of Truth table)
+  - **Impact**: 16 files archived, 49% file count reduction in target areas
+  - **Next**: Phase 2-5 pruning available in `docs/reports/PRUNING_ASSESSMENT.md`
 - **Key Changes (2025-10-15)**:
   - MT5 idiomatic structure (Scripts/DataExport, Include/DataExport)
   - Project-based indicator folders (ProductionIndicators, PythonInterop, Libraries, Development)
@@ -316,14 +354,22 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
   - ConsecutivePattern (cc) indicator with local dependencies
   - Single Custom/ folder structure
   - Legacy code archived (archive/)
-- **Critical Discoveries (2025-10-13)**:
-  - CX_BOTTLE environment variable requirement
-  - RSI formula fix (span → alpha)
-  - Column name normalization
-  - Path navigation patterns (macOS ↔ Wine)
-  - MT5 file locations fully documented
-  - CLI compilation via `--cx-app` and `--bottle` flags
-  - CrossOver path: `~/Applications/` not `/Applications/`
+- **Critical Discoveries**:
+  - **2025-10-17**: External Research Breakthroughs
+    - MQL5 `/inc` parameter OVERRIDES (not augments) default include paths - omit unless using external includes
+    - Script automation via `[StartUp]` config section with `ShutdownTerminal=1` for headless operation
+    - Python MetaTrader5 API cannot access indicator buffers (no `copy_buffer()` or `create_indicator()`)
+    - CrossOver path handling: spaces in paths break Wine compilation silently
+  - **2025-10-17**: Python indicator validation methodology (historical warmup requirement)
+  - **2025-10-17**: MQL5 ATR expanding window behavior (sum/period for first N bars)
+  - **2025-10-17**: Perfect correlation (1.000000) achieved with 5000-bar warmup
+  - **2025-10-13**: CX_BOTTLE environment variable requirement
+  - **2025-10-13**: RSI formula fix (span → alpha)
+  - **2025-10-13**: Column name normalization
+  - **2025-10-13**: Path navigation patterns (macOS ↔ Wine)
+  - **2025-10-13**: MT5 file locations fully documented
+  - **2025-10-13**: CLI compilation via `--cx-app` and `--bottle` flags
+  - **2025-10-13**: CrossOver path: `~/Applications/` not `/Applications/`
 - **Documentation**: Complete empirical workflow guides
   - Production: `WINE_PYTHON_EXECUTION.md ` (v3.0.0 workflow)
   - File Paths: `MT5_FILE_LOCATIONS.md ` (indicator translation)
@@ -337,16 +383,22 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
 - File location discovery (documented with absolute paths)
 - Wine Python execution (v3.0.0 validated, CX_BOTTLE + WINEPREFIX)
 - CLI compilation (CrossOver --cx-app, ~1s compile time)
-- Validation pipeline (0.999+ correlation requirement)
+- Validation pipeline (0.999+ correlation requirement, 5000-bar warmup methodology)
+- Python indicator library (Laguerre RSI v1.0.0 validated at 1.000000 correlation)
 - CSV export workflow (column normalization)
 - Git tracking (organized structure)
 - Path navigation (macOS ↔ Wine documented)
 
 **Needs Improvement**:
 - Dependency resolution (manual `#include` tracking)
-- Indicator library structure (Python indicator modules)
 - State management patterns (class-based indicator templates)
 - Performance benchmarking (validation criteria)
+
+**Resolved (2025-10-17)**:
+- Python Indicator Validation Methodology - 5000-bar warmup requirement documented
+- Laguerre RSI Python Implementation - v1.0.0 validated (1.000000 correlation)
+- ATR Expanding Window Behavior - MQL5 behavior documented and replicated in Python
+- Historical Data Fetching - Wine Python MT5 API method documented
 
 **Resolved (2025-10-16)**:
 - Temporal Leakage Audit - ATR Adaptive Laguerre RSI verified clean (no look-ahead bias)
@@ -363,10 +415,12 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
 - CLI Compilation - CrossOver --cx-app flag method (~1s compile time)
 
 **Next Steps**:
-1. Test Laguerre RSI with multiple instance IDs
-2. Expand Python indicators library (users/crossover/indicators/)
-3. Integrate additional indicators with export_aligned.py
-4. Validate correlation ≥ 0.999 between MQL5 and Python implementations
+1. ✅ Validate Laguerre RSI Python implementation (COMPLETE: 1.000000 correlation)
+2. ✅ Document historical warmup validation methodology (COMPLETE: see LAGUERRE_RSI_VALIDATION_SUCCESS.md)
+3. Expand Python indicators library (additional indicators beyond Laguerre RSI)
+4. Integrate Laguerre RSI with export_aligned.py
+5. Test Laguerre RSI with multiple instance IDs on chart
+6. Create class-based indicator API for real-time incremental updates
 
 **Encoding Quick Reference**:
 ```python

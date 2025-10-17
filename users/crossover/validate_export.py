@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
 """
+⚠️ DEPRECATED - Use validate_indicator.py instead
+
+This script is superseded by validate_indicator.py which provides:
+- Universal validation framework (not RSI-specific)
+- Better column name normalization
+- Multi-indicator support
+- Historical warmup handling
+
+For new validations, use:
+  python validate_indicator.py --csv <file> --indicator <name> --threshold 0.999
+
+---
+
 Validate MT5 exported CSV data and compare with Python implementations.
 
 This script:
