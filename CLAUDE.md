@@ -19,6 +19,7 @@
 - **[LAGUERRE_RSI_ANALYSIS.md](docs/guides/LAGUERRE_RSI_ANALYSIS.md)** - ATR Adaptive Smoothed Laguerre RSI - Complete algorithm breakdown and Python translation guide
 - **[PYTHON_INDICATOR_VALIDATION_FAILURES.md](docs/guides/PYTHON_INDICATOR_VALIDATION_FAILURES.md)** - Hard-learned lessons from validation failures - NaN traps, warmup requirements, pandas pitfalls (3 hours of debugging)
 - **[EXTERNAL_RESEARCH_BREAKTHROUGHS.md](docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md)** - Critical lessons from external AI research - /inc parameter trap, script automation via config files, Python API limitations, path handling in CrossOver
+- **[SCRIPT_PARAMETER_PASSING_RESEARCH.md](docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md)** - MQL5 Script Parameter Passing - Community research on startup.ini + ScriptParameters + .set files (30+ sources, 7 working examples, known bugs documented)
 - **[LAGUERRE_RSI_TEMPORAL_AUDIT.md](docs/guides/LAGUERRE_RSI_TEMPORAL_AUDIT.md)** - Temporal leakage audit - No look-ahead bias detected, approved for production use
 - **[LAGUERRE_RSI_SHARED_STATE_BUG.md](docs/guides/LAGUERRE_RSI_SHARED_STATE_BUG.md)** - Fixed: Shared laguerreWork array - Separate instances for normal/custom timeframe (root cause)
 - **[LAGUERRE_RSI_ARRAY_INDEXING_BUG.md](docs/guides/LAGUERRE_RSI_ARRAY_INDEXING_BUG.md)** - Fixed: Series indexing direction - Loop backwards for proper EMA calculation
@@ -30,10 +31,13 @@
 
 ## Implementation Plans
 
-- **[HEADLESS_EXECUTION_PLAN.md](docs/plans/HEADLESS_EXECUTION_PLAN.md)** - v3.0.0 Python API approach (COMPLETE)
-  - **Supersedes**: v2.0.0 startup.ini approach (conditionally working only)
+- **[HEADLESS_EXECUTION_PLAN.md](docs/plans/HEADLESS_EXECUTION_PLAN.md)** - v4.0.0 File-based config approach (IN PROGRESS)
+  - **v4.0.0**: File-based configuration for custom indicators - IN PROGRESS 🔄
+  - **v3.0.0**: Python API for market data - COMPLETE ✅
+  - **v2.1.0**: Startup.ini parameter passing - FAILED ❌ (NOT VIABLE)
+  - **v2.0.0**: Basic startup.ini script launch - CONDITIONALLY WORKING ⚠️
   - **Key Achievement**: True headless execution without GUI initialization
-  - **Status**: All 5 phases complete, cold start validated
+  - **Status**: v3.0.0 production-ready, v4.0.0 design phase
 
 ## Validation Reports
 
@@ -135,10 +139,11 @@ exports/                                   # CSV exports (gitignored)
 | Python Indicator Validation Methodology | `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md` |
 | Python Indicator Validation Failures & Debugging | `docs/guides/PYTHON_INDICATOR_VALIDATION_FAILURES.md` |
 | External Research Breakthroughs (MQL5 CLI, Script Automation, Python API) | `docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md` |
+| MQL5 Script Parameter Passing (startup.ini, ScriptParameters, .set files) | `docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md` |
 | MQL5 CLI Compilation (Production) | `docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md` |
 | MT5/CrossOver Setup (v2.0.0) | `docs/guides/CROSSOVER_MQ5.md`          |
 | Bottle File Tracking        | `docs/guides/BOTTLE_TRACKING.md`        |
-| Headless Execution Plan     | `docs/plans/HEADLESS_EXECUTION_PLAN.md` |
+| Headless Execution Plan (v4.0.0 File-based + v3.0.0 Python API) | `docs/plans/HEADLESS_EXECUTION_PLAN.md` |
 | Validation Status           | `docs/reports/VALIDATION_STATUS.md`     |
 | Documentation Readiness Assessment | `docs/reports/DOCUMENTATION_READINESS_ASSESSMENT.md` |
 | Pruning Assessment          | `docs/reports/PRUNING_ASSESSMENT.md`    |
@@ -231,6 +236,32 @@ cp "$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/use
 
 # Validate
 cd users/crossover && python validate_export.py ../../exports/Export_EURUSD_PERIOD_M1.csv
+
+# Kill MT5 Processes (reliable 3-step method)
+# Step 1: Identify processes with PIDs
+ps aux | grep -E "terminal64|wineserver" | grep -v grep
+
+# Step 2: Kill by specific PID (not by name)
+kill -9 <PID_terminal64>
+kill -9 <PID_wineserver>
+
+# Step 3: Verify termination (wait 2-3 seconds)
+sleep 3
+ps aux | grep -E "terminal64|wineserver" | grep -v grep || echo "✅ All killed"
+
+# Run MQL5 Script Headless (v2.1.0 Solution A - via startup.ini)
+CROSSOVER_BIN="$HOME/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/cxstart"
+BOTTLE_NAME="MetaTrader 5"
+TERMINAL_EXE="C:\\Program Files\\MetaTrader 5\\terminal64.exe"
+
+timeout 120 "$CROSSOVER_BIN" \
+  --bottle "$BOTTLE_NAME" \
+  --wait-children \
+  -- \
+  "$TERMINAL_EXE" \
+  /portable \
+  /skipupdate \
+  /config:"Config\\startup_sma_test.ini"
 ```
 
 ## Service Level Objectives
@@ -344,8 +375,8 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
 
 ## Project Status
 
-- **Version**: 2.0.0 (MT5 idiomatic refactoring 2025-10-15)
-- **Headless Execution**: v3.0.0 (Python API validated)
+- **Version**: 4.0.0 (File-based config implementation 2025-10-17)
+- **Headless Execution**: v3.0.0 (Python API PRODUCTION) + v4.0.0 (File-based config IN PROGRESS) + v2.1.0 (startup.ini parameter passing NOT VIABLE)
 - **Latest Validation**: Laguerre RSI - 1.000000 correlation, 5000-bar warmup (2025-10-17)
 - **Python Indicators**: Laguerre RSI v1.0.0 (validated, production-ready)
 - **Structure**: MT5 idiomatic hierarchy with project-based organization
@@ -375,6 +406,14 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
   - Single Custom/ folder structure
   - Legacy code archived (archive/)
 - **Critical Discoveries**:
+  - **2025-10-17**: v2.1.0 Startup.ini Parameter Passing (NOT VIABLE)
+    - Named sections `[ScriptName]` NOT supported by MT5 (Windows + Wine)
+    - ScriptParameters directive blocks execution with silent failure
+    - .set preset files require: UTF-16LE BOM, MQL5/Presets/ location, `#property script_show_inputs`
+    - File-based config reading is viable alternative (v4.0.0)
+    - startup.ini config location: `C:\users\crossover\Config\` (not `Program Files/.../Config/`)
+    - Script path resolution: MT5 adds "Scripts\" prefix automatically
+    - Process management: Kill by PID (not name), verify termination, check both terminal64 and wineserver
   - **2025-10-17**: External Research Breakthroughs
     - MQL5 `/inc` parameter OVERRIDES (not augments) default include paths - omit unless using external includes
     - Script automation via `[StartUp]` config section with `ShutdownTerminal=1` for headless operation
