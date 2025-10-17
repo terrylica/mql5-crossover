@@ -3,7 +3,7 @@
 #property link      "mladenfx@gmail.com"
 //------------------------------------------------------------------
 #property indicator_separate_window
-#property indicator_buffers 3
+#property indicator_buffers 5
 #property indicator_plots   1
 #property indicator_type1   DRAW_COLOR_LINE
 #property indicator_color1  clrGray,clrDodgerBlue,clrTomato
@@ -27,9 +27,11 @@ input double             inpLevelDown   = 0.15;           // Level down
 // Global variables and buffers
 //------------------------------------------------------------------
 // Indicator buffers
-double val[];     // Main indicator values buffer
-double valc[];    // Color index buffer
-double prices[];  // Price values buffer
+double val[];            // Main indicator values buffer
+double valc[];           // Color index buffer
+double prices[];         // Price values buffer
+double adaptivePeriod[]; // Adaptive period buffer (for export)
+double atr[];            // ATR buffer (for export)
 
 // Forward declarations for structs used in multiple places
 struct sLaguerreDataStruct;
@@ -120,9 +122,11 @@ int OnInit()
 void SetupIndicatorBuffers()
 {
    // Set indicator buffers
-   SetIndexBuffer(0, val, INDICATOR_DATA);        // Main values
-   SetIndexBuffer(1, valc, INDICATOR_COLOR_INDEX); // Color index
-   SetIndexBuffer(2, prices, INDICATOR_CALCULATIONS); // Price data for calculations
+   SetIndexBuffer(0, val, INDICATOR_DATA);               // Main values
+   SetIndexBuffer(1, valc, INDICATOR_COLOR_INDEX);        // Color index
+   SetIndexBuffer(2, prices, INDICATOR_CALCULATIONS);     // Price data for calculations
+   SetIndexBuffer(3, adaptivePeriod, INDICATOR_CALCULATIONS); // Adaptive period (for export)
+   SetIndexBuffer(4, atr, INDICATOR_CALCULATIONS);        // ATR values (for export)
 }
 
 //+------------------------------------------------------------------+
@@ -259,6 +263,9 @@ int OnCalculate(const int rates_total,const int prev_calculated,const datetime &
       // Calculate ATR as average of TR values
       atrWork[i].atr = atrWork[i].trSum / (double)inpAtrPeriod;
 
+      // Store ATR in buffer for export
+      atr[i] = atrWork[i].atr;
+
       // Calculate ATR min/max for adaptive coefficient
       // FIXED: Removed cache check with temporal violation (atrWork[i+1])
       // Always recalculate to avoid look-ahead bias
@@ -289,7 +296,10 @@ int OnCalculate(const int rates_total,const int prev_calculated,const datetime &
       
       // Calculate Laguerre RSI with adaptive period exactly as original
       val[i] = iLaGuerreRsi(prices[i], inpAtrPeriod*(_coeff+0.75), i, rates_total);
-      
+
+      // Store adaptive period in buffer for export
+      adaptivePeriod[i] = inpAtrPeriod*(_coeff+0.75);
+
       // Set color based on RSI thresholds
       valc[i] = (val[i]>inpLevelUp) ? 1 : (val[i]<inpLevelDown) ? 2 : 0;
    }

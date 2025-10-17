@@ -50,6 +50,9 @@ def calculate_true_range(high: pd.Series, low: pd.Series, close: pd.Series) -> p
 def calculate_atr(tr: pd.Series, period: int = 14) -> pd.Series:
     """Calculate ATR using simple moving average of True Range.
 
+    Matches MQL5 behavior: uses expanding window for first `period` bars,
+    then switches to sliding window.
+
     Args:
         tr: True Range values
         period: ATR period (default 14)
@@ -66,14 +69,27 @@ def calculate_atr(tr: pd.Series, period: int = 14) -> pd.Series:
     if len(tr) == 0:
         raise ValueError("True Range series is empty")
 
-    # Simple moving average of TR
-    atr = tr.rolling(window=period).mean()
+    # Calculate ATR like MQL5: expanding window then sliding window
+    # For bars 0 to period-1: use expanding mean (sum of available bars / period)
+    # For bar >= period: use rolling mean
+    atr = pd.Series(index=tr.index, dtype=float)
+
+    for i in range(len(tr)):
+        if i < period:
+            # Initial accumulation: sum all available bars, divide by period
+            atr.iloc[i] = tr.iloc[:i+1].sum() / period
+        else:
+            # Sliding window: average of last `period` bars
+            atr.iloc[i] = tr.iloc[i-period+1:i+1].mean()
 
     return atr
 
 
 def calculate_atr_min_max(atr: pd.Series, period: int) -> tuple[pd.Series, pd.Series]:
     """Calculate rolling minimum and maximum ATR over lookback period.
+
+    Matches MQL5 behavior: uses expanding window for first `period` bars,
+    then switches to sliding window.
 
     Args:
         atr: ATR values
@@ -91,9 +107,23 @@ def calculate_atr_min_max(atr: pd.Series, period: int) -> tuple[pd.Series, pd.Se
     if len(atr) == 0:
         raise ValueError("ATR series is empty")
 
-    # Rolling min/max over lookback period
-    min_atr = atr.rolling(window=period).min()
-    max_atr = atr.rolling(window=period).max()
+    # Calculate min/max like MQL5: expanding window then sliding window
+    min_atr = pd.Series(index=atr.index, dtype=float)
+    max_atr = pd.Series(index=atr.index, dtype=float)
+
+    for i in range(len(atr)):
+        if i == 0:
+            # First bar: min = max = current ATR
+            min_atr.iloc[i] = atr.iloc[i]
+            max_atr.iloc[i] = atr.iloc[i]
+        elif i < period:
+            # Expanding window: look at all available bars
+            min_atr.iloc[i] = atr.iloc[:i+1].min()
+            max_atr.iloc[i] = atr.iloc[:i+1].max()
+        else:
+            # Sliding window: look at last `period` bars
+            min_atr.iloc[i] = atr.iloc[i-period+1:i+1].min()
+            max_atr.iloc[i] = atr.iloc[i-period+1:i+1].max()
 
     return min_atr, max_atr
 

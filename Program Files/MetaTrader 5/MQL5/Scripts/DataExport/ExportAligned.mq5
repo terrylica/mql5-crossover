@@ -3,13 +3,19 @@
 
 #include <DataExport/DataExportCore.mqh>
 #include <DataExport/modules/RSIModule.mqh>
+#include <DataExport/modules/LaguerreRSIModule.mqh>
 
-input string          InpSymbol     = "EURUSD";
-input ENUM_TIMEFRAMES InpTimeframe  = PERIOD_M1;
-input int             InpBars       = 5000;
-input bool            InpUseRSI     = true;
-input int             InpRSIPeriod  = 14;
-input string          InpOutputName = "";
+input string          InpSymbol             = "EURUSD";
+input ENUM_TIMEFRAMES InpTimeframe          = PERIOD_M1;
+input int             InpBars               = 5000;
+input bool            InpUseRSI             = true;
+input int             InpRSIPeriod          = 14;
+input bool            InpUseLaguerreRSI     = false;
+input string          InpLaguerreInstanceID = "A";
+input int             InpLaguerreAtrPeriod  = 32;
+input int             InpLaguerreSmoothPeriod = 5;
+input ENUM_MA_METHOD  InpLaguerreSmoothMethod = MODE_EMA;
+input string          InpOutputName         = "";
 
 void OnStart()
   {
@@ -53,6 +59,38 @@ void OnStart()
         }
       ArrayResize(columns,columnCount+1);
       columns[columnCount]=rsiColumn;
+      columnCount++;
+     }
+
+   if(InpUseLaguerreRSI)
+     {
+      IndicatorColumn laguerreColumn, signalColumn, adaptivePeriodColumn, atrColumn;
+      string laguerreError="";
+      if(!LaguerreRSIModule_Load(
+            symbol,
+            InpTimeframe,
+            series.count,
+            InpLaguerreInstanceID,
+            InpLaguerreAtrPeriod,
+            InpLaguerreSmoothPeriod,
+            InpLaguerreSmoothMethod,
+            laguerreColumn,
+            signalColumn,
+            adaptivePeriodColumn,
+            atrColumn,
+            laguerreError))
+        {
+         PrintFormat("Laguerre RSI module failed: %s",laguerreError);
+         return;
+        }
+      ArrayResize(columns,columnCount+4);
+      columns[columnCount]=laguerreColumn;
+      columnCount++;
+      columns[columnCount]=signalColumn;
+      columnCount++;
+      columns[columnCount]=adaptivePeriodColumn;
+      columnCount++;
+      columns[columnCount]=atrColumn;
       columnCount++;
      }
 
