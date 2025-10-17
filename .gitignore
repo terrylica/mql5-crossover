@@ -76,23 +76,29 @@ Program Files/MetaTrader 5/MQL5/Shared Projects/
 # Exclude MT5 standard library (keep only custom includes in Indicators/)
 Program Files/MetaTrader 5/MQL5/Include/
 
-# MT5 Config (some configs we might want to track)
-# For now, ignore all except specific ones
+# MT5 Config (Runtime state - DO NOT TRACK)
+Program Files/MetaTrader 5/Config/*.ini
 Program Files/MetaTrader 5/Config/*.dat
 Program Files/MetaTrader 5/Config/*.lic
-Program Files/MetaTrader 5/Config/startup_*.ini
 
-# Keep the main config files
-!Program Files/MetaTrader 5/Config/common.ini
-!Program Files/MetaTrader 5/Config/terminal.ini
+# Keep only specific config templates if needed
+# !Program Files/MetaTrader 5/Config/template.ini
 
 # ============================================
-# CSV Exports (Too Large)
+# CSV Exports & Data Files (Too Large / Generated)
 # ============================================
+# Export directory CSVs
 users/crossover/exports/*.csv
-
-# But keep the directory structure
 !users/crossover/exports/.gitkeep
+
+# MQL5 Files directory (runtime exports)
+Program Files/MetaTrader 5/MQL5/Files/*.csv
+Program Files/MetaTrader 5/MQL5/Files/*.txt
+
+# Python workspace data files
+users/crossover/*.csv
+users/crossover/*.ddb
+users/crossover/*_output.txt
 
 # ============================================
 # Windows User Data (DO NOT TRACK)
