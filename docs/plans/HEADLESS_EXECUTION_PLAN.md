@@ -26,10 +26,75 @@
 
 ### Implementation Phases
 
-**Phase 1: Design** ⏸️ PENDING
-- [ ] Choose config format (key=value text vs JSON)
-- [ ] Define parameter mappings
-- [ ] Document file location and encoding
+**Phase 1: Design** ✅ COMPLETE
+- [x] Choose config format: key=value text (simpler, no JSON parsing needed)
+- [x] Define parameter mappings: Match `ExportAligned.mq5` input names exactly
+- [x] Document file location: `MQL5/Files/export_config.txt` (accessible from MQL5 + Python)
+- [x] Document encoding: UTF-8 (standard, matches MQL5 string handling)
+
+**Design Decisions**:
+
+**1. Config Format: Key=Value Text**
+```
+# Example: export_config.txt
+InpSymbol=EURUSD
+InpTimeframe=1
+InpBars=100
+InpUseRSI=false
+InpUseSMA=true
+InpSMAPeriod=14
+InpUseLaguerreRSI=false
+InpOutputName=Export_EURUSD_M1_SMA.csv
+```
+- **Rationale**: Simple parsing with MQL5 `FileReadString()` + `StringSplit()`
+- **Alternative Rejected**: JSON (requires external library like JAson.mqh, more complex)
+- **Format Rules**:
+  - One parameter per line
+  - Format: `ParameterName=Value`
+  - Boolean values: `true`/`false` (lowercase)
+  - String values: no quotes needed
+  - Comments: Lines starting with `#` ignored
+  - Empty lines ignored
+
+**2. Parameter Mappings** (Match ExportAligned.mq5 inputs exactly):
+| Config File Parameter | MQL5 Input Variable | Type | Default | Notes |
+|-----------------------|---------------------|------|---------|-------|
+| `InpSymbol` | `InpSymbol` | string | "EURUSD" | Symbol name |
+| `InpTimeframe` | `InpTimeframe` | int | 1 | ENUM: 1=M1, 5=M5, 60=H1, etc. |
+| `InpBars` | `InpBars` | int | 5000 | Number of bars to export |
+| `InpUseRSI` | `InpUseRSI` | bool | true | Enable RSI indicator |
+| `InpRSIPeriod` | `InpRSIPeriod` | int | 14 | RSI period |
+| `InpUseSMA` | `InpUseSMA` | bool | false | Enable SMA indicator |
+| `InpSMAPeriod` | `InpSMAPeriod` | int | 14 | SMA period |
+| `InpUseLaguerreRSI` | `InpUseLaguerreRSI` | bool | false | Enable Laguerre RSI |
+| `InpLaguerreInstanceID` | `InpLaguerreInstanceID` | string | "A" | Laguerre instance ID |
+| `InpLaguerreAtrPeriod` | `InpLaguerreAtrPeriod` | int | 32 | ATR period |
+| `InpLaguerreSmoothPeriod` | `InpLaguerreSmoothPeriod` | int | 5 | Smoothing period |
+| `InpLaguerreSmoothMethod` | `InpLaguerreSmoothMethod` | int | 1 | ENUM: 0=SMA, 1=EMA, 2=SMMA, 3=LWMA |
+| `InpOutputName` | `InpOutputName` | string | "" | Custom output filename |
+
+**3. File Location**: `MQL5/Files/export_config.txt`
+- **MQL5 Access**: `FileOpen("export_config.txt", FILE_READ|FILE_TXT)`
+- **Python Access (macOS)**: `$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Files/export_config.txt`
+- **Python Access (Wine)**: `C:\Program Files\MetaTrader 5\MQL5\Files\export_config.txt`
+- **Rationale**: MQL5/Files/ is the sandbox directory accessible from both MQL5 and external scripts
+
+**4. Encoding**: UTF-8
+- **Rationale**: Standard encoding, MQL5 `FileOpen()` with `FILE_TXT` handles UTF-8
+- **Alternative Rejected**: UTF-16LE (used by .set files, but adds complexity)
+
+**5. Loading Strategy**:
+- Config file is **optional** - if not present, use input parameters from .mq5
+- Config file **overrides** input parameters if present
+- Missing parameters in config → fall back to defaults
+- Invalid values → log error and use defaults (no silent failures)
+
+**6. Error Handling**:
+- Config file not found → Use input parameters (graceful degradation)
+- Invalid format (no `=` delimiter) → Skip line, log warning
+- Invalid boolean (`true1`) → Default to `false`, log warning
+- Invalid integer (`abc`) → Use default, log error
+- Unknown parameter name → Ignore, log warning (forward compatibility)
 
 **Phase 2: MQL5 Config Reader** ⏸️ PENDING
 - [ ] Implement `LoadConfigFromFile()` function
@@ -74,7 +139,7 @@
 - [ ] Test ScriptParameters with GUI-generated file
 - [ ] Compare with file-based approach
 
-**Current Status**: Phase 1 pending
+**Current Status**: Phase 1 complete ✅, Phase 2 next (MQL5 config reader implementation)
 
 ---
 
