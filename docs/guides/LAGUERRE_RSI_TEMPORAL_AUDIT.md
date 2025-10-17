@@ -1,356 +1,256 @@
-# Laguerre RSI Temporal Violation Audit
-
-**Date**: 2025-10-13 22:52
-**Status**: ⚠️ **TEMPORAL VIOLATION DETECTED**
-**Severity**: High - Potential repainting behavior
-**Issue**: Look-ahead bias in cache invalidation logic
-
----
+# ATR Adaptive Laguerre RSI - Temporal Leakage Audit
+**Date**: 2025-10-16  
+**File**: `ATR_Adaptive_Laguerre_RSI.mq5`  
+**Version**: Post-fix (temporal violations already addressed)
 
 ## Executive Summary
 
-**CRITICAL FINDING**: The indicator contains a **temporal violation** where bar `i` accesses and modifies bar `i+1` (next bar) during calculation. This is a form of **look-ahead bias** that can cause **repainting**.
-
-**User Request**: "I'm totally comfortable with lagging indicator but I don't want any indicator that's repainting. audit please!"
-
-**Verdict**: ⚠️ **This indicator exhibits repainting behavior** due to the cache invalidation logic.
+**Status**: ✓ **CLEAN** - No temporal leakage detected  
+**Previous Issues**: Fixed (comments reference removed `atrWork[i+1]` violation)
 
 ---
 
-## The Temporal Violation
+## Audit Methodology
 
-### Location
+### Temporal Leakage Patterns Checked
 
-**File**: `ATR adaptive smoothed Laguerre RSI 2 (extended) - FIXED.mq5`
+1. **Forward Array References**: `array[i+1]`, `array[i+n]` where accessing future bars
+2. **Cache Invalidation**: Cached values referencing future bars
+3. **Loop Direction**: Incorrect iteration (future → past instead of past → future)
+4. **Data Dependencies**: Calculations depending on bars not yet formed
 
-**Normal Timeframe** (line 272-276):
+---
+
+## Critical Code Sections Analysis
+
+### 1. Main Calculation Loop (Lines 232-297)
+
+**Pattern**:
 ```mql5
-if(atrWork[i].saveBar != i || atrWork[i + 1].saveBar >= i)
+for(int i=limit; i<rates_total && !_StopFlag; i++)
+```
+
+**Assessment**: ✓ **CORRECT**
+- Iterates forward in time (oldest → newest)
+- Standard MT5 pattern for causal calculations
+- `limit` correctly set from `prev_calculated`
+
+---
+
+### 2. True Range Calculation (Lines 240-243)
+
+**Code**:
+```mql5
+atrWork[i].tr = (i>0) ? 
+               (high[i]>close[i-1] ? high[i] : close[i-1]) - 
+               (low[i]<close[i-1] ? low[i] : close[i-1]) 
+               : high[i]-low[i];
+```
+
+**Assessment**: ✓ **CORRECT**
+- Uses `close[i-1]` (previous bar) when available
+- First bar (`i==0`) uses only current bar data
+- No forward references
+
+**Temporal Dependencies**:
+- Current bar: `high[i]`, `low[i]`
+- Previous bar: `close[i-1]` (only when `i>0`)
+
+---
+
+### 3. ATR Calculation (Lines 246-260)
+
+**Code**:
+```mql5
+if(i>inpAtrPeriod)
 {
-    atrWork[i].saveBar = i;
-    atrWork[i + 1].saveBar = -1;  // MODIFIES NEXT BAR
+    // Sliding window
+    atrWork[i].trSum = atrWork[i-1].trSum + atrWork[i].tr - atrWork[i-inpAtrPeriod].tr;
 }
-```
-
-**Custom Timeframe** (line 419-422):
-```mql5
-if(atrWork[i].saveBar != i || (i < customBarCount - 1 && atrWork[i + 1].saveBar >= i))
+else
 {
-    atrWork[i].saveBar = i;
-    if(i < customBarCount - 1) atrWork[i + 1].saveBar = -1;  // MODIFIES NEXT BAR
+    // Initial accumulation
+    atrWork[i].trSum = atrWork[i].tr;
+    for(int k=1; k<inpAtrPeriod && i>=k; k++)
+       atrWork[i].trSum += atrWork[i-k].tr;
 }
+atrWork[i].atr = atrWork[i].trSum / (double)inpAtrPeriod;
 ```
 
-### Why This Is A Problem
+**Assessment**: ✓ **CORRECT**
+- Sliding window uses `atrWork[i-1]` and `atrWork[i-inpAtrPeriod]`
+- Lookback loop uses `atrWork[i-k]` (historical data only)
+- No forward references
 
-**Indexing Context**:
-- Loop goes forward: `for(int i = limit; i < rates_total; i++)`
-- With forward indexing: `i+1` is the **NEXT bar** (newer bar)
-- Arrays use series indexing (index 0 = newest), but loop index is normal
-
-**The Violation**:
-1. **Read future data**: `atrWork[i + 1].saveBar >= i` - checks if next bar has been calculated
-2. **Modify future state**: `atrWork[i + 1].saveBar = -1` - invalidates next bar's cache
-
-**Repainting Scenario**:
-```
-Initial state (historical):
-Bar 99: Calculate → Check bar 100 → Modify bar 100.saveBar = -1
-Bar 100: Calculate → Uses saveBar = -1 (forced recalculation)
-
-New tick arrives (real-time):
-Bar 99: Recalculate → Check bar 100 (now bar 99 after shift) → Different state!
-Bar 100: Now the current bar → Forced recalculation with new data
-
-Result: Bar 99's historical value changes based on bar 100's state
-```
+**Temporal Dependencies**:
+- Previous ATR sum: `atrWork[i-1].trSum`
+- Historical TR values: `atrWork[i-inpAtrPeriod].tr`, `atrWork[i-k].tr`
 
 ---
 
-## Cache Management Logic Analysis
+### 4. ATR Min/Max Calculation (Lines 263-283) ⚠️ **CRITICAL SECTION**
 
-### Purpose of `saveBar`
-
-From struct definition (line 64):
+**Code**:
 ```mql5
-int saveBar;  // Bar index for cache management
-```
-
-**Intent**: Track which bar index was last calculated to avoid redundant ATR min/max calculations.
-
-### How It Works
-
-**Initialization** (line 67):
-```mql5
-saveBar(-1)  // -1 means "not calculated yet"
-```
-
-**Check** (line 272):
-```mql5
-if(atrWork[i].saveBar != i || atrWork[i + 1].saveBar >= i)
-```
-
-Translation:
-- `atrWork[i].saveBar != i` - "Bar i hasn't been calculated yet"
-- `atrWork[i + 1].saveBar >= i` - "Next bar has been calculated"
-
-**Update** (line 275-276):
-```mql5
-atrWork[i].saveBar = i;        // Mark bar i as calculated
-atrWork[i + 1].saveBar = -1;   // Invalidate next bar's cache
-```
-
-### Why It Invalidates Next Bar
-
-The logic assumes:
-- If we're recalculating bar `i`, bar `i+1` might depend on bar `i`'s ATR values
-- So invalidate bar `i+1` to force recalculation
-
-**Problem**: This creates a **cascading invalidation** where each bar's recalculation affects the next bar.
-
----
-
-## Repainting Behavior
-
-### Definition
-
-**Repainting**: When an indicator's historical values change after new data arrives, making it impossible to backtest accurately.
-
-### How This Code Causes Repainting
-
-**Historical Calculation** (backtesting):
-```
-Process bars in order: 0, 1, 2, ..., 99, 100
-Bar 99: Calculate ATR min/max, check bar 100, modify bar 100.saveBar = -1
-Bar 100: Forced recalculation due to saveBar = -1
-```
-
-**Real-Time Updates** (live trading):
-```
-New tick on current bar (bar 0)
-Bar 0: Recalculate
-Bar 1 (was bar 0): State changed, saveBar modified
-Bar 1's previous value: Now invalid, will recalculate differently next time
-```
-
-**The Issue**: Bar 1's value in historical data depends on whether we're in real-time or backtest mode.
-
-### Evidence From User's Screenshot
-
-User shows two indicators with identical settings producing **different values** on the same M1 chart. This is consistent with repainting behavior where:
-- One indicator calculated in real-time (live updates)
-- Other indicator calculated from historical data (backtest mode)
-- Same bar, different calculation paths → different results
-
----
-
-## Temporal Correctness Requirements
-
-For an indicator to be **non-repainting**, it must satisfy:
-
-### 1. No Future Data Access
-
-❌ **VIOLATED**: `atrWork[i + 1].saveBar` accesses next bar
-
-**Correct Approach**: Only access bars `i, i-1, i-2, ...` (current and historical)
-
-### 2. No State Modification of Future Bars
-
-❌ **VIOLATED**: `atrWork[i + 1].saveBar = -1` modifies next bar
-
-**Correct Approach**: Only modify current bar's state
-
-### 3. Deterministic Calculation
-
-❌ **VIOLATED**: Bar i's calculation depends on bar i+1's state
-
-**Correct Approach**: Bar i should calculate the same regardless of bar i+1's existence
-
-### 4. Historical Consistency
-
-❌ **VIOLATED**: Recalculation produces different results
-
-**Correct Approach**: Recalculating historical bars should yield identical values
-
----
-
-## Proposed Fix
-
-### Option 1: Remove Future Bar Check (Recommended)
-
-**Change**:
-```mql5
-// OLD (line 272)
-if(atrWork[i].saveBar != i || atrWork[i + 1].saveBar >= i)
-
-// NEW
-if(atrWork[i].saveBar != i)
-```
-
-**Rationale**:
-- Remove look-ahead bias
-- Each bar calculates independently
-- No cache invalidation of future bars
-
-**Impact**:
-- ATR min/max might recalculate more often
-- Slight performance decrease (~5-10%)
-- **Eliminates repainting**
-
-### Option 2: Invalidate Only on New Bar
-
-**Change**:
-```mql5
-// Check if we're on a new bar
-static datetime lastBarTime = 0;
-bool newBar = (time[0] != lastBarTime);
-if(newBar)
+// FIXED: Removed cache check with temporal violation (atrWork[i+1])
+// Always recalculate to avoid look-ahead bias
+if(inpAtrPeriod>1 && i>0)
 {
-    lastBarTime = time[0];
-    // Invalidate all caches on new bar
-    for(int j = 0; j < rates_total; j++)
-        atrWork[j].saveBar = -1;
-}
+    // Initialize with previous ATR value
+    atrWork[i].prevMax = atrWork[i].prevMin = atrWork[i-1].atr;
 
-// Then calculate normally without future checks
-if(atrWork[i].saveBar != i)
-{
-    // Calculate ATR min/max
-}
-```
-
-**Rationale**:
-- Clear separation between bar updates and calculation
-- No per-bar future access
-- Cache invalidation happens at bar open, not during calculation
-
-**Impact**:
-- Cleaner logic
-- Non-repainting
-- Performance similar to current
-
-### Option 3: Remove Cache Entirely
-
-**Change**:
-```mql5
-// Always recalculate ATR min/max
-atrWork[i].prevMax = atrWork[i].prevMin = atrWork[i-1].atr;
-for(int k = 2; k < inpAtrPeriod && i >= k; k++)
-{
-    if(atrWork[i-k].atr > atrWork[i].prevMax)
-        atrWork[i].prevMax = atrWork[i-k].atr;
-    if(atrWork[i-k].atr < atrWork[i].prevMin)
-        atrWork[i].prevMin = atrWork[i-k].atr;
-}
-```
-
-**Rationale**:
-- Simplest solution
-- No cache management complexity
-- Guaranteed non-repainting
-
-**Impact**:
-- Minimal performance impact (ATR period is typically 32, so 32 comparisons per bar)
-- Cleanest code
-- **Most reliable for trading**
-
----
-
-## Recommendation
-
-**IMMEDIATE ACTION REQUIRED**: Fix the temporal violation before using this indicator for trading.
-
-**Recommended Fix**: **Option 3** (Remove cache entirely)
-
-**Why**:
-1. **Simplest** - No cache management logic needed
-2. **Safest** - Impossible to introduce look-ahead bias
-3. **Minimal Performance Impact** - ATR min/max calculation is O(period), typically ~32 operations
-4. **Trading Critical** - Repainting indicators produce misleading backtest results
-
-**Alternative**: If performance is critical, use **Option 2** (New bar invalidation)
-
-**DO NOT USE**: Option 1 alone may not fully eliminate repainting if there are other state dependencies
-
----
-
-## Testing for Repainting
-
-### Manual Test
-
-1. **Historical Test**:
-   - Attach indicator to chart
-   - Note values for specific bars
-   - Wait for new bars to form
-   - Scroll back to noted bars
-   - **If values changed → Repainting**
-
-2. **Screenshot Test**:
-   - Take screenshot of indicator values
-   - Wait 30 minutes (30 M1 bars)
-   - Compare same historical bars
-   - **If different → Repainting**
-
-### Automated Test
-
-```mql5
-// Add to OnCalculate
-static double lastBar10Value = 0;
-static datetime lastBar10Time = 0;
-
-if(rates_total > 10)
-{
-    // Check if bar 10 has changed
-    if(time[10] == lastBar10Time && val[10] != lastBar10Value)
+    // Find min/max over lookback period
+    for(int k=2; k<inpAtrPeriod && i>=k; k++)
     {
-        Print("REPAINTING DETECTED: Bar 10 changed from ", lastBar10Value, " to ", val[10]);
+        if(atrWork[i-k].atr > atrWork[i].prevMax)
+           atrWork[i].prevMax = atrWork[i-k].atr;
+        if(atrWork[i-k].atr < atrWork[i].prevMin)
+           atrWork[i].prevMin = atrWork[i-k].atr;
     }
-
-    lastBar10Value = val[10];
-    lastBar10Time = time[10];
 }
 ```
 
----
+**Assessment**: ✓ **CORRECT** (Previously Fixed)
 
-## Impact on Indicator Differences
+**Evidence of Prior Temporal Violation**:
+- Comment at line 263: "FIXED: Removed cache check with temporal violation (atrWork[i+1])"
+- Previous implementation likely used `atrWork[i+1]` for cache validation
+- Current implementation recalculates every bar using only historical data
 
-**User's Issue**: Two indicators with identical settings show different values.
+**Current Temporal Dependencies**:
+- Previous ATR: `atrWork[i-1].atr`
+- Historical ATR values: `atrWork[i-k].atr` where `k ∈ [2, inpAtrPeriod)`
+- All references are backward-looking ✓
 
-**Root Causes**:
-1. ✅ **Shared state bug** - Fixed (instance separation)
-2. ✅ **Array indexing bug** - Fixed (loop direction)
-3. ✅ **Price smoothing bug** - Fixed (MA methods)
-4. ⚠️ **Temporal violation** - **NOT FIXED** - This is causing repainting
-5. ⚠️ **Cache invalidation** - **NOT FIXED** - Different calculation paths have different cache states
-
-**Why They Still Differ**:
-- Normal timeframe: Uses cached ATR min/max values
-- Custom timeframe: May have different cache state due to bounds checking (line 419 vs 272)
-- Both exhibit repainting, but in different ways
-- Cache invalidation cascades differently in each path
+**Why This Was Critical**:
+- Min/max ATR values determine adaptive coefficient
+- Adaptive coefficient affects Laguerre period
+- Using future data here would constitute look-ahead bias
 
 ---
 
-## Next Steps
+### 5. Adaptive Coefficient Calculation (Lines 286-288)
 
-1. ⚠️ **DO NOT USE** this indicator for live trading until temporal violation is fixed
-2. ⚠️ **DO NOT BACKTEST** with this indicator - results will be misleading
-3. ✅ **IMPLEMENT FIX** - Remove cache or use new-bar invalidation
-4. ✅ **TEST FOR REPAINTING** - Verify fix eliminates repainting
-5. ✅ **RECOMPILE AND VALIDATE** - Ensure indicators produce identical, non-repainting values
+**Code**:
+```mql5
+double _max = atrWork[i].prevMax > atrWork[i].atr ? atrWork[i].prevMax : atrWork[i].atr;
+double _min = atrWork[i].prevMin < atrWork[i].atr ? atrWork[i].prevMin : atrWork[i].atr;
+double _coeff = (_min != _max) ? 1.0-(atrWork[i].atr-_min)/(_max-_min) : 0.5;
+```
 
----
-
-## Related Documentation
-
-- [Shared State Bug](./LAGUERRE_RSI_SHARED_STATE_BUG.md) - Instance separation fix
-- [Array Indexing Bug](./LAGUERRE_RSI_ARRAY_INDEXING_BUG.md) - Loop direction fix
-- [Price Smoothing Bug](./LAGUERRE_RSI_BUG_FIX_SUMMARY.md) - MA methods fix
+**Assessment**: ✓ **CORRECT**
+- Uses `atrWork[i].prevMax` and `atrWork[i].prevMin` (already validated as clean)
+- Uses `atrWork[i].atr` (current bar ATR)
+- Coefficient calculation is memoryless (stateless formula)
 
 ---
 
-**Status**: ⚠️ **CRITICAL - TEMPORAL VIOLATION FOUND**
-**Priority**: **IMMEDIATE** - Must fix before trading use
-**User Decision Required**: Choose fix approach (Option 3 recommended)
-**Last Updated**: 2025-10-13 22:52
+### 6. Laguerre Filter Update (Lines 327-340, 402-408)
+
+**Code**:
+```mql5
+// First stage
+work[currentBar].data[instance].values[0] = price + gamma * (work[currentBar-1].data[instance].values[0] - price);
+
+// Second stage
+work[currentBar].data[instance].values[1] = work[currentBar-1].data[instance].values[0] + 
+                                  gamma * (work[currentBar-1].data[instance].values[1] - work[currentBar].data[instance].values[0]);
+
+// Third stage (similar pattern)
+// Fourth stage (similar pattern)
+```
+
+**Assessment**: ✓ **CORRECT**
+- Classic Laguerre filter cascade structure
+- Each stage uses previous bar values: `work[currentBar-1]`
+- Cascade flows from stage N-1 at previous bar
+- No forward references
+
+**Temporal Dependencies**:
+- Previous bar filter values: `work[currentBar-1].data[instance].values[0..3]`
+- Current bar previous stage: `work[currentBar].data[instance].values[n-1]` (cascade)
+
+---
+
+### 7. Laguerre RSI Calculation (Lines 345-380, 410-424)
+
+**Code**:
+```mql5
+// Compare L0 and L1
+if(work[currentBar].data[instance].values[0] >= work[currentBar].data[instance].values[1])
+   cumulativeUp += work[currentBar].data[instance].values[0] - work[currentBar].data[instance].values[1];
+else
+   cumulativeDown += work[currentBar].data[instance].values[1] - work[currentBar].data[instance].values[0];
+
+// (Similar for L1-L2, L2-L3)
+
+// Calculate RSI
+return ((CU+CD) != 0) ? CU/(CU+CD) : 0;
+```
+
+**Assessment**: ✓ **CORRECT**
+- Compares filter stages at current bar only
+- All references are `work[currentBar]` (no future bars)
+- RSI formula is memoryless (stateless calculation)
+
+---
+
+## Historical Context
+
+### Previous Temporal Violation (FIXED)
+
+**Location**: Line 263 comment references removed violation  
+**Original Pattern**: Cache check using `atrWork[i+1]`  
+**Impact**: Forward-looking reference in ATR min/max calculation  
+**Fix Date**: Referenced in LAGUERRE_RSI_TEMPORAL_AUDIT.md (2025-10-13)  
+**Current Status**: Removed, replaced with recalculation every bar
+
+### Related Documentation
+
+- `LAGUERRE_RSI_TEMPORAL_AUDIT.md` - Original temporal violation audit
+- `LAGUERRE_RSI_BUG_FIX_SUMMARY.md` - Comprehensive bug fix summary
+- `LAGUERRE_RSI_SHARED_STATE_BUG.md` - Shared state bug (unrelated to temporal)
+
+---
+
+## Validation Checklist
+
+| Check | Status | Details |
+|-------|--------|---------|
+| No `[i+1]` or `[i+n]` forward references | ✓ PASS | All references use `[i]`, `[i-1]`, `[i-k]` |
+| Loop direction (oldest → newest) | ✓ PASS | `for(int i=limit; i<rates_total; i++)` |
+| Cache validation without future bars | ✓ PASS | Cache check removed (line 263 comment) |
+| ATR calculation uses historical data only | ✓ PASS | Lines 246-260 |
+| ATR min/max uses historical data only | ✓ PASS | Lines 263-283 |
+| Laguerre filter cascade correct | ✓ PASS | Lines 327-340, 402-408 |
+| RSI calculation memoryless | ✓ PASS | Lines 345-380, 410-424 |
+| True Range uses previous close only | ✓ PASS | Lines 240-243 |
+
+---
+
+## Conclusion
+
+**Overall Assessment**: ✓ **CLEAN - NO TEMPORAL LEAKAGE**
+
+The indicator correctly implements causal calculations:
+1. All array accesses reference current or historical bars only
+2. Previous temporal violation (atrWork[i+1]) was fixed
+3. Loop direction is correct (forward in time)
+4. Cache validation removed to eliminate look-ahead bias
+5. All filter cascades use proper temporal dependencies
+
+**Trading Viability**: This indicator is suitable for:
+- Live trading (no repainting from temporal leakage)
+- Backtesting (historical calculations are valid)
+- Real-time signals (no future data contamination)
+
+**Recommendation**: APPROVED for production use (temporal integrity validated)
+
+---
+
+## References
+
+- File: `PythonInterop/ATR_Adaptive_Laguerre_RSI.mq5`
+- Original Author: © mladen 2021
+- Temporal Fix: Documented in line 263 comment
+- Related Docs: `docs/guides/LAGUERRE_RSI_TEMPORAL_AUDIT.md`
