@@ -109,6 +109,7 @@
 | [VALIDATION_STATUS.md](docs/reports/VALIDATION_STATUS.md) | Current SLO metrics and test results | Beginner |
 | [LAGUERRE_RSI_VALIDATION_SUCCESS.md](docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md) | **Latest validation** - 1.000000 correlation (2025-10-17) | Beginner |
 | [DOCUMENTATION_READINESS_ASSESSMENT.md](docs/reports/DOCUMENTATION_READINESS_ASSESSMENT.md) | **Readiness audit** - 95/100 score | Intermediate |
+| [LEGACY_CODE_ASSESSMENT.md](docs/reports/LEGACY_CODE_ASSESSMENT.md) | **🗄️ Legacy inventory** - 70+ items assessed, what NOT to retest (saves 30-50 hours) | Intermediate |
 
 ### Recent Work
 

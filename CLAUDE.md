@@ -61,6 +61,7 @@
 ## Validation Reports
 
 - **[DOCUMENTATION_READINESS_ASSESSMENT.md](docs/reports/DOCUMENTATION_READINESS_ASSESSMENT.md)** - **⭐ READINESS AUDIT** - Comprehensive assessment of documentation completeness, workspace structure, and migration readiness (95/100 score)
+- **[LEGACY_CODE_ASSESSMENT.md](docs/reports/LEGACY_CODE_ASSESSMENT.md)** - **🗄️ LEGACY INVENTORY** - Complete assessment of 70+ legacy items, what NOT to retest (saves 30-50 hours), working solutions (v3.0.0 + v4.0.0)
 - **[VALIDATION_STATUS.md](docs/reports/VALIDATION_STATUS.md)** - Current SLO metrics and test results
 - **[LAGUERRE_RSI_VALIDATION_SUCCESS.md](docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md)** - **✨ CURRENT** - Python Laguerre RSI validation (1.000000 correlation, 5000-bar warmup methodology)
 - **[SUCCESS_REPORT.v2.0.0.md](docs/archive/SUCCESS_REPORT.v2.0.0.md)** - 📚 Historical v2.0.0 validation (0.999902 correlation, manual execution)
@@ -182,6 +183,9 @@ exports/                                   # CSV exports (gitignored)
 | Documentation Readiness (95/100) | `docs/reports/DOCUMENTATION_READINESS_ASSESSMENT.md` |
 | Pruning Assessment | `docs/reports/PRUNING_ASSESSMENT.md` |
 | Historical Context (2022-2025) | `docs/archive/historical.txt` |
+| **🗄️ LEGACY & ARCHIVE** | |
+| Legacy Code Assessment (70+ items, what NOT to retest) | `docs/reports/LEGACY_CODE_ASSESSMENT.md` |
+| Archive Organization (cc indicator fix) | Archive reorganized (commit f29149e, 2025-10-18) |
 
 ## Python Workspace Utilities
 
