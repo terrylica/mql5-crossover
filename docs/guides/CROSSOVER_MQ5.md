@@ -1,8 +1,9 @@
-# MetaTrader 5 CrossOver Essentials
+# MetaTrader 5 CrossOver Reference
 
-**Status**: ⚠️ Conditionally validated (2025-10-13)
-**Limitation**: Headless execution requires GUI initialization for each symbol/timeframe
-**Correlation**: 0.999902 (RSI Python vs MT5)
+**Version**: v3.0.0
+**Status**: Production (Wine environment setup, diagnostics, mq5c CLI tool)
+**Last Updated**: 2025-10-17
+**Legacy**: mq5run (v2.0.0 startup.ini approach, conditionally working)
 
 ## Core Locations
 - Wine toolchain (CrossOver build): `/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin`
