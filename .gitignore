@@ -160,3 +160,7 @@ mt5work/staging/
 # ============================================
 *.orig
 *.rej
+
+# .Sessions folder - never delete
+.sessions/
+!.sessions/.gitignore
