@@ -94,6 +94,8 @@ cp "C:/Export.ex5" "C:/Program Files/MetaTrader 5/MQL5/Scripts/Export.ex5"
 
 ### 3. Python Validation: Historical Warmup Is NOT Optional
 
+**Complete Methodology**: See `INDICATOR_VALIDATION_METHODOLOGY.md` for production requirements (5000-bar warmup, ≥0.999 correlation, two-stage validation, all pitfalls)
+
 **The Mistake** (Cost: 185 minutes debugging, 0.951 correlation failure):
 ```python
 # WRONG - Starting fresh from CSV with zero warmup!

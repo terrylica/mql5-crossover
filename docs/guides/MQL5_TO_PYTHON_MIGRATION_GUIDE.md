@@ -390,6 +390,8 @@ for i in range(len(tr)):
 
 ## Phase 6: Validate with Historical Warmup
 
+**Validation Methodology**: See `INDICATOR_VALIDATION_METHODOLOGY.md` for complete requirements (5000-bar warmup, ≥0.999 correlation, pandas NaN traps, debugging tools)
+
 ### Step 6.1: Attach Indicator to MT5 Chart
 
 1. Open MT5

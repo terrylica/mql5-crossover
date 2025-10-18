@@ -166,8 +166,9 @@ exports/                                   # CSV exports (gitignored)
 | startup.ini Syntax, [StartUp] Section, ShutdownTerminal | `docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md` |
 | .set File Format (UCS-2 LE BOM, MQL5/Presets/) | `docs/guides/MQL5_PRESET_FILES_RESEARCH.md` |
 | **📊 VALIDATION** | |
-| 5000-Bar Warmup, ≥0.999 Correlation, Two-Stage | `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md` |
-| Validation Failures (NaN traps, pandas pitfalls) | `docs/guides/PYTHON_INDICATOR_VALIDATION_FAILURES.md` |
+| Production Methodology (5000-bar warmup, ≥0.999, pitfalls) | `docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md` |
+| Laguerre RSI Success Case (1.000000 correlation) | `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md` |
+| Validation Failures Case (3-hour debugging timeline) | `docs/guides/PYTHON_INDICATOR_VALIDATION_FAILURES.md` |
 | SLO Metrics, Test Results | `docs/reports/VALIDATION_STATUS.md` |
 | **🔬 CASE STUDIES** | |
 | Laguerre RSI Algorithm Translation | `docs/guides/LAGUERRE_RSI_ANALYSIS.md` |
