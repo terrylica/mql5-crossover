@@ -37,10 +37,7 @@
 - **[EXTERNAL_RESEARCH_BREAKTHROUGHS.md](docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md)** - Critical lessons from external AI research - /inc parameter trap, script automation via config files, Python API limitations, path handling in CrossOver
 - **[SCRIPT_PARAMETER_PASSING_RESEARCH.md](docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md)** - MQL5 Script Parameter Passing - Community research on startup.ini + ScriptParameters + .set files (30+ sources, 7 working examples, known bugs documented)
 - **[LAGUERRE_RSI_TEMPORAL_AUDIT.md](docs/guides/LAGUERRE_RSI_TEMPORAL_AUDIT.md)** - Temporal leakage audit - No look-ahead bias detected, approved for production use
-- **[LAGUERRE_RSI_SHARED_STATE_BUG.md](docs/guides/LAGUERRE_RSI_SHARED_STATE_BUG.md)** - Fixed: Shared laguerreWork array - Separate instances for normal/custom timeframe (root cause)
-- **[LAGUERRE_RSI_ARRAY_INDEXING_BUG.md](docs/guides/LAGUERRE_RSI_ARRAY_INDEXING_BUG.md)** - Fixed: Series indexing direction - Loop backwards for proper EMA calculation
-- **[LAGUERRE_RSI_BUG_FIX_SUMMARY.md](docs/guides/LAGUERRE_RSI_BUG_FIX_SUMMARY.md)** - Fixed: Price smoothing bug - All MA methods now work in custom timeframe mode
-- **[LAGUERRE_RSI_BUG_REPORT.md](docs/guides/LAGUERRE_RSI_BUG_REPORT.md)** - Original bug report (EMA vs SMA inconsistency) - RESOLVED
+- **[LAGUERRE_RSI_BUG_JOURNEY.md](docs/archive/LAGUERRE_RSI_BUG_JOURNEY.md)** - 📚 Complete 14-hour debugging journey - 3 critical bugs fixed (price smoothing, array indexing, shared state)
 - **[MQL5_CLI_COMPILATION_SUCCESS.md](docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md)** - CLI compilation via CrossOver --cx-app flag (~1s compile time, production-ready)
 - **[CROSSOVER_MQ5.md](docs/guides/CROSSOVER_MQ5.md)** - MT5/CrossOver technical reference and shell setup (v2.0.0 legacy)
 - **[BOTTLE_TRACKING.md](docs/guides/BOTTLE_TRACKING.md)** - CrossOver bottle file tracking via X: drive mapping
@@ -167,10 +164,7 @@ exports/                                   # CSV exports (gitignored)
 | **🔬 LAGUERRE RSI CASE STUDY** | |
 | Laguerre RSI Algorithm & Translation | `docs/guides/LAGUERRE_RSI_ANALYSIS.md` |
 | Laguerre RSI Temporal Audit (No look-ahead bias) | `docs/guides/LAGUERRE_RSI_TEMPORAL_AUDIT.md` |
-| Laguerre RSI Shared State Bug (ROOT CAUSE) | `docs/guides/LAGUERRE_RSI_SHARED_STATE_BUG.md` |
-| Laguerre RSI Array Indexing Bug | `docs/guides/LAGUERRE_RSI_ARRAY_INDEXING_BUG.md` |
-| Laguerre RSI Price Smoothing Bug | `docs/guides/LAGUERRE_RSI_BUG_FIX_SUMMARY.md` |
-| Laguerre RSI Original Bug Report | `docs/guides/LAGUERRE_RSI_BUG_REPORT.md` |
+| Laguerre RSI Bug Journey (14-hour debugging, 3 bugs) | `docs/archive/LAGUERRE_RSI_BUG_JOURNEY.md` 📚 |
 | **🔍 RESEARCH & DISCOVERIES** | |
 | External Research Breakthroughs (MQL5 CLI, Script Automation, Python API) | `docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md` |
 | MQL5 Script Parameter Passing (startup.ini, ScriptParameters, .set files) | `docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md` |
