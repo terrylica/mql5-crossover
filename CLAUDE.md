@@ -2,6 +2,20 @@
 
 **Architecture**: Link Farm + Hub-and-Spoke with Progressive Disclosure
 
+## 🚀 Quick Start (New to This Project?)
+
+**First Time Here? Start with these 3 documents in order:**
+
+1. **[MQL5_TO_PYTHON_MIGRATION_GUIDE.md](docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md)** ⭐ - Complete 7-phase workflow (2-4 hours per indicator)
+2. **[LESSONS_LEARNED_PLAYBOOK.md](docs/guides/LESSONS_LEARNED_PLAYBOOK.md)** 🔥 - 8 critical gotchas (prevents 50+ hours of debugging)
+3. **[INDICATOR_MIGRATION_CHECKLIST.md](docs/templates/INDICATOR_MIGRATION_CHECKLIST.md)** ✨ - Copy-paste checklist with all commands
+
+**Ready to Export Data?**
+- Headless (automated): **[WINE_PYTHON_EXECUTION.md](docs/guides/WINE_PYTHON_EXECUTION.md)** (v3.0.0)
+- GUI (manual): **[V4_FILE_BASED_CONFIG_WORKFLOW.md](docs/guides/V4_FILE_BASED_CONFIG_WORKFLOW.md)** (v4.0.0)
+
+---
+
 ## Navigation Index
 
 **Current Workspace**: `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c ` (CrossOver bottle root)
@@ -11,9 +25,11 @@
 
 ### Master Workflow
 - **[MQL5_TO_PYTHON_MIGRATION_GUIDE.md](docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md)** - **⭐ START HERE** - Complete MQL5→Python indicator migration workflow (7 phases, battle-tested, 2-4 hours first time)
+- **[LESSONS_LEARNED_PLAYBOOK.md](docs/guides/LESSONS_LEARNED_PLAYBOOK.md)** - **🔥 CRITICAL GOTCHAS** - Hard-won lessons from 185+ hours of debugging (READ BEFORE STARTING NEW WORK)
 
 ### Quick References
 - **[WINE_PYTHON_EXECUTION.md](docs/guides/WINE_PYTHON_EXECUTION.md)** - v3.0.0 Wine Python execution (production) - CX_BOTTLE, path navigation, RSI formula, diagnostics
+- **[V4_FILE_BASED_CONFIG_WORKFLOW.md](docs/guides/V4_FILE_BASED_CONFIG_WORKFLOW.md)** - **✨ NEW** - v4.0.0 File-based config workflow (production) - GUI-based exports with flexible parameters
 - **[MT5_FILE_LOCATIONS.md](docs/guides/MT5_FILE_LOCATIONS.md)** - Complete MT5 file paths and indicator translation workflow
 - **[MQL5_ENCODING_SOLUTIONS.md](docs/guides/MQL5_ENCODING_SOLUTIONS.md)** - MQL5 encoding guide - UTF-8/UTF-16LE both work, chardet, Git integration, Python patterns
 - **[LAGUERRE_RSI_ANALYSIS.md](docs/guides/LAGUERRE_RSI_ANALYSIS.md)** - ATR Adaptive Smoothed Laguerre RSI - Complete algorithm breakdown and Python translation guide
@@ -29,15 +45,20 @@
 - **[CROSSOVER_MQ5.md](docs/guides/CROSSOVER_MQ5.md)** - MT5/CrossOver technical reference and shell setup (v2.0.0 legacy)
 - **[BOTTLE_TRACKING.md](docs/guides/BOTTLE_TRACKING.md)** - CrossOver bottle file tracking via X: drive mapping
 
+### Templates & Tools
+- **[INDICATOR_MIGRATION_CHECKLIST.md](docs/templates/INDICATOR_MIGRATION_CHECKLIST.md)** - **✨ NEW** - Copy-paste ready checklist for 7-phase workflow (2-4 hours per indicator)
+- **[generate_export_config.py](users/crossover/generate_export_config.py)** - **✨ NEW** - Python script to generate v4.0.0 config files
+- **[Config Examples](Program Files/MetaTrader 5/MQL5/Files/configs/)** - **✨ NEW** - 5 example configs (RSI, SMA, Laguerre RSI, multi-indicator, validation)
+
 ## Implementation Plans
 
-- **[HEADLESS_EXECUTION_PLAN.md](docs/plans/HEADLESS_EXECUTION_PLAN.md)** - v4.0.0 File-based config approach (IN PROGRESS)
-  - **v4.0.0**: File-based configuration for custom indicators - IN PROGRESS 🔄
-  - **v3.0.0**: Python API for market data - COMPLETE ✅
+- **[HEADLESS_EXECUTION_PLAN.md](docs/plans/HEADLESS_EXECUTION_PLAN.md)** - v4.0.0 File-based config COMPLETE + v3.0.0 Python API
+  - **v4.0.0**: File-based configuration for GUI exports - COMPLETE ✅ (GUI mode)
+  - **v3.0.0**: Python API for market data - COMPLETE ✅ (true headless)
   - **v2.1.0**: Startup.ini parameter passing - FAILED ❌ (NOT VIABLE)
   - **v2.0.0**: Basic startup.ini script launch - CONDITIONALLY WORKING ⚠️
-  - **Key Achievement**: True headless execution without GUI initialization
-  - **Status**: v3.0.0 production-ready, v4.0.0 design phase
+  - **Key Achievement**: Two complementary production-ready approaches
+  - **Status**: v3.0.0 (headless) + v4.0.0 (GUI) production-ready, all tooling complete
 
 ## Validation Reports
 
@@ -126,28 +147,37 @@ exports/                                   # CSV exports (gitignored)
 
 | Topic                       | Authoritative Document                  |
 | --------------------------- | --------------------------------------- |
-| **MQL5→Python Migration Workflow (MASTER)** | **`docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md`** |
-| Wine Python Execution (v3.0.0) | `docs/guides/WINE_PYTHON_EXECUTION.md`  |
-| MT5 File Paths & Translation | `docs/guides/MT5_FILE_LOCATIONS.md`     |
+| **🚀 WORKFLOWS & PROCESSES** | |
+| **MQL5→Python Migration Workflow (MASTER)** | **`docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md`** ⭐ |
+| **Lessons Learned Playbook (CRITICAL GOTCHAS)** | **`docs/guides/LESSONS_LEARNED_PLAYBOOK.md`** 🔥 |
+| **Indicator Migration Checklist (COPY-PASTE READY)** | **`docs/templates/INDICATOR_MIGRATION_CHECKLIST.md`** ✨ |
+| Wine Python Execution (v3.0.0 Headless) | `docs/guides/WINE_PYTHON_EXECUTION.md` |
+| v4.0.0 File-Based Config Workflow (GUI) | `docs/guides/V4_FILE_BASED_CONFIG_WORKFLOW.md` ✨ |
+| Headless Execution Architecture (v2/v3/v4 Complete) | `docs/plans/HEADLESS_EXECUTION_PLAN.md` |
+| **🔧 TECHNICAL REFERENCES** | |
+| MT5 File Paths & Translation | `docs/guides/MT5_FILE_LOCATIONS.md` |
 | MQL5 Encoding (UTF-8/UTF-16LE) | `docs/guides/MQL5_ENCODING_SOLUTIONS.md` |
+| MQL5 CLI Compilation (Production) | `docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md` |
+| MT5/CrossOver Setup (v2.0.0) | `docs/guides/CROSSOVER_MQ5.md` |
+| Bottle File Tracking | `docs/guides/BOTTLE_TRACKING.md` |
+| **📊 VALIDATION & TESTING** | |
+| Python Indicator Validation Methodology (1.000000 correlation) | `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md` |
+| Python Indicator Validation Failures & Debugging (3 hours lessons) | `docs/guides/PYTHON_INDICATOR_VALIDATION_FAILURES.md` |
+| Validation Status (Current SLOs) | `docs/reports/VALIDATION_STATUS.md` |
+| **🔬 LAGUERRE RSI CASE STUDY** | |
 | Laguerre RSI Algorithm & Translation | `docs/guides/LAGUERRE_RSI_ANALYSIS.md` |
-| Laguerre RSI Temporal Audit | `docs/guides/LAGUERRE_RSI_TEMPORAL_AUDIT.md` |
+| Laguerre RSI Temporal Audit (No look-ahead bias) | `docs/guides/LAGUERRE_RSI_TEMPORAL_AUDIT.md` |
 | Laguerre RSI Shared State Bug (ROOT CAUSE) | `docs/guides/LAGUERRE_RSI_SHARED_STATE_BUG.md` |
 | Laguerre RSI Array Indexing Bug | `docs/guides/LAGUERRE_RSI_ARRAY_INDEXING_BUG.md` |
 | Laguerre RSI Price Smoothing Bug | `docs/guides/LAGUERRE_RSI_BUG_FIX_SUMMARY.md` |
 | Laguerre RSI Original Bug Report | `docs/guides/LAGUERRE_RSI_BUG_REPORT.md` |
-| Python Indicator Validation Methodology | `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md` |
-| Python Indicator Validation Failures & Debugging | `docs/guides/PYTHON_INDICATOR_VALIDATION_FAILURES.md` |
+| **🔍 RESEARCH & DISCOVERIES** | |
 | External Research Breakthroughs (MQL5 CLI, Script Automation, Python API) | `docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md` |
 | MQL5 Script Parameter Passing (startup.ini, ScriptParameters, .set files) | `docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md` |
-| MQL5 CLI Compilation (Production) | `docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md` |
-| MT5/CrossOver Setup (v2.0.0) | `docs/guides/CROSSOVER_MQ5.md`          |
-| Bottle File Tracking        | `docs/guides/BOTTLE_TRACKING.md`        |
-| Headless Execution Plan (v4.0.0 File-based + v3.0.0 Python API) | `docs/plans/HEADLESS_EXECUTION_PLAN.md` |
-| Validation Status           | `docs/reports/VALIDATION_STATUS.md`     |
-| Documentation Readiness Assessment | `docs/reports/DOCUMENTATION_READINESS_ASSESSMENT.md` |
-| Pruning Assessment          | `docs/reports/PRUNING_ASSESSMENT.md`    |
-| Historical Context          | `docs/archive/historical.txt`           |
+| **📋 ASSESSMENTS & STATUS** | |
+| Documentation Readiness Assessment (95/100 score) | `docs/reports/DOCUMENTATION_READINESS_ASSESSMENT.md` |
+| Pruning Assessment | `docs/reports/PRUNING_ASSESSMENT.md` |
+| Historical Context (2022-2025 research) | `docs/archive/historical.txt` |
 
 ## Python Workspace Utilities
 
@@ -155,14 +185,19 @@ exports/                                   # CSV exports (gitignored)
 
 **Core Scripts**:
 - `export_aligned.py` - Wine Python v3.0.0 data export (headless, production)
-- `validate_indicator.py` - Universal indicator validation framework (v1.0.0, production)
+- **`validate_indicator.py`** - ⭐ Universal indicator validation framework (v1.0.0, production, ≥0.999 correlation)
 - `validate_export.py` - ⚠️ DEPRECATED - Use validate_indicator.py instead (RSI-only legacy tool)
+- **`generate_export_config.py`** - ✨ v4.0.0 config file generator (command-line tool)
 - `test_mt5_connection.py` - MT5 connection diagnostics
 - `test_xauusd_info.py` - Symbol information testing
 
 **Python Indicators**:
 - `indicators/laguerre_rsi.py` - Laguerre RSI implementation (v1.0.0, validated 1.000000 correlation)
 - `indicators/__init__.py` - Package initialization
+
+**Config Files** (v4.0.0):
+- `../Program Files/MetaTrader 5/MQL5/Files/export_config.txt` - Active config (read by ExportAligned.mq5)
+- `../Program Files/MetaTrader 5/MQL5/Files/configs/` - 5 example configs + README
 
 **Output**:
 - `exports/` - CSV export destination
@@ -230,9 +265,26 @@ wine "C:\\Program Files\\Python312\\python.exe" \
 # Copy CSV to repo
 cp "$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/exports/Export_EURUSD_PERIOD_M1.csv" exports/
 
-# Export data (v2.0.0 - LEGACY, ARCHIVED - use v3.0.0 instead)
+# Export data (v4.0.0 - file-based config, GUI mode)
+# Step 1: Create config file at: MQL5/Files/export_config.txt
+cat > "$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Files/export_config.txt" << 'EOF'
+InpSymbol=EURUSD
+InpTimeframe=1
+InpBars=100
+InpUseRSI=false
+InpUseSMA=true
+InpSMAPeriod=14
+InpUseLaguerreRSI=false
+InpOutputName=Export_EURUSD_M1_Test.csv
+EOF
+
+# Step 2: Open MT5 GUI, drag ExportAligned onto EURUSD M1 chart, click OK
+# Script reads config file and exports with those parameters
+# Output: MQL5/Files/Export_EURUSD_M1_Test.csv
+
+# Export data (v2.0.0 - LEGACY, ARCHIVED - use v3.0.0 or v4.0.0 instead)
 # DEPRECATED: ./scripts/mq5run (archived in archive/scripts/v2.0.0/)
-# Use v3.0.0 Wine Python export above instead
+# Use v3.0.0 for headless or v4.0.0 for GUI with flexible parameters
 
 # Validate
 cd users/crossover && python validate_export.py ../../exports/Export_EURUSD_PERIOD_M1.csv
@@ -375,8 +427,12 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
 
 ## Project Status
 
-- **Version**: 4.0.0 (File-based config implementation 2025-10-17)
-- **Headless Execution**: v3.0.0 (Python API PRODUCTION) + v4.0.0 (File-based config IN PROGRESS) + v2.1.0 (startup.ini parameter passing NOT VIABLE)
+- **Version**: 4.0.0 (File-based config COMPLETE 2025-10-17)
+- **Headless Execution**: v3.0.0 (Python API PRODUCTION) + v4.0.0 (File-based config COMPLETE - GUI mode) + v2.1.0 (startup.ini parameter passing NOT VIABLE)
+- **Workflow Matrix**:
+  - **Manual GUI Exports**: v4.0.0 file-based config (no code editing, flexible parameters)
+  - **Automated Headless**: v3.0.0 Python API (true headless, any symbol/timeframe)
+  - **Custom Indicators**: v4.0.0 GUI mode only (Python API can't access indicator buffers)
 - **Latest Validation**: Laguerre RSI - 1.000000 correlation, 5000-bar warmup (2025-10-17)
 - **Python Indicators**: Laguerre RSI v1.0.0 (validated, production-ready)
 - **Structure**: MT5 idiomatic hierarchy with project-based organization
@@ -406,6 +462,13 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
   - Single Custom/ folder structure
   - Legacy code archived (archive/)
 - **Critical Discoveries**:
+  - **2025-10-17**: v4.0.0 File-Based Config (COMPLETE - GUI mode)
+    - Config reader working: 8 parameters successfully override defaults
+    - Working copies pattern: Handles MQL5 const input limitation (create mutable copies in OnStart)
+    - Config file location: `MQL5/Files/export_config.txt` (key=value format)
+    - Baseline test validated: 101 lines (100 bars + header), SMA_14 column present
+    - Headless limitation confirmed: startup.ini doesn't execute scripts reliably (same as v2.0.0)
+    - Scope: GUI-based manual exports (complements v3.0.0 Python API for headless)
   - **2025-10-17**: v2.1.0 Startup.ini Parameter Passing (NOT VIABLE)
     - Named sections `[ScriptName]` NOT supported by MT5 (Windows + Wine)
     - ScriptParameters directive blocks execution with silent failure

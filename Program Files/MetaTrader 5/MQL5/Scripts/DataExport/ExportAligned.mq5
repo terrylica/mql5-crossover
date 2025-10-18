@@ -22,16 +22,25 @@ input string          InpOutputName         = "";
 
 //+------------------------------------------------------------------+
 //| Load configuration from file (optional, graceful degradation)    |
+//| Returns working copies of parameters (inputs are const)          |
 //+------------------------------------------------------------------+
-void LoadConfigFromFile()
+bool LoadConfigFromFile(string &symbol, ENUM_TIMEFRAMES &timeframe, int &bars,
+                        bool &useRSI, int &rsiPeriod,
+                        bool &useSMA, int &smaPeriod,
+                        bool &useLaguerreRSI, string &laguerreInstanceID,
+                        int &laguerreAtrPeriod, int &laguerreSmoothPeriod,
+                        ENUM_MA_METHOD &laguerreSmoothMethod, string &outputName)
   {
    string configFile="export_config.txt";
    int handle=FileOpen(configFile,FILE_READ|FILE_TXT|FILE_ANSI);
 
    if(handle==INVALID_HANDLE)
      {
-      // Config file not found - silently continue with input parameters
-      return;
+      // Config file not found - return false to use input parameters
+      int error=GetLastError();
+      PrintFormat("WARNING: Could not open config file '%s' (error %d) - using input parameters",
+                  configFile,error);
+      return false;
      }
 
    Print("=== Loading configuration from ",configFile," ===");
@@ -62,51 +71,69 @@ void LoadConfigFromFile()
       StringTrimLeft(value);
       StringTrimRight(value);
 
-      // Override input parameters
-      if(key=="InpSymbol")              { InpSymbol=value; linesLoaded++; }
-      else if(key=="InpTimeframe")      { InpTimeframe=(ENUM_TIMEFRAMES)StringToInteger(value); linesLoaded++; }
-      else if(key=="InpBars")           { InpBars=(int)StringToInteger(value); linesLoaded++; }
-      else if(key=="InpUseRSI")         { InpUseRSI=(value=="true"); linesLoaded++; }
-      else if(key=="InpRSIPeriod")      { InpRSIPeriod=(int)StringToInteger(value); linesLoaded++; }
-      else if(key=="InpUseSMA")         { InpUseSMA=(value=="true"); linesLoaded++; }
-      else if(key=="InpSMAPeriod")      { InpSMAPeriod=(int)StringToInteger(value); linesLoaded++; }
-      else if(key=="InpUseLaguerreRSI") { InpUseLaguerreRSI=(value=="true"); linesLoaded++; }
-      else if(key=="InpLaguerreInstanceID")   { InpLaguerreInstanceID=value; linesLoaded++; }
-      else if(key=="InpLaguerreAtrPeriod")    { InpLaguerreAtrPeriod=(int)StringToInteger(value); linesLoaded++; }
-      else if(key=="InpLaguerreSmoothPeriod") { InpLaguerreSmoothPeriod=(int)StringToInteger(value); linesLoaded++; }
-      else if(key=="InpLaguerreSmoothMethod") { InpLaguerreSmoothMethod=(ENUM_MA_METHOD)StringToInteger(value); linesLoaded++; }
-      else if(key=="InpOutputName")     { InpOutputName=value; linesLoaded++; }
+      // Override working variables (NOT input constants)
+      if(key=="InpSymbol")              { symbol=value; linesLoaded++; }
+      else if(key=="InpTimeframe")      { timeframe=(ENUM_TIMEFRAMES)StringToInteger(value); linesLoaded++; }
+      else if(key=="InpBars")           { bars=(int)StringToInteger(value); linesLoaded++; }
+      else if(key=="InpUseRSI")         { useRSI=(value=="true"); linesLoaded++; }
+      else if(key=="InpRSIPeriod")      { rsiPeriod=(int)StringToInteger(value); linesLoaded++; }
+      else if(key=="InpUseSMA")         { useSMA=(value=="true"); linesLoaded++; }
+      else if(key=="InpSMAPeriod")      { smaPeriod=(int)StringToInteger(value); linesLoaded++; }
+      else if(key=="InpUseLaguerreRSI") { useLaguerreRSI=(value=="true"); linesLoaded++; }
+      else if(key=="InpLaguerreInstanceID")   { laguerreInstanceID=value; linesLoaded++; }
+      else if(key=="InpLaguerreAtrPeriod")    { laguerreAtrPeriod=(int)StringToInteger(value); linesLoaded++; }
+      else if(key=="InpLaguerreSmoothPeriod") { laguerreSmoothPeriod=(int)StringToInteger(value); linesLoaded++; }
+      else if(key=="InpLaguerreSmoothMethod") { laguerreSmoothMethod=(ENUM_MA_METHOD)StringToInteger(value); linesLoaded++; }
+      else if(key=="InpOutputName")     { outputName=value; linesLoaded++; }
       else
          PrintFormat("WARNING: Unknown config key (skipped): %s",key);
      }
 
    FileClose(handle);
    PrintFormat("=== Config loaded: %d parameters from %s ===",linesLoaded,configFile);
+   return true;
   }
 
 void OnStart()
   {
-   // Try to load config from file (optional - falls back to input parameters)
-   LoadConfigFromFile();
-
-   // DEBUG: Log all input parameters to diagnose parameter passing
-   Print("=== ExportAligned.mq5 Input Parameters ===");
-   PrintFormat("InpSymbol: '%s'",InpSymbol);
-   PrintFormat("InpTimeframe: %s (%d)",EnumToString(InpTimeframe),InpTimeframe);
-   PrintFormat("InpBars: %d",InpBars);
-   PrintFormat("InpUseRSI: %s",InpUseRSI?"true":"false");
-   PrintFormat("InpRSIPeriod: %d",InpRSIPeriod);
-   PrintFormat("InpUseSMA: %s",InpUseSMA?"true":"false");
-   PrintFormat("InpSMAPeriod: %d",InpSMAPeriod);
-   PrintFormat("InpUseLaguerreRSI: %s",InpUseLaguerreRSI?"true":"false");
-   PrintFormat("InpLaguerreInstanceID: '%s'",InpLaguerreInstanceID);
-   PrintFormat("InpLaguerreAtrPeriod: %d",InpLaguerreAtrPeriod);
-   PrintFormat("InpLaguerreSmoothPeriod: %d",InpLaguerreSmoothPeriod);
-   PrintFormat("InpLaguerreSmoothMethod: %s (%d)",EnumToString(InpLaguerreSmoothMethod),InpLaguerreSmoothMethod);
-   PrintFormat("InpOutputName: '%s'",InpOutputName);
-   Print("========================================");
-
+   // Create working copies of input parameters (inputs are const, can't be modified)
    string symbol=InpSymbol;
+   ENUM_TIMEFRAMES timeframe=InpTimeframe;
+   int bars=InpBars;
+   bool useRSI=InpUseRSI;
+   int rsiPeriod=InpRSIPeriod;
+   bool useSMA=InpUseSMA;
+   int smaPeriod=InpSMAPeriod;
+   bool useLaguerreRSI=InpUseLaguerreRSI;
+   string laguerreInstanceID=InpLaguerreInstanceID;
+   int laguerreAtrPeriod=InpLaguerreAtrPeriod;
+   int laguerreSmoothPeriod=InpLaguerreSmoothPeriod;
+   ENUM_MA_METHOD laguerreSmoothMethod=InpLaguerreSmoothMethod;
+   string outputName=InpOutputName;
+
+   // Try to load config from file (optional - overrides working copies)
+   bool configLoaded=LoadConfigFromFile(symbol,timeframe,bars,useRSI,rsiPeriod,
+                                         useSMA,smaPeriod,useLaguerreRSI,
+                                         laguerreInstanceID,laguerreAtrPeriod,
+                                         laguerreSmoothPeriod,laguerreSmoothMethod,
+                                         outputName);
+
+   // DEBUG: Log final parameters (after config override)
+   Print("=== ExportAligned.mq5 Final Parameters ===");
+   PrintFormat("Symbol: '%s'",symbol);
+   PrintFormat("Timeframe: %s (%d)",EnumToString(timeframe),timeframe);
+   PrintFormat("Bars: %d",bars);
+   PrintFormat("UseRSI: %s",useRSI?"true":"false");
+   PrintFormat("RSIPeriod: %d",rsiPeriod);
+   PrintFormat("UseSMA: %s",useSMA?"true":"false");
+   PrintFormat("SMAPeriod: %d",smaPeriod);
+   PrintFormat("UseLaguerreRSI: %s",useLaguerreRSI?"true":"false");
+   PrintFormat("LaguerreInstanceID: '%s'",laguerreInstanceID);
+   PrintFormat("LaguerreAtrPeriod: %d",laguerreAtrPeriod);
+   PrintFormat("LaguerreSmoothPeriod: %d",laguerreSmoothPeriod);
+   PrintFormat("LaguerreSmoothMethod: %s (%d)",EnumToString(laguerreSmoothMethod),laguerreSmoothMethod);
+   PrintFormat("OutputName: '%s'",outputName);
+   Print("========================================");
    StringTrimLeft(symbol);
    StringTrimRight(symbol);
    if(StringLen(symbol)==0)
@@ -123,14 +150,14 @@ void OnStart()
    Print("Symbol selected: ",symbol);
 
    // Wait for history download (Solution A pattern - max 5 seconds)
-   datetime from=TimeCurrent()-PeriodSeconds(InpTimeframe)*1000;
+   datetime from=TimeCurrent()-PeriodSeconds(timeframe)*1000;
    int attempts=0;
    int maxAttempts=50;  // 50 * 100ms = 5 seconds
 
    while(attempts<maxAttempts)
      {
       datetime time[];
-      int copied=CopyTime(symbol,InpTimeframe,0,1,time);
+      int copied=CopyTime(symbol,timeframe,0,1,time);
       if(copied>0)
          break;
 
@@ -141,15 +168,15 @@ void OnStart()
    if(attempts>=maxAttempts)
      {
       PrintFormat("ERROR: History download timeout for %s %s after %d ms",
-                  symbol,EnumToString(InpTimeframe),maxAttempts*100);
+                  symbol,EnumToString(timeframe),maxAttempts*100);
       return;
      }
 
    PrintFormat("History available for %s %s (waited %d ms)",
-               symbol,EnumToString(InpTimeframe),attempts*100);
+               symbol,EnumToString(timeframe),attempts*100);
 
    BarSeries series;
-   if(!LoadRates(symbol,InpTimeframe,InpBars,series))
+   if(!LoadRates(symbol,timeframe,bars,series))
      {
       Print("LoadRates failed");
       return;
@@ -163,11 +190,11 @@ void OnStart()
    IndicatorColumn columns[];
    int columnCount=0;
 
-   if(InpUseRSI)
+   if(useRSI)
      {
       IndicatorColumn rsiColumn;
       string rsiError="";
-      if(!RSIModule_Load(symbol,InpTimeframe,series.count,InpRSIPeriod,rsiColumn,rsiError))
+      if(!RSIModule_Load(symbol,timeframe,series.count,rsiPeriod,rsiColumn,rsiError))
         {
          PrintFormat("RSI module failed: %s",rsiError);
          return;
@@ -177,11 +204,11 @@ void OnStart()
       columnCount++;
      }
 
-   if(InpUseSMA)
+   if(useSMA)
      {
       IndicatorColumn smaColumn;
       string smaError="";
-      if(!SMAModule_Load(symbol,InpTimeframe,series.count,InpSMAPeriod,smaColumn,smaError))
+      if(!SMAModule_Load(symbol,timeframe,series.count,smaPeriod,smaColumn,smaError))
         {
          PrintFormat("SMA module failed: %s",smaError);
          return;
@@ -191,18 +218,18 @@ void OnStart()
       columnCount++;
      }
 
-   if(InpUseLaguerreRSI)
+   if(useLaguerreRSI)
      {
       IndicatorColumn laguerreColumn, signalColumn, adaptivePeriodColumn, atrColumn;
       string laguerreError="";
       if(!LaguerreRSIModule_Load(
             symbol,
-            InpTimeframe,
+            timeframe,
             series.count,
-            InpLaguerreInstanceID,
-            InpLaguerreAtrPeriod,
-            InpLaguerreSmoothPeriod,
-            InpLaguerreSmoothMethod,
+            laguerreInstanceID,
+            laguerreAtrPeriod,
+            laguerreSmoothPeriod,
+            laguerreSmoothMethod,
             laguerreColumn,
             signalColumn,
             adaptivePeriodColumn,
@@ -223,9 +250,9 @@ void OnStart()
       columnCount++;
      }
 
-   string filename=InpOutputName;
+   string filename=outputName;
    if(StringLen(filename)==0)
-      filename=StringFormat("Export_%s_%s.csv",symbol,EnumToString(InpTimeframe));
+      filename=StringFormat("Export_%s_%s.csv",symbol,EnumToString(timeframe));
 
    int handle;
    if(!OpenCsv(filename,handle))
@@ -243,5 +270,5 @@ void OnStart()
       return;
      }
    FileClose(handle);
-   PrintFormat("Export complete: %d bars for %s %s -> %s",series.count,symbol,EnumToString(InpTimeframe),filename);
+   PrintFormat("Export complete: %d bars for %s %s -> %s",series.count,symbol,EnumToString(timeframe),filename);
   }
