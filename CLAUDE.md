@@ -20,6 +20,7 @@
 
 **Current Workspace**: `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c ` (CrossOver bottle root)
 **Project Documentation**: `docs/README.md ` - Project overview and documentation index
+**🧭 Task Navigator**: `docs/MT5_REFERENCE_HUB.md ` - Decision trees, canonical source map, automation matrix (single navigation point)
 
 ## Core Guides
 
