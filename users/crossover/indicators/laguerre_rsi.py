@@ -7,6 +7,8 @@ Version: 1.0.0
 Status: Implementation complete, validation pending
 """
 
+__version__ = '1.0.0'
+
 import numpy as np
 import pandas as pd
 

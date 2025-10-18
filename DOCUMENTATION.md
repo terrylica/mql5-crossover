@@ -256,7 +256,7 @@
 
 | I need to... | Start here |
 |--------------|------------|
-| **Get started as a new user** | [Quick Start section](#-quick-start-35-45-minutes) above |
+| **Get started as a new user** | [Quick Start section](#quick-start-35-45-minutes) above |
 | **Find a specific guide** | [MT5_REFERENCE_HUB.md](docs/MT5_REFERENCE_HUB.md) - Decision trees |
 | **Migrate my first indicator** | [INDICATOR_MIGRATION_CHECKLIST.md](docs/templates/INDICATOR_MIGRATION_CHECKLIST.md) |
 | **Export market data** | [WINE_PYTHON_EXECUTION.md](docs/guides/WINE_PYTHON_EXECUTION.md) (v3.0.0) |

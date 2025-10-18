@@ -213,9 +213,14 @@ All successfully completed and archived:
 
 #### Organizational Status
 **Recently Fixed** (2025-10-18, commit f29149e):
-- ✅ Moved 10 misplaced cc files from `laguerre_rsi/development/` to `cc/development/`
-- ✅ Created proper `cc/development/` subdirectory
+- ✅ Moved 10 misplaced cc files from `archive/indicators/laguerre_rsi/development/` to `archive/indicators/cc/development/`
+- ✅ Created proper `archive/indicators/cc/development/` subdirectory
 - ✅ Clean project-based organization achieved
+
+**File Paths** (post-fix):
+- `archive/indicators/cc/development/` - 10 cc development files (cc.mq5, cc_v2.mq5, cc_v3.mq5, cc_v4.mq5, cc_backup.mq5, cc_temp.mq5 + .ex5 variants)
+- `archive/indicators/cc/compiled/` - 4 production .ex5 files
+- `archive/indicators/cc/source/` - 3 source/plan files
 
 #### Current Structure (After Fix)
 
