@@ -26,9 +26,14 @@
 
 **MQL5_ROOT**: Project root environment variable for convenient navigation and scripting
 
+**Path Structure**:
+- `CROSSOVER_BOTTLE` = `$HOME/Library/.../Bottles/MetaTrader 5` (bottle root for Wine)
+- `MQL5_ROOT` = `$CROSSOVER_BOTTLE/drive_c` (project root for git/navigation)
+
 ```bash
 # Add to ~/.zshrc (or ~/.bashrc)
-export MQL5_ROOT="/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c"
+CROSSOVER_BOTTLE="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5"
+export MQL5_ROOT="$CROSSOVER_BOTTLE/drive_c"
 alias m5='cd "$MQL5_ROOT"'
 
 # Quick navigation
@@ -48,7 +53,7 @@ cd "$MQL5_ROOT/users/crossover" && python3 comprehensive_validation.py --priorit
 # Export data (v3.0.0 headless)
 cd "$MQL5_ROOT/users/crossover"
 CX_BOTTLE="MetaTrader 5" \
-WINEPREFIX="$MQL5_ROOT" \
+WINEPREFIX="$(dirname "$MQL5_ROOT")" \  # Bottle root (parent of drive_c)
 wine "C:\\Program Files\\Python312\\python.exe" \
   "C:\\users\\crossover\\export_aligned.py" \
   --symbol EURUSD --period M1 --bars 5000
