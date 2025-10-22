@@ -18,9 +18,47 @@
 
 ## Navigation Index
 
-**Current Workspace**: `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c ` (CrossOver bottle root)
+**Current Workspace**: `$MQL5_ROOT` → `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c ` (CrossOver bottle root)
 **Project Documentation**: `docs/README.md ` - Project overview and documentation index
 **🧭 Task Navigator**: `docs/MT5_REFERENCE_HUB.md ` - Decision trees, canonical source map, automation matrix (single navigation point)
+
+## Environment Variables
+
+**MQL5_ROOT**: Project root environment variable for convenient navigation and scripting
+
+```bash
+# Add to ~/.zshrc (or ~/.bashrc)
+export MQL5_ROOT="/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c"
+alias m5='cd "$MQL5_ROOT"'
+
+# Quick navigation
+m5                                    # Jump to project root instantly
+cd "$MQL5_ROOT/users/crossover"       # Python workspace
+cd "$MQL5_ROOT/docs/guides"           # Documentation
+cd "$MQL5_ROOT/archive"               # Legacy code
+
+# Git operations from anywhere
+git -C "$MQL5_ROOT" status            # Check git status
+git -C "$MQL5_ROOT" log --oneline -5  # View recent commits
+git -C "$MQL5_ROOT" push origin main  # Push changes
+
+# Validation from anywhere
+cd "$MQL5_ROOT/users/crossover" && python3 comprehensive_validation.py --priority ALL
+
+# Export data (v3.0.0 headless)
+cd "$MQL5_ROOT/users/crossover"
+CX_BOTTLE="MetaTrader 5" \
+WINEPREFIX="$MQL5_ROOT" \
+wine "C:\\Program Files\\Python312\\python.exe" \
+  "C:\\users\\crossover\\export_aligned.py" \
+  --symbol EURUSD --period M1 --bars 5000
+```
+
+**Benefits**:
+- ✅ Quick navigation (`m5` command)
+- ✅ Portable commands (work on any machine with `MQL5_ROOT` set)
+- ✅ Git operations from anywhere (`git -C "$MQL5_ROOT"`)
+- ✅ No filesystem changes (safe for Wine/CrossOver compatibility)
 
 ## Core Guides
 
