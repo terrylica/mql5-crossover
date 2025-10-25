@@ -1,0 +1,22 @@
+# Python dependencies for MQL5 CrossOver Project
+# Python workspace: users/crossover/
+
+# Core data processing
+numpy>=1.26.4,<2.0  # Indicator calculations (laguerre_rsi.py)
+pandas>=2.0.0       # Time series operations
+
+# Validation framework
+duckdb>=0.9.0       # Database storage for validation results (validate_indicator.py)
+
+# Note: Wine Python environment requires separate installation
+# Wine Python path: C:\Program Files\Python312\python.exe
+# macOS Python (for validation): Use system python3 or pyenv
+
+## Installation
+
+# macOS native Python (for validation tools)
+# pip3 install -r requirements.txt
+
+# Wine Python (for export_aligned.py)
+# wine "C:\Program Files\Python312\python.exe" -m pip install numpy pandas
+# Note: duckdb not needed in Wine environment

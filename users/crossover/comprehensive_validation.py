@@ -668,9 +668,10 @@ class ValidationSuite:
             return ("FAIL", "Git remote not configured", "No origin remote")
 
     def test_p3_05_recent_commits_present(self) -> Tuple[str, str, str]:
-        """Test recent commits (cc reorganization, legacy assessment) are present"""
+        """Test git repository health (has commits, no temporal assumptions)"""
+        # Check git log is available
         result = subprocess.run(
-            ["git", "log", "--oneline", "-5"],
+            ["git", "log", "--oneline", "-1"],
             cwd=self.bottle_root,
             capture_output=True,
             text=True
@@ -679,21 +680,27 @@ class ValidationSuite:
         if result.returncode != 0:
             return ("SKIP", "Git log not available", "")
 
-        log = result.stdout
+        # Check we have at least one commit
+        if not result.stdout.strip():
+            return ("FAIL", "No commits found", "Git history empty")
 
-        # Check for recent commits
-        checks = [
-            ("cc indicator", "cc indicator archive organization"),
-            ("LEGACY_CODE_ASSESSMENT", "legacy code assessment"),
-            ("DOCUMENTATION.md", "documentation hub"),
-        ]
+        # Check we have a reasonable number of commits
+        commit_count_result = subprocess.run(
+            ["git", "rev-list", "--count", "HEAD"],
+            cwd=self.bottle_root,
+            capture_output=True,
+            text=True
+        )
 
-        found = sum(1 for pattern, _ in checks if pattern in log)
+        if commit_count_result.returncode == 0:
+            count = int(commit_count_result.stdout.strip())
+            if count >= 5:
+                return ("PASS", f"Git repository healthy ({count} commits)", f"Latest: {result.stdout.strip()[:50]}...")
+            else:
+                return ("FAIL", f"Only {count} commits in history", "Git history may be incomplete")
 
-        if found >= 2:
-            return ("PASS", f"Recent commits present ({found}/3)", "Git history intact")
-        else:
-            return ("FAIL", f"Only {found}/3 recent commits found", "Git history may be incomplete")
+        # Fallback: if we can't count, just pass if we have any commit
+        return ("PASS", "Git repository has commits", result.stdout.strip()[:50] + "...")
 
     # =========================================================================
     # TEST SUITE EXECUTION
