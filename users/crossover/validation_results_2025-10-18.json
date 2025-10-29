@@ -1,0 +1,300 @@
+{
+  "timestamp": "2025-10-18T11:08:11.055339",
+  "duration_seconds": 1.689031,
+  "summary": {
+    "total": 32,
+    "passed": 27,
+    "failed": 5,
+    "skipped": 0
+  },
+  "results": [
+    {
+      "test_id": 1,
+      "name": "v3.0.0 Wine Python Export Script",
+      "priority": "P0",
+      "status": "PASS",
+      "duration_ms": 155.38,
+      "message": "export_aligned.py exists and is valid Python",
+      "details": "Size: 10279 bytes"
+    },
+    {
+      "test_id": 2,
+      "name": "v4.0.0 Config Generation - RSI",
+      "priority": "P0",
+      "status": "PASS",
+      "duration_ms": 37.102000000000004,
+      "message": "generate_export_config.py exists and is valid Python",
+      "details": "Size: 8169 bytes"
+    },
+    {
+      "test_id": 3,
+      "name": "validate_indicator.py Exists",
+      "priority": "P0",
+      "status": "PASS",
+      "duration_ms": 38.117,
+      "message": "validate_indicator.py exists and is valid Python",
+      "details": "Size: 12476 bytes"
+    },
+    {
+      "test_id": 4,
+      "name": "Laguerre RSI Indicator Exists",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration_ms": 0.505,
+      "message": "laguerre_rsi.py missing version marker",
+      "details": "Expected: __version__ = '1.0.0'"
+    },
+    {
+      "test_id": 5,
+      "name": "ExportAligned.ex5 Exists",
+      "priority": "P0",
+      "status": "PASS",
+      "duration_ms": 0.29,
+      "message": "ExportAligned.ex5 exists (31,768 bytes)",
+      "details": "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Scripts/DataExport/ExportAligned.ex5"
+    },
+    {
+      "test_id": 6,
+      "name": "ExportAligned.mq5 Exists",
+      "priority": "P0",
+      "status": "PASS",
+      "duration_ms": 0.323,
+      "message": "ExportAligned.mq5 exists (275 lines)",
+      "details": "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Scripts/DataExport/ExportAligned.mq5"
+    },
+    {
+      "test_id": 7,
+      "name": "Config Examples Exist",
+      "priority": "P0",
+      "status": "PASS",
+      "duration_ms": 0.057,
+      "message": "All 5 config examples exist",
+      "details": "Location: /Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Files/configs"
+    },
+    {
+      "test_id": 8,
+      "name": "Python Scripts Importable",
+      "priority": "P0",
+      "status": "FAIL",
+      "duration_ms": 1419.029,
+      "message": "1 scripts have import errors",
+      "details": "export_aligned.py: No module named 'MetaTrader5'"
+    },
+    {
+      "test_id": 9,
+      "name": "Indicators Package Importable",
+      "priority": "P0",
+      "status": "PASS",
+      "duration_ms": 0.01,
+      "message": "indicators.laguerre_rsi importable",
+      "details": "Version: unknown"
+    },
+    {
+      "test_id": 10,
+      "name": "Key Documentation Exists",
+      "priority": "P0",
+      "status": "PASS",
+      "duration_ms": 0.051,
+      "message": "All 4 key documentation files exist",
+      "details": "CLAUDE.md, DOCUMENTATION.md, MT5_REFERENCE_HUB.md, LEGACY_CODE_ASSESSMENT.md"
+    },
+    {
+      "test_id": 11,
+      "name": "Archive: cc/development/ Structure",
+      "priority": "P1",
+      "status": "PASS",
+      "duration_ms": 0.877,
+      "message": "cc/development/ has exactly 10 files",
+      "details": "Files: cc.ex5, cc.mq5, cc_backup.ex5... (showing 3/10)"
+    },
+    {
+      "test_id": 12,
+      "name": "Archive: laguerre_rsi/ No CC Files",
+      "priority": "P1",
+      "status": "PASS",
+      "duration_ms": 0.8109999999999999,
+      "message": "laguerre_rsi/development/ has NO cc files",
+      "details": "7 Laguerre files only"
+    },
+    {
+      "test_id": 13,
+      "name": "Archive: cc/compiled/ Structure",
+      "priority": "P1",
+      "status": "PASS",
+      "duration_ms": 0.211,
+      "message": "cc/compiled/ has 4 .ex5 files",
+      "details": "Files: cc_original.ex5, cc_refactored.ex5, cc.ex5, cc_backup.ex5"
+    },
+    {
+      "test_id": 14,
+      "name": "MQL5 Scripts Structure",
+      "priority": "P1",
+      "status": "PASS",
+      "duration_ms": 0.033,
+      "message": "Scripts/DataExport/ structure correct",
+      "details": "Contains: ExportAligned.mq5, ExportAligned.ex5"
+    },
+    {
+      "test_id": 15,
+      "name": "MQL5 Include Structure",
+      "priority": "P1",
+      "status": "PASS",
+      "duration_ms": 0.16799999999999998,
+      "message": "Include/DataExport/ structure correct",
+      "details": "Contains: DataExportCore.mqh, ExportAlignedCommon.mqh, modules"
+    },
+    {
+      "test_id": 16,
+      "name": "Config Examples Readable",
+      "priority": "P1",
+      "status": "PASS",
+      "duration_ms": 0.911,
+      "message": "All 5 config examples readable",
+      "details": "No read errors"
+    },
+    {
+      "test_id": 17,
+      "name": "Git Archive Clean",
+      "priority": "P1",
+      "status": "PASS",
+      "duration_ms": 10.626,
+      "message": "archive/indicators/ has no untracked files",
+      "details": "Git tracking clean"
+    },
+    {
+      "test_id": 18,
+      "name": "validate_indicator.py Framework",
+      "priority": "P1",
+      "status": "PASS",
+      "duration_ms": 0.131,
+      "message": "validate_indicator.py has universal framework",
+      "details": "All 4 features present"
+    },
+    {
+      "test_id": 19,
+      "name": "Laguerre RSI v1.0.0 Validated",
+      "priority": "P1",
+      "status": "PASS",
+      "duration_ms": 0.5900000000000001,
+      "message": "Laguerre RSI v1.0.0 validation report exists",
+      "details": "Perfect correlation documented"
+    },
+    {
+      "test_id": 20,
+      "name": "Exports Directory Exists",
+      "priority": "P1",
+      "status": "PASS",
+      "duration_ms": 0.037,
+      "message": "exports/ directory exists",
+      "details": "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/exports"
+    },
+    {
+      "test_id": 21,
+      "name": "MQL5 Logs Accessible",
+      "priority": "P1",
+      "status": "PASS",
+      "duration_ms": 0.47800000000000004,
+      "message": "MQL5/Logs/ accessible (5 log files)",
+      "details": "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Logs"
+    },
+    {
+      "test_id": 22,
+      "name": "validate_export.py Deprecation",
+      "priority": "P1",
+      "status": "PASS",
+      "duration_ms": 0.301,
+      "message": "validate_export.py has deprecation warning",
+      "details": "Warning present"
+    },
+    {
+      "test_id": 23,
+      "name": "CLAUDE.md Link Integrity",
+      "priority": "P2",
+      "status": "PASS",
+      "duration_ms": 0.675,
+      "message": "CLAUDE.md: All 29 internal links valid",
+      "details": "No broken links"
+    },
+    {
+      "test_id": 24,
+      "name": "DOCUMENTATION.md Link Integrity",
+      "priority": "P2",
+      "status": "FAIL",
+      "duration_ms": 0.851,
+      "message": "DOCUMENTATION.md: 1 broken links",
+      "details": "Quick Start section -> #-quick-start-35-45-minutes"
+    },
+    {
+      "test_id": 25,
+      "name": "MT5_REFERENCE_HUB.md Links",
+      "priority": "P2",
+      "status": "PASS",
+      "duration_ms": 0.294,
+      "message": "MT5_REFERENCE_HUB.md: All internal links valid",
+      "details": "No broken links"
+    },
+    {
+      "test_id": 26,
+      "name": "LEGACY_CODE_ASSESSMENT.md References",
+      "priority": "P2",
+      "status": "FAIL",
+      "duration_ms": 0.304,
+      "message": "LEGACY_CODE_ASSESSMENT.md missing cc/development/ references",
+      "details": "Should reference new location"
+    },
+    {
+      "test_id": 27,
+      "name": "No Old CC References in Docs",
+      "priority": "P2",
+      "status": "PASS",
+      "duration_ms": 0.13699999999999998,
+      "message": "No old cc file location references found",
+      "details": "Checked 3 key docs"
+    },
+    {
+      "test_id": 28,
+      "name": "CrossOver.app Exists",
+      "priority": "P3",
+      "status": "PASS",
+      "duration_ms": 0.032,
+      "message": "CrossOver.app found at ~/Applications/",
+      "details": "/Users/terryli/Applications/CrossOver.app"
+    },
+    {
+      "test_id": 29,
+      "name": "Wine Python Exists",
+      "priority": "P3",
+      "status": "FAIL",
+      "duration_ms": 0.223,
+      "message": "Wine Python not found",
+      "details": "Expected: /Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/Program Files/Python312/python.exe"
+    },
+    {
+      "test_id": 30,
+      "name": "Git Repository Valid",
+      "priority": "P3",
+      "status": "PASS",
+      "duration_ms": 6.0569999999999995,
+      "message": "Valid git repository",
+      "details": ".git"
+    },
+    {
+      "test_id": 31,
+      "name": "Git Remote Configured",
+      "priority": "P3",
+      "status": "PASS",
+      "duration_ms": 5.764,
+      "message": "Git remote configured: https://github.com/terrylica/mql5-in-crossover-bottle.git",
+      "details": "origin remote exists"
+    },
+    {
+      "test_id": 32,
+      "name": "Recent Commits Present",
+      "priority": "P3",
+      "status": "PASS",
+      "duration_ms": 8.087,
+      "message": "Recent commits present (2/3)",
+      "details": "Git history intact"
+    }
+  ]
+}
