@@ -1,9 +1,9 @@
 ---
 plan_id: cci-neutrality-indicator
-version: 1.1.0
+version: 1.3.2
 status: blocked
 created: 2025-10-28
-last_updated: 2025-10-28
+last_updated: 2025-10-29
 
 # Objective
 objective: |
@@ -63,10 +63,20 @@ components:
     location: users/crossover/
     files:
       - generate_test_data.py (Wine Python historical data fetch)
-      - run_cci_validation.sh (all-in-one workflow)
+      - run_cci_validation.sh (all-in-one workflow - GUI manual step)
+      - run_cci_validation_headless.sh (Strategy Tester automation attempt)
       - analyze_cci_debug.py (7 diagnostic checks)
       - test_cci_automated.py (Strategy Tester alternative)
-    status: COMPLETE
+    status: PARTIAL (headless automation blocked, GUI workflow viable)
+
+  - name: strategy_tester_automation
+    location: Program Files/MetaTrader 5/MQL5/Experts/
+    files:
+      - CCINeutralityTester.mq5 (wrapper EA for indicator testing)
+      - CCINeutralityTester.ex5 (compiled, 11KB, 0 errors)
+    config:
+      - users/crossover/Config/tester_cci_headless.ini
+    status: CREATED_BUT_BLOCKED (terminal loads config but tester doesn't start)
 
   - name: documentation
     location: Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/
@@ -144,6 +154,53 @@ findings:
       - Output: test_data_EURUSD_M12_5000bars.csv
       - Time: ~5 seconds (vs 20+ hours for live data)
 
+  - timestamp: 2025-10-29T02:00:00
+    category: strategy_tester_automation
+    details: |
+      Wrapper EA for Strategy Tester automation: CREATED
+      - CCINeutralityTester.mq5 uses iCustom() to call CCI_Neutrality_Debug
+      - Compiles with 0 errors, 0 warnings (11KB .ex5)
+      - #property tester_indicator directive added
+      - #property tester_everytick_calculate added to indicator
+      - EA matches all 12 indicator input parameters
+      - Status: COMPILED_BUT_UNTESTED (blocked by tester non-start)
+
+  - timestamp: 2025-10-29T02:00:00
+    category: strategy_tester_automation
+    details: |
+      Tester configuration INI file: CREATED
+      - Format: [Tester] section with Expert, Symbol, Period, etc.
+      - Based on mql5.com/en/forum/457213 format specification
+      - ShutdownTerminal=1 for automation
+      - Visual=false for headless operation
+      - Date range: 2025.09.01 to 2025.10.29 (matches test data)
+      - Status: CREATED_BUT_INEFFECTIVE (terminal loads config, tester doesn't start)
+
+  - timestamp: 2025-10-29T02:06:00
+    category: strategy_tester_automation
+    severity: BLOCKING
+    details: |
+      CRITICAL FINDING: MT5 Strategy Tester does NOT auto-start from /config parameter
+
+      Evidence from terminal logs (logs/20251028.log):
+      - 18:56:52: "Startup successfully initialized from start config..."
+      - 18:56:52: "Terminal launched with C:\users\crossover\Config\tester_cci_headless.ini"
+      - 18:56:55+: Loads previous workspace indicators (ZigZag, cc, CCI_Neutrality_Simple)
+      - NO tester activity logged (no "Tester: started", "Tester: loading expert", etc.)
+      - Same behavior at 19:06:13 with corrected [Tester] section format
+
+      Attempted solutions (both FAILED):
+      1. Original format: TestExpert=, TestSymbol=, etc. (no section)
+      2. Corrected format: [Tester] section with Expert=, Symbol=, etc.
+
+      Research findings (mql5.com):
+      - Forum posts claim /config with [Tester] section should work
+      - One user reports "a lot of tests fail, for no apparent reason"
+      - May be CrossOver/Wine specific limitation (not Windows MT5)
+
+      Impact: BLOCKS headless validation workflow
+      Status: UNRESOLVED (requires alternative approach)
+
 # Current Status
 progress:
   completed:
@@ -158,12 +215,38 @@ progress:
     - Test data generation (5000 bars EURUSD M12, 5 seconds)
 
   blocked:
-    - item: Validation workflow completion
+    - item: Headless Strategy Tester automation
+      reason: MT5 terminal64.exe /config loads INI but doesn't start Strategy Tester
+      impact: Critical (blocks automated validation, forces GUI workflow)
+      severity: BLOCKING
+      details: |
+        Attempted approach: Strategy Tester command line automation
+        - Created CCINeutralityTester wrapper EA (compiled, 11KB, 0 errors)
+        - Created tester_cci_headless.ini with [Tester] section
+        - Terminal successfully loads config file
+        - BUT: Tester never starts (no tester activity in logs)
+        - Terminal just restores previous workspace instead
+        Evidence: Terminal logs show "launched with...tester_cci_headless.ini"
+                  but NO "Tester: started" or "Tester: loading expert" messages
+      root_cause: |
+        MT5 /config parameter loads startup configuration but does NOT trigger
+        Strategy Tester execution. May be CrossOver/Wine limitation vs Windows MT5.
+      research: |
+        - mql5.com/en/forum/457213: [Tester] section format confirmed
+        - mql5.com/en/forum/361861: Users report "a lot of tests fail"
+        - No documented command line parameter to force tester start
+      alternatives:
+        - GUI workflow (manual indicator attachment) - VIABLE
+        - AppleScript/GUI automation - NOT EXPLORED
+        - Python MT5 API for indicator testing - NOT VIABLE (no indicator buffer access)
+      status: UNRESOLVED (reverting to GUI workflow)
+
+    - item: Validation workflow completion (GUI approach)
       reason: MT5 GUI interaction required (attach indicator to chart)
-      impact: Critical (blocks correctness SLO verification)
+      impact: Medium (blocks correctness SLO verification, adds manual step)
       details: |
         Step 1 (generate test data): COMPLETE
-        Step 2 (attach indicator): BLOCKED (requires user GUI action)
+        Step 2 (attach indicator): REQUIRES USER ACTION (GUI manual step)
         Step 3 (analyze CSV): PENDING (waiting for step 2)
       workaround: User must manually attach CCI_Neutrality_Debug indicator to EURUSD M12 chart
 
@@ -263,6 +346,91 @@ documentation:
 
 # Changelog
 changes:
+  - version: 1.3.2
+    date: 2025-10-29
+    description: CSV export working via workspace restoration, calculation errors identified
+    changes:
+      - User attached CCI_Neutrality_Debug to EURUSD M12 chart and saved workspace
+      - Workspace restoration during startup triggers indicator initialization and CSV export
+      - CSV generated successfully (100,438 bars, 10MB, 19 columns)
+      - Ran automated analysis using uv (per global CLAUDE.md Python requirements)
+      - Analysis revealed critical calculation failures (4/4 diagnostic checks FAILED)
+      - Root cause identified - insufficient CCI warmup period before rolling window priming
+      - CCI indicator needs 20 bars warmup, but code accumulates bars 0-29 without checking for EMPTY_VALUE
+      - Accumulating EMPTY_VALUE/inf from early CCI bars causes inf in sum_cci, sum_cci2, sum_excess
+      - Propagates to all derived statistics - mu=inf, variance=-nan, sd=-nan, e=inf
+      - Score components become invalid - v=-nan, score=-nan
+      - NO coil/expansion signals triggered in 100K bars due to invalid scores
+    slos:
+      availability: 100%
+      correctness: 0% (CSV generated but calculations produce inf/nan, all diagnostics FAILED)
+      observability: 100%
+      maintainability: 100%
+    blocking_issue: |
+      Indicator implementation has fundamental calculation error - insufficient warmup handling.
+      Code primes rolling window starting at bar 29 (InpWindow-1) but CCI indicator (InpCCILength=20)
+      produces EMPTY_VALUE/inf for bars 0-19. These invalid values accumulate into sum_cci/sum_cci2/sum_excess
+      causing inf propagation through all statistical calculations (mu, variance, sd, e, v, score).
+
+      Fix required - line 232 priming loop must skip bars where CCI is not yet valid:
+      - Check BarsCalculated(hCCI) to determine first valid CCI bar
+      - Start priming from max(0, start - InpWindow + 1, first_valid_cci_bar)
+      - OR check for EMPTY_VALUE/inf before accumulating into sums
+
+      This is an indicator implementation bug, not an automation/workflow issue.
+
+  - version: 1.3.1
+    date: 2025-10-29
+    description: Script automation works but indicator loading via iCustom() fails with error 4806
+    changes:
+      - Fixed indicator path in CCI_Export_Script.mq5 (removed ::Indicators\ prefix and .ex5 extension)
+      - Recompiled CCI_Export_Script.ex5 successfully (19:42, 0 errors, 734ms)
+      - Confirmed workspace prerequisite (EURUSD M12 chart open) enables script execution
+      - Script executes successfully via [StartUp] section
+      - Indicator handle creates successfully (ID 10)
+      - BarsCalculated() returns error 4806 (ERR_INDICATOR_DATA_NOT_FOUND)
+      - NO indicator log messages (OnInit() never executed or failed silently)
+      - Hypothesis: File I/O or initialization requirements prevent indicator from working in iCustom() context
+      - Indicator works when attached to chart via GUI (proven at 17:34 on EURUSD M10)
+      - Updated MT5_AUTOMATION_BLOCKING_ISSUE_v1.3.0.md with v1.3.0 Update section
+    slos:
+      availability: 100%
+      correctness: 0% (blocked on indicator initialization failure in iCustom() context)
+      observability: 100%
+      maintainability: 100%
+    blocking_issue: |
+      [StartUp] script automation executes successfully, but CCI_Neutrality_Debug indicator
+      fails to initialize when loaded via iCustom() from script (error 4806).
+      Indicator works in GUI mode (chart attachment) but not in programmatic context.
+      Possible file I/O permission restrictions or missing chart context.
+      Three viable alternatives: (1) Manual GUI workflow, (2) v3.0.0 Python API + Python
+      indicator, (3) Investigate indicator initialization with minimal test case.
+
+  - version: 1.2.0
+    date: 2025-10-29
+    description: Strategy Tester automation attempted, blocked by terminal non-start issue
+    changes:
+      - Created CCINeutralityTester wrapper EA (iCustom pattern, 11KB, 0 errors)
+      - Created tester_cci_headless.ini ([Tester] section format)
+      - Created run_cci_validation_headless.sh automation script
+      - Added #property tester_everytick_calculate to indicator
+      - Attempted terminal64.exe /config automation (2 iterations)
+      - Diagnosed critical blocking issue (terminal loads INI but tester doesn't start)
+      - Researched mql5.com forums (confirmed [Tester] format, found reliability issues)
+      - Analyzed terminal logs (no tester activity, workspace restore only)
+      - Updated plan status remains "blocked"
+      - Documented 3 new findings in plan (EA, INI, blocking issue)
+    slos:
+      availability: 100%
+      correctness: 0% (blocked on tester non-start, cannot validate)
+      observability: 100%
+      maintainability: 100%
+    blocking_issue: |
+      MT5 Strategy Tester does NOT auto-start from /config parameter on CrossOver/Wine.
+      Terminal loads config successfully but restores workspace instead of starting tester.
+      No documented command line parameter to force tester execution.
+      Reverting to GUI workflow (manual indicator attachment required).
+
   - version: 1.1.0
     date: 2025-10-28
     description: Test data generation complete, blocked on GUI interaction
