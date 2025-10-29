@@ -1,0 +1,259 @@
+---
+plan_id: cci-neutrality-indicator
+version: 1.0.0
+status: in_progress
+created: 2025-10-28
+last_updated: 2025-10-28
+
+# Objective
+objective: |
+  Implement CCI Neutrality indicator that quantifies "consecutive CCI bounded
+  near zero with few ±100 breaches" using audit-compliant patterns. Validate
+  calculations via automated historical testing workflow.
+
+# Service Level Objectives
+slos:
+  availability:
+    target: 100%
+    metric: Indicator loads without errors in MT5
+    actual: 100%
+    status: MET
+    measurement: CCI_Neutrality_Debug.ex5 compiles with 0 errors
+
+  correctness:
+    target: 100%
+    metric: All statistical calculations verified via 7 diagnostic checks
+    actual: 0%
+    status: NOT_MET
+    measurement: analyze_cci_debug.py validation suite (not run yet)
+
+  observability:
+    target: 100%
+    metric: All intermediate calculations exported to CSV for inspection
+    actual: 100%
+    status: MET
+    measurement: 19 columns exported (base, stats, scores, signals, debug sums)
+
+  maintainability:
+    target: 100%
+    metric: Code follows audit compliance checklist (8 requirements)
+    actual: 100%
+    status: MET
+    measurement: AUDIT_COMPLIANCE.md documents all 8 fixes applied
+
+# Architecture
+approach: |
+  Use existing validation methodology (5000-bar warmup) with Wine Python automation
+  (v3.0.0). Test with historical data (5 seconds) instead of live ticks (20+ hours).
+  Reference canonical documentation for all workflows.
+
+# Components
+components:
+  - name: indicator_implementations
+    files:
+      - CCI_Neutrality.mq5 (full version with CsvLogger.mqh)
+      - CCI_Neutrality_Simple.mq5 (standalone, minimal visual)
+      - CCI_Neutrality_Debug.mq5 (CSV output, statistical validation)
+    status:
+      - full: NOT_COMPILED (20 errors, CsvLogger include issue)
+      - simple: COMPILED (0 errors, 16KB)
+      - debug: COMPILED (0 errors, 18KB)
+
+  - name: automation_scripts
+    location: users/crossover/
+    files:
+      - generate_test_data.py (Wine Python historical data fetch)
+      - run_cci_validation.sh (all-in-one workflow)
+      - analyze_cci_debug.py (7 diagnostic checks)
+      - test_cci_automated.py (Strategy Tester alternative)
+    status: COMPLETE
+
+  - name: documentation
+    location: Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/
+    files:
+      - README.md (installation, usage, testing, tuning)
+      - AUDIT_COMPLIANCE.md (8 requirements validation)
+      - VISUAL_SETUP_GUIDE.md (MT5 GUI workflow)
+      - DEBUG_WORKFLOW.md (CSV analysis workflow)
+      - AUTOMATED_TESTING.md (historical testing workflow)
+    references:
+      - docs/guides/WINE_PYTHON_EXECUTION.md (v3.0.0)
+      - docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md (5000-bar warmup)
+      - docs/MT5_REFERENCE_HUB.md (decision trees)
+      - docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md (7-phase workflow)
+      - docs/guides/LESSONS_LEARNED_PLAYBOOK.md (8 gotchas)
+    status: COMPLETE
+
+  - name: utility_library
+    location: Program Files/MetaTrader 5/MQL5/Include/
+    files:
+      - CsvLogger.mqh (reusable CSV logging, 150 lines)
+    status: CREATED (not validated - full version doesn't compile)
+
+# Implementation Findings
+findings:
+  - timestamp: 2025-10-28T17:13:00
+    category: compilation
+    details: |
+      CCI_Neutrality.mq5 (full version): 20 errors, 3 warnings
+      Likely issue: CsvLogger.mqh include path or syntax errors
+      Impact: Full version not usable, but debug version provides same functionality
+
+  - timestamp: 2025-10-28T17:16:00
+    category: compilation
+    details: |
+      CCI_Neutrality_Simple.mq5: 0 errors, 0 warnings, 736ms compile time
+      Standalone version (no CSV logging) works correctly
+      Validates that core algorithm compiles without external dependencies
+
+  - timestamp: 2025-10-28T17:27:00
+    category: compilation
+    details: |
+      CCI_Neutrality_Debug.mq5: 0 errors, 0 warnings, 779ms compile time
+      CSV output built-in (no external include needed)
+      19 columns: all intermediate calculations exposed for validation
+
+  - timestamp: 2025-10-28T17:30:00
+    category: automation
+    details: |
+      Created historical testing workflow per user request:
+      - Uses MT5 cached data (5 seconds vs 20+ hours)
+      - References existing docs (WINE_PYTHON_EXECUTION.md,
+        INDICATOR_VALIDATION_METHODOLOGY.md, MT5_REFERENCE_HUB.md)
+      - 4 automation scripts created
+      - All scripts reference canonical documentation sources
+
+  - timestamp: 2025-10-28T17:35:00
+    category: documentation
+    details: |
+      All documentation includes links to canonical sources:
+      - AUTOMATED_TESTING.md: 6 primary workflow references
+      - DEBUG_WORKFLOW.md: Complete CSV analysis workflow
+      - VISUAL_SETUP_GUIDE.md: Step-by-step MT5 GUI
+      - README.md: Installation, testing, tuning
+      - AUDIT_COMPLIANCE.md: 8 requirements with evidence
+
+# Current Status
+progress:
+  completed:
+    - Mathematical specification translated to MQL5
+    - 8 audit compliance requirements applied
+    - 3 indicator versions created (full, simple, debug)
+    - 2 versions compiled successfully (simple, debug)
+    - 5 documentation files created with canonical references
+    - 4 automation scripts created
+    - Wine Python historical data fetch workflow
+    - CSV analysis script with 7 diagnostic checks
+
+  blocked:
+    - item: Full version compilation (CCI_Neutrality.mq5)
+      reason: CsvLogger.mqh include errors (20 compilation errors)
+      impact: Low (debug version provides same CSV functionality)
+      workaround: Use CCI_Neutrality_Debug.mq5 instead
+
+  pending:
+    - item: Run validation workflow
+      description: Execute automated testing with historical data
+      steps:
+        - Generate 5000 bars test data via Wine Python
+        - Attach debug indicator to chart
+        - Verify CSV output generated
+        - Run analyze_cci_debug.py (7 diagnostic checks)
+        - Verify all checks show PASS
+      dependencies:
+        - MT5 running
+        - Wine Python environment
+        - Historical data available
+      estimated_time: 5 minutes
+
+    - item: Merge to main
+      description: Integrate CCI Neutrality indicator into main branch
+      dependencies:
+        - Validation workflow passes (correctness SLO = 100%)
+        - All 7 diagnostic checks show PASS
+      estimated_time: 2 minutes
+
+# Next Steps (Prioritized)
+next_steps:
+  - priority: 1
+    action: Run validation workflow using debug version
+    rationale: |
+      Must verify correctness SLO (currently 0%, target 100%) before merging.
+      Debug version has all needed functionality (CSV output built-in).
+      Uses existing INDICATOR_VALIDATION_METHODOLOGY.md workflow (5000-bar warmup).
+    command: |
+      cd /Users/terryli/Library/Application\ Support/CrossOver/Bottles/MetaTrader\ 5/drive_c/users/crossover
+      ./run_cci_validation.sh EURUSD M12 5000
+    expected_outcome: All 7 diagnostic checks show PASS
+    time_estimate: 5 minutes
+
+  - priority: 2
+    action: Review validation results and update plan
+    rationale: |
+      If validation passes, correctness SLO → 100%, ready to merge.
+      If validation fails, debug calculations and update implementation.
+    dependencies:
+      - Step 1 complete
+    time_estimate: 2 minutes
+
+  - priority: 3
+    action: Merge to main (if validation passes)
+    rationale: |
+      All SLOs met (availability 100%, correctness 100%, observability 100%,
+      maintainability 100%). Indicator ready for production use.
+    command: |
+      git checkout main
+      git merge feature/cci-neutrality-indicator
+      git push origin main
+    dependencies:
+      - Validation workflow passes
+      - All 7 diagnostic checks PASS
+    time_estimate: 2 minutes
+
+  - priority: 4
+    action: Debug full version compilation (optional)
+    rationale: |
+      Low priority - debug version provides same CSV functionality.
+      Only needed if want to use CsvLogger.mqh for other indicators.
+    dependencies:
+      - Steps 1-3 complete
+    time_estimate: 30 minutes
+
+# References
+documentation:
+  canonical_workflows:
+    - docs/guides/WINE_PYTHON_EXECUTION.md (v3.0.0 Wine Python headless)
+    - docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md (5000-bar warmup)
+    - docs/MT5_REFERENCE_HUB.md (decision trees, automation matrix)
+    - docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md (7-phase workflow)
+    - docs/guides/LESSONS_LEARNED_PLAYBOOK.md (8 critical gotchas)
+
+  indicator_docs:
+    - Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/README.md
+    - Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/AUTOMATED_TESTING.md
+    - Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/DEBUG_WORKFLOW.md
+    - Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/AUDIT_COMPLIANCE.md
+
+  automation_scripts:
+    - users/crossover/run_cci_validation.sh (all-in-one workflow)
+    - users/crossover/generate_test_data.py (Wine Python data fetch)
+    - users/crossover/analyze_cci_debug.py (7 diagnostic checks)
+
+# Changelog
+changes:
+  - version: 1.0.0
+    date: 2025-10-28
+    description: Initial plan creation
+    changes:
+      - Created CCI Neutrality indicator (3 versions)
+      - Applied 8 audit compliance requirements
+      - Created 5 documentation files
+      - Created 4 automation scripts
+      - Compiled simple and debug versions (0 errors)
+      - Identified full version compilation issue (20 errors)
+      - Created historical testing workflow (5 sec vs 20+ hours)
+    slos:
+      availability: 100%
+      correctness: 0% (not validated yet)
+      observability: 100%
+      maintainability: 100%
