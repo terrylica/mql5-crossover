@@ -1,7 +1,7 @@
 ---
 plan_id: cci-neutrality-indicator
-version: 1.0.0
-status: in_progress
+version: 1.1.0
+status: blocked
 created: 2025-10-28
 last_updated: 2025-10-28
 
@@ -133,6 +133,17 @@ findings:
       - README.md: Installation, testing, tuning
       - AUDIT_COMPLIANCE.md: 8 requirements with evidence
 
+  - timestamp: 2025-10-28T18:00:00
+    category: validation
+    details: |
+      Test data generation via Wine Python: SUCCESS
+      - Fetched 5000 bars EURUSD M12 (2025-09-01 to 2025-10-29)
+      - 4981 valid CCI values (99.6% coverage)
+      - CCI range: [-424.07, 564.62]
+      - In-channel ratio: 59.4%
+      - Output: test_data_EURUSD_M12_5000bars.csv
+      - Time: ~5 seconds (vs 20+ hours for live data)
+
 # Current Status
 progress:
   completed:
@@ -144,27 +155,38 @@ progress:
     - 4 automation scripts created
     - Wine Python historical data fetch workflow
     - CSV analysis script with 7 diagnostic checks
+    - Test data generation (5000 bars EURUSD M12, 5 seconds)
 
   blocked:
+    - item: Validation workflow completion
+      reason: MT5 GUI interaction required (attach indicator to chart)
+      impact: Critical (blocks correctness SLO verification)
+      details: |
+        Step 1 (generate test data): COMPLETE
+        Step 2 (attach indicator): BLOCKED (requires user GUI action)
+        Step 3 (analyze CSV): PENDING (waiting for step 2)
+      workaround: User must manually attach CCI_Neutrality_Debug indicator to EURUSD M12 chart
+
     - item: Full version compilation (CCI_Neutrality.mq5)
       reason: CsvLogger.mqh include errors (20 compilation errors)
       impact: Low (debug version provides same CSV functionality)
       workaround: Use CCI_Neutrality_Debug.mq5 instead
 
   pending:
-    - item: Run validation workflow
-      description: Execute automated testing with historical data
+    - item: Attach indicator to chart (USER ACTION REQUIRED)
+      description: Manual step - MT5 limitation prevents automation
       steps:
-        - Generate 5000 bars test data via Wine Python
-        - Attach debug indicator to chart
-        - Verify CSV output generated
-        - Run analyze_cci_debug.py (7 diagnostic checks)
-        - Verify all checks show PASS
+        - Open MT5
+        - Open EURUSD M12 chart
+        - Press Home to load history (~5000 bars)
+        - Navigator → Indicators → Custom → Development → CCINeutrality
+        - Drag CCI_Neutrality_Debug onto chart
+        - Click OK (defaults are fine)
+        - Verify Terminal → Journal shows "CSV debug output: MQL5/Files/cci_debug_EURUSD_PERIOD_M12_*.csv"
       dependencies:
         - MT5 running
-        - Wine Python environment
-        - Historical data available
-      estimated_time: 5 minutes
+        - Test data generated (COMPLETE)
+      estimated_time: 2 minutes
 
     - item: Merge to main
       description: Integrate CCI Neutrality indicator into main branch
@@ -241,6 +263,22 @@ documentation:
 
 # Changelog
 changes:
+  - version: 1.1.0
+    date: 2025-10-28
+    description: Test data generation complete, blocked on GUI interaction
+    changes:
+      - Generated 5000 bars historical test data via Wine Python
+      - Validated data quality (4981 valid CCI values, 99.6% coverage)
+      - Identified blocking issue (MT5 GUI required for indicator attachment)
+      - Updated plan status to "blocked"
+      - Documented user action required (attach indicator manually)
+    slos:
+      availability: 100%
+      correctness: 0% (blocked on GUI step, cannot validate)
+      observability: 100%
+      maintainability: 100%
+    blocking_issue: MT5 does not support headless indicator attachment
+
   - version: 1.0.0
     date: 2025-10-28
     description: Initial plan creation
