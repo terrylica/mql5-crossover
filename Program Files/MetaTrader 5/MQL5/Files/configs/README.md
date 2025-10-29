@@ -5,6 +5,7 @@ This directory contains example configuration files for the v4.0.0 file-based co
 ## How to Use
 
 1. **Copy example to active config location**:
+
    ```bash
    cp configs/example_rsi_only.txt export_config.txt
    ```
@@ -24,11 +25,13 @@ This directory contains example configuration files for the v4.0.0 file-based co
 ### Basic Indicators
 
 **example_rsi_only.txt**
+
 - RSI indicator only
 - Default period: 14
 - Output: RSI_14 column
 
 **example_sma_only.txt**
+
 - Simple Moving Average only
 - Default period: 14
 - Output: SMA_14 column
@@ -36,6 +39,7 @@ This directory contains example configuration files for the v4.0.0 file-based co
 ### Custom Indicators
 
 **example_laguerre_rsi.txt**
+
 - ATR Adaptive Laguerre RSI
 - ATR period: 32
 - Smooth period: 5
@@ -43,6 +47,7 @@ This directory contains example configuration files for the v4.0.0 file-based co
 - Output: Multiple Laguerre RSI buffers
 
 **example_multi_indicator.txt**
+
 - RSI + SMA + Laguerre RSI
 - All indicators enabled
 - Output: All indicator columns
@@ -50,6 +55,7 @@ This directory contains example configuration files for the v4.0.0 file-based co
 ### Validation
 
 **example_validation_100bars.txt**
+
 - 100 bars for quick validation
 - Use AFTER fetching 5000-bar dataset
 - Compare last 100 bars with Python implementation
@@ -96,24 +102,24 @@ InpOutputName=Export_EURUSD_M1_Custom.csv  # Custom filename
 
 ## Timeframe Values
 
-| Period | Value | Example Config |
-|--------|-------|----------------|
-| M1 | 1 | `InpTimeframe=1` |
-| M5 | 5 | `InpTimeframe=5` |
-| M15 | 15 | `InpTimeframe=15` |
-| M30 | 30 | `InpTimeframe=30` |
-| H1 | 60 | `InpTimeframe=60` |
-| H4 | 240 | `InpTimeframe=240` |
-| D1 | 1440 | `InpTimeframe=1440` |
+| Period | Value | Example Config      |
+| ------ | ----- | ------------------- |
+| M1     | 1     | `InpTimeframe=1`    |
+| M5     | 5     | `InpTimeframe=5`    |
+| M15    | 15    | `InpTimeframe=15`   |
+| M30    | 30    | `InpTimeframe=30`   |
+| H1     | 60    | `InpTimeframe=60`   |
+| H4     | 240   | `InpTimeframe=240`  |
+| D1     | 1440  | `InpTimeframe=1440` |
 
 ## Smooth Method Values
 
-| Method | Value | Description |
-|--------|-------|-------------|
-| SMA | 0 | Simple Moving Average |
-| EMA | 1 | Exponential Moving Average |
-| SMMA | 2 | Smoothed Moving Average |
-| LWMA | 3 | Linear Weighted Moving Average |
+| Method | Value | Description                    |
+| ------ | ----- | ------------------------------ |
+| SMA    | 0     | Simple Moving Average          |
+| EMA    | 1     | Exponential Moving Average     |
+| SMMA   | 2     | Smoothed Moving Average        |
+| LWMA   | 3     | Linear Weighted Moving Average |
 
 ## Tips
 
@@ -136,17 +142,20 @@ InpOutputName=Export_EURUSD_M1_Custom.csv  # Custom filename
 ## Troubleshooting
 
 **Config not loaded**:
+
 - Check file location: Must be `MQL5/Files/export_config.txt`
 - Check file encoding: UTF-8 (not UTF-16LE)
 - Check syntax: `key=value` format (no spaces around `=`)
 - Check logs: `MQL5/Logs/YYYYMMDD.log` for error messages
 
 **Parameters not overriding**:
+
 - Verify config copied to correct location
 - Check parameter names (case-sensitive)
 - Run script via GUI (not startup.ini)
 
 **Wrong output**:
+
 - Check `InpOutputName` parameter
 - Verify indicator enabled (`InpUse*=true`)
 - Check indicator prerequisites (e.g., Laguerre RSI in Custom/PythonInterop/)

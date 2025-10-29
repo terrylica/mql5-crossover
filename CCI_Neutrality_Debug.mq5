@@ -11,6 +11,9 @@
 #property indicator_buffers 1
 #property indicator_plots   1
 
+// Force recalculation in Strategy Tester
+#property tester_everytick_calculate
+
 // Single plot: CCI only
 #property indicator_label1    "CCI"
 #property indicator_type1     DRAW_LINE
@@ -69,8 +72,9 @@ int OnInit()
 //--- Set indicator buffers
    SetIndexBuffer(0, BufCCI, INDICATOR_DATA);
 
-//--- Set draw begin
-   PlotIndexSetInteger(0, PLOT_DRAW_BEGIN, InpWindow - 1);
+//--- Set draw begin (MQL5 idiomatic: CCI warmup + window warmup)
+   int StartCalcPosition = InpCCILength + InpWindow - 1;
+   PlotIndexSetInteger(0, PLOT_DRAW_BEGIN, StartCalcPosition);
 
 //--- Set empty values
    PlotIndexSetDouble(0, PLOT_EMPTY_VALUE, EMPTY_VALUE);
@@ -164,13 +168,16 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
   {
+//--- Calculate warmup requirement (MQL5 idiomatic pattern)
+   int StartCalcPosition = InpCCILength + InpWindow - 1;
+
 //--- Check if we have enough bars
-   if(rates_total <= InpWindow + 2)
+   if(rates_total <= StartCalcPosition)
       return 0;
 
 //--- Check CCI indicator readiness
    int ready = BarsCalculated(hCCI);
-   if(ready < InpWindow)
+   if(ready < StartCalcPosition)
      {
       return 0;
      }
@@ -191,13 +198,13 @@ int OnCalculate(const int rates_total,
    ArraySetAsSeries(BufCCI, false);
    ArraySetAsSeries(time, false);
 
-//--- Calculate start position
+//--- Calculate start position (MQL5 idiomatic pattern)
    int start;
    if(prev_calculated == 0)
      {
-      start = InpWindow - 1;
+      start = StartCalcPosition;
 
-      // Initialize early bars
+      // Initialize early bars (before warmup complete)
       for(int i = 0; i < start; i++)
         {
          BufCCI[i] = EMPTY_VALUE;
@@ -206,8 +213,8 @@ int OnCalculate(const int rates_total,
    else
      {
       start = prev_calculated - 1;
-      if(start < InpWindow - 1)
-         start = InpWindow - 1;
+      if(start < StartCalcPosition)
+         start = StartCalcPosition;
      }
 
 //--- Rolling window state variables
@@ -217,19 +224,21 @@ int OnCalculate(const int rates_total,
    static double sum_excess = 0.0;
    static int    prev_coil_bar = -1;
 
-//--- Initialize rolling window sums on first run
-   if(prev_calculated == 0 || start == InpWindow - 1)
+//--- Initialize rolling window sums on first run (MQL5 idiomatic: all values guaranteed valid)
+   if(prev_calculated == 0 || start == StartCalcPosition)
      {
       sum_b = 0.0;
       sum_cci = 0.0;
       sum_cci2 = 0.0;
       sum_excess = 0.0;
 
-      // Prime window
+      // Prime window: bars [StartCalcPosition - InpWindow + 1, StartCalcPosition]
+      // All CCI values are valid here (CCI warmup already complete)
       for(int j = start - InpWindow + 1; j <= start; j++)
         {
          double x = cci[j];
          double b = (MathAbs(x) <= 100.0) ? 1.0 : 0.0;
+
          sum_b += b;
          sum_cci += x;
          sum_cci2 += x * x;
@@ -240,7 +249,7 @@ int OnCalculate(const int rates_total,
 //--- Main calculation loop
    for(int i = start; i < rates_total && !IsStopped(); i++)
      {
-      //--- Slide rolling window
+         //--- Slide rolling window (MQL5 idiomatic: all values guaranteed valid)
       if(i >= InpWindow)
         {
          // Remove oldest value

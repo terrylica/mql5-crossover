@@ -33,6 +33,7 @@ CSV debug output: MQL5/Files/cci_debug_EURUSD_PERIOD_M12_2025.10.28.csv
 ```
 
 CSV is written to:
+
 ```
 ~/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/AppData/Roaming/MetaQuotes/Terminal/Common/Files/
 ```
@@ -51,27 +52,27 @@ The script automatically finds the most recent `cci_debug_*.csv` file and analyz
 
 ## CSV Output Columns
 
-| Column      | Description                                    |
-| ----------- | ---------------------------------------------- |
-| time        | Bar timestamp                                  |
-| bar         | Bar index                                      |
-| cci         | CCI value                                      |
-| in_channel  | 1 if \|CCI\| ≤ 100, else 0                     |
-| **p**       | In-channel ratio (percent in [-100,100])      |
-| **mu**      | Mean CCI over window W                         |
-| **sd**      | Standard deviation of CCI                      |
-| **e**       | Breach magnitude ratio                         |
-| **c**       | Centering score (1 - min(1, \|mu\|/C0))        |
-| **v**       | Dispersion score (1 - min(1, sd/C1))           |
-| **q**       | Breach penalty score (1 - min(1, e))           |
-| **score**   | Composite score (p · c · v · q)                |
-| streak      | Consecutive in-channel bars                    |
-| coil        | 1 if coil signal, else 0                       |
-| expansion   | 1 if expansion signal, else 0                  |
-| sum_b       | Rolling sum of in-channel flags (debug)        |
-| sum_cci     | Rolling sum of CCI values (debug)              |
-| sum_cci2    | Rolling sum of CCI² values (debug)             |
-| sum_excess  | Rolling sum of breach magnitudes (debug)       |
+| Column     | Description                              |
+| ---------- | ---------------------------------------- |
+| time       | Bar timestamp                            |
+| bar        | Bar index                                |
+| cci        | CCI value                                |
+| in_channel | 1 if \|CCI\| ≤ 100, else 0               |
+| **p**      | In-channel ratio (percent in [-100,100]) |
+| **mu**     | Mean CCI over window W                   |
+| **sd**     | Standard deviation of CCI                |
+| **e**      | Breach magnitude ratio                   |
+| **c**      | Centering score (1 - min(1, \|mu\|/C0))  |
+| **v**      | Dispersion score (1 - min(1, sd/C1))     |
+| **q**      | Breach penalty score (1 - min(1, e))     |
+| **score**  | Composite score (p · c · v · q)          |
+| streak     | Consecutive in-channel bars              |
+| coil       | 1 if coil signal, else 0                 |
+| expansion  | 1 if expansion signal, else 0            |
+| sum_b      | Rolling sum of in-channel flags (debug)  |
+| sum_cci    | Rolling sum of CCI values (debug)        |
+| sum_cci2   | Rolling sum of CCI² values (debug)       |
+| sum_excess | Rolling sum of breach magnitudes (debug) |
 
 ---
 
@@ -80,34 +81,41 @@ The script automatically finds the most recent `cci_debug_*.csv` file and analyz
 The `analyze_cci_debug.py` script performs **7 diagnostic checks**:
 
 ### 1. CCI Value Analysis
+
 - Range, mean, std dev
 - Percent time in [-100, 100]
 
 ### 2. Statistical Components
+
 - Ranges for p, mu, sd, e
 - Verify values are reasonable
 
 ### 3. Score Components Validation
+
 - c, v, q must be in [0, 1]
 - Flag if any violations
 
 ### 4. Composite Score Verification
+
 - Recalculate S = p·c·v·q
 - Compare to recorded score
 - Max error should be < 1e-6
 
 ### 5. Signal Analysis
+
 - Count coil and expansion signals
 - Show coil statistics (avg streak, score, etc.)
 - List first 5 coil signals with details
 
 ### 6. Rolling Window Sum Verification
+
 - Spot check 5 random bars
 - Manually recalculate sums
 - Verify against recorded sums
 - Max error should be < 1e-3
 
 ### 7. Coil Threshold Compliance
+
 - All coil signals must meet 5 conditions:
   - Streak ≥ 5
   - p ≥ 0.80
@@ -116,6 +124,7 @@ The `analyze_cci_debug.py` script performs **7 diagnostic checks**:
   - score ≥ 0.80
 
 ### Summary
+
 - Pass/fail for each diagnostic
 - Overall health assessment
 
@@ -230,10 +239,12 @@ Summary
 **Diagnosis**: Check Section 5 (Signal Analysis)
 
 **Possible causes**:
+
 1. Market is trending (not range-bound)
 2. Thresholds too strict
 
 **Solutions**:
+
 1. Try EURUSD M5 during Asian session (more range-bound)
 2. Adjust thresholds in indicator parameters:
    - Score threshold: 0.80 → 0.70
@@ -246,6 +257,7 @@ Summary
 **Expected**: All c, v, q values in [0, 1]
 
 **If violations**:
+
 - Review formulas in code
 - Check for overflow/underflow in calculations
 - Verify constants (C0, C1, C2)
@@ -257,6 +269,7 @@ Summary
 **Expected**: Max error < 1e-6
 
 **If error > 1e-6**:
+
 - Bug in score calculation
 - Precision loss in multiplication
 - Review line 217 in CCI_Neutrality_Debug.mq5
@@ -268,6 +281,7 @@ Summary
 **Expected**: Max error < 1e-3
 
 **If error > 1e-3**:
+
 - Bug in O(1) sliding window logic
 - State not reset properly on first run
 - Review lines 238-261 in CCI_Neutrality_Debug.mq5
@@ -279,6 +293,7 @@ Summary
 **Expected**: All 5 conditions pass for every coil signal
 
 **If violations**:
+
 - Bug in coil detection logic (line 281)
 - Incorrect threshold comparisons
 - Logic error in multi-condition AND
@@ -310,10 +325,12 @@ grep ";1$" "/path/to/cci_debug_*.csv"
 All debug parameters match the main indicator:
 
 **CCI Parameters**:
+
 - CCI period: 20
 - Window W: 30
 
 **Neutrality Thresholds**:
+
 - Min in-channel streak: 5
 - Min fraction inside: 0.80
 - Max |mean CCI|: 20.0
@@ -321,11 +338,13 @@ All debug parameters match the main indicator:
 - Score threshold: 0.80
 
 **Score Components**:
+
 - C0 (centering): 50.0
 - C1 (dispersion): 50.0
 - C2 (breach magnitude): 100.0
 
 **Debug Output**:
+
 - Enable CSV: true (default)
 - Flush interval: 100 bars
 
@@ -356,6 +375,7 @@ Once all diagnostics pass:
 3. **Performance validated (O(1) rolling window)** ✓
 
 Then you can:
+
 - Use the full version with CSV logging for production
 - Integrate with trading strategies
 - Backtest signal effectiveness
@@ -373,5 +393,6 @@ For issues with the debug workflow:
 4. Examine specific bars with violations in CSV
 
 All source code available:
+
 - `/CCI_Neutrality_Debug.mq5` (source)
 - `/users/crossover/analyze_cci_debug.py` (analyzer)

@@ -14,12 +14,14 @@ Fast validation using **historical data** instead of waiting for live ticks. Lev
 ## Why Historical Data?
 
 ### Problem with Live Data
+
 - Must wait for market to generate new ticks
 - EURUSD M1: 1 tick per minute = 100 minutes for 100 bars
 - EURUSD M12: 1 tick per 12 minutes = 20 hours for 100 bars
 - Slow feedback loop for development
 
 ### Solution: Historical Backtesting
+
 - MT5 has years of historical data cached
 - Load 5000 bars instantly
 - Run calculations in seconds (not hours)
@@ -43,6 +45,7 @@ wine "C:\\Program Files\\Python312\\python.exe" \
 ```
 
 **What it does**:
+
 - Uses Wine Python + MT5 API (per **WINE_PYTHON_EXECUTION.md** v3.0.0 workflow)
 - Fetches 5000 bars of historical EURUSD M12 data
 - Calculates reference CCI values
@@ -68,6 +71,7 @@ python3 analyze_cci_debug.py
 ```
 
 **What it does**:
+
 - Auto-detects most recent `cci_debug_*.csv`
 - Runs 7 diagnostic checks
 - Validates all calculations
@@ -86,6 +90,7 @@ cd "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/dr
 ```
 
 **What it does**:
+
 1. Generates 5000 bars of historical test data via Wine Python
 2. Prompts you to attach indicator (GUI step)
 3. Finds CSV output automatically
@@ -100,12 +105,14 @@ cd "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/dr
 ### Primary Workflows
 
 **[INDICATOR_VALIDATION_METHODOLOGY.md](../../../../../docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md)**:
+
 - Why 5000 bars required (warmup for ATR, adaptive periods)
 - MQL5 expanding window behavior (divides by `period`, not available bars)
 - Two-stage validation (fetch 5000 bars, calculate on all, compare last N)
 - Correlation thresholds (≥0.999 = PASS)
 
 **[WINE_PYTHON_EXECUTION.md](../../../../../docs/guides/WINE_PYTHON_EXECUTION.md)**:
+
 - v3.0.0 Wine Python headless execution
 - CX_BOTTLE + WINEPREFIX environment variables
 - Path navigation (macOS ↔ Wine)
@@ -113,6 +120,7 @@ cd "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/dr
 - Cold start capability (any symbol/timeframe without GUI)
 
 **[MT5_REFERENCE_HUB.md](../../../../../docs/MT5_REFERENCE_HUB.md)**:
+
 - Decision trees (export data, compile, validate, parameters)
 - Automation matrix (FULLY AUTOMATED vs SEMI-AUTOMATED vs MANUAL)
 - Canonical source map (where to find each topic)
@@ -120,15 +128,18 @@ cd "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/dr
 ### Supporting Documentation
 
 **[MQL5_TO_PYTHON_MIGRATION_GUIDE.md](../../../../../docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md)**:
+
 - 7-phase indicator migration workflow
 - Algorithm analysis patterns
 - Validation procedures
 
 **[LESSONS_LEARNED_PLAYBOOK.md](../../../../../docs/guides/LESSONS_LEARNED_PLAYBOOK.md)**:
+
 - 8 critical gotchas (185+ hours of debugging distilled)
 - NaN traps, warmup requirements, pandas pitfalls
 
 **[README.md](README.md)** (this indicator):
+
 - Strategy Tester workflow
 - Custom Symbol creation for synthetic data
 - Parameter tuning guidelines
@@ -140,6 +151,7 @@ cd "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/dr
 Per **INDICATOR_VALIDATION_METHODOLOGY.md**, test data must include:
 
 ### Required Columns (OHLCV)
+
 ```csv
 time,open,high,low,close,tick_volume,spread,real_volume
 2025-10-24 00:00:00,1.08123,1.08156,1.08098,1.08134,4521,12,0
@@ -147,6 +159,7 @@ time,open,high,low,close,tick_volume,spread,real_volume
 ```
 
 ### Reference CCI Column (Optional)
+
 ```csv
 time,open,high,low,close,cci
 2025-10-24 00:00:00,1.08123,1.08156,1.08098,1.08134,-15.23
@@ -161,13 +174,13 @@ time,open,high,low,close,cci
 
 CCI_Neutrality_Debug outputs **19 columns** for analysis:
 
-| Column Group       | Columns                            | Purpose                         |
-| ------------------ | ---------------------------------- | ------------------------------- |
-| **Base**           | time, bar, cci, in_channel         | Input data                      |
-| **Statistics**     | p, mu, sd, e                       | Rolling window calculations     |
-| **Score**          | c, v, q, score                     | Component and composite scores  |
-| **Signals**        | streak, coil, expansion            | Detection logic                 |
-| **Debug (O(1)**    | sum_b, sum_cci, sum_cci2, sum\_excess | Rolling sum verification        |
+| Column Group    | Columns                              | Purpose                        |
+| --------------- | ------------------------------------ | ------------------------------ |
+| **Base**        | time, bar, cci, in_channel           | Input data                     |
+| **Statistics**  | p, mu, sd, e                         | Rolling window calculations    |
+| **Score**       | c, v, q, score                       | Component and composite scores |
+| **Signals**     | streak, coil, expansion              | Detection logic                |
+| **Debug (O(1)** | sum_b, sum_cci, sum_cci2, sum_excess | Rolling sum verification       |
 
 See **[DEBUG_WORKFLOW.md](DEBUG_WORKFLOW.md)** for complete column descriptions.
 
@@ -191,14 +204,14 @@ All should show **✓ PASS** for production readiness.
 
 ## Comparison to Live Data Testing
 
-| Aspect              | Live Data       | Historical Data (This Approach) |
-| ------------------- | --------------- | ------------------------------- |
-| **Time for 5000 bars** | 20-40 hours  | 5 seconds                       |
-| **Reproducibility** | No (market changes) | Yes (same data every time)   |
-| **GUI Required**    | Yes (attach indicator) | Partial (attach indicator)   |
-| **Data Generation** | Wait for ticks  | Instant (MT5 API)               |
-| **Validation**      | Manual          | Automated (Python script)       |
-| **Reference Docs**  | N/A             | 3+ existing guides              |
+| Aspect                 | Live Data              | Historical Data (This Approach) |
+| ---------------------- | ---------------------- | ------------------------------- |
+| **Time for 5000 bars** | 20-40 hours            | 5 seconds                       |
+| **Reproducibility**    | No (market changes)    | Yes (same data every time)      |
+| **GUI Required**       | Yes (attach indicator) | Partial (attach indicator)      |
+| **Data Generation**    | Wait for ticks         | Instant (MT5 API)               |
+| **Validation**         | Manual                 | Automated (Python script)       |
+| **Reference Docs**     | N/A                    | 3+ existing guides              |
 
 ---
 
@@ -216,12 +229,14 @@ Per **[README.md](README.md)** Section "Testing → Strategy Tester":
 ```
 
 **Advantages**:
+
 - Reproducible runs
 - CSV logging works identically
 - Fast forward/backward through history
 - Visual verification
 
 **Disadvantages**:
+
 - GUI interaction required
 - More steps than automated workflow
 
@@ -261,20 +276,24 @@ See **[README.md](README.md)** Section "Testing → Custom Symbol" for complete 
 ### Automation Scripts
 
 **[run_cci_validation.sh](../../../../../users/crossover/run_cci_validation.sh)**:
+
 - All-in-one automated workflow
 - Generates data, runs analysis, shows results
 
 **[generate_test_data.py](../../../../../users/crossover/generate_test_data.py)**:
+
 - Wine Python script to fetch historical data via MT5 API
 - Calculates reference CCI values
 - Fully automated (no GUI)
 
 **[analyze_cci_debug.py](../../../../../users/crossover/analyze_cci_debug.py)**:
+
 - Python analyzer with 7 diagnostic checks
 - Auto-detects CSV files
 - Validates all calculations
 
 **[test_cci_automated.py](../../../../../users/crossover/test_cci_automated.py)**:
+
 - Alternative workflow using Strategy Tester
 - Includes prerequisites check
 - Wait for CSV generation
@@ -302,6 +321,7 @@ After all diagnostics pass:
 3. **Performance validated (O(1) rolling window)** ✓
 
 Then:
+
 - Integrate with trading strategies
 - Backtest signal effectiveness
 - Tune parameters for specific markets
