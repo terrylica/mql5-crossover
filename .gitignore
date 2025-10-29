@@ -76,6 +76,22 @@ Program Files/MetaTrader 5/MQL5/Shared Projects/
 # Exclude MT5 standard library (keep only custom includes in Indicators/)
 Program Files/MetaTrader 5/MQL5/Include/
 
+# ============================================
+# MQL5 Workspace & Runtime Data (DO NOT TRACK)
+# ============================================
+# Chart profiles, templates, and tester artifacts
+Program Files/MetaTrader 5/MQL5/Profiles/
+
+# Exclude Experts directory (runtime/test artifacts only)
+# Keep only custom Experts in version control if needed
+Program Files/MetaTrader 5/MQL5/Experts/
+
+# Exclude Scripts test/runtime artifacts (keep only source in Scripts/DataExport etc)
+Program Files/MetaTrader 5/MQL5/Scripts/CCINeutrality/
+
+# MT5 runtime data file
+Program Files/MetaTrader 5/MQL5/experts.dat
+
 # MT5 Config (Runtime state - DO NOT TRACK)
 Program Files/MetaTrader 5/Config/*.ini
 Program Files/MetaTrader 5/Config/*.dat
@@ -164,3 +180,16 @@ mt5work/staging/
 # .Sessions folder - never delete
 .sessions/
 !.sessions/.gitignore
+
+# ============================================
+# Link Validation & Testing Artifacts
+# ============================================
+# Lychee link checker results
+.lychee-results.json
+.lychee-results.txt
+
+# MT5 Strategy Tester reports
+Program Files/MetaTrader 5/cci_neutrality_test_report*.png
+Program Files/MetaTrader 5/cci_neutrality_test_report*.htm
+Program Files/MetaTrader 5/*.htm
+Program Files/MetaTrader 5/*.png
