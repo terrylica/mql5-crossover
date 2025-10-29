@@ -8,20 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [4.10] - 2025-10-29
 
 ### Added
+
 - **Multi-Timeframe Support**: New `InpReferenceTimeframe` parameter (ENUM_TIMEFRAMES) allows reference timeframe selection
 - **Automatic Window Scaling**: Window size now automatically scales to maintain consistent time duration across different chart timeframes
 - **CalculateAdaptiveWindow() Function**: Implements PeriodSeconds()-based timeframe conversion using the formula: `adaptive_window = reference_bars × (ref_seconds / current_seconds)`
 - **Enhanced Initialization Logging**: Displays timeframe conversion details including reference/current timeframes, seconds per bar, and calculated adaptive window
 
 ### Changed
+
 - **Input Parameters**: Replaced single `InpAdaptiveWindow` with `InpReferenceTimeframe` and `InpReferenceWindowBars` for better cross-timeframe control
 - **Global Variable**: Added `g_AdaptiveWindow` to store calculated adaptive window size for current chart timeframe
 - **Indicator Scale**: Indicator name now shows timeframe conversion details (e.g., "CCI Adaptive(20,TF=PERIOD_H1,W=120→480)")
 
 ### Fixed
+
 - **MQL5 Community Standard Compliance**: Changed from `MathRound()` to `MathFloor()` per MQL5 Article #2837 for conservative bar calculation
 
 ### Technical Details
+
 - Formula validated against published MQL5 patterns from MQL5.com Article #2837
 - Backward compatible: Default `PERIOD_CURRENT` maintains v4.0.0 behavior (120 bars on current timeframe)
 - Compilation successful: 17KB .ex5 file without errors
@@ -31,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 120 bars on PERIOD_CURRENT → 120 bars (no conversion)
 
 ### Files Modified
+
 - `Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/CCI_Neutrality_Adaptive.mq5`
 - `docs/plans/adaptive-cci-normalization.yaml`
 - `docs/reports/ADAPTIVE_NORMALIZATION_VALIDATION.md`
@@ -38,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [4.0.0] - 2025-10-29
 
 ### Added
+
 - Initial release of CCI Neutrality Adaptive indicator with percentile rank normalization
 - **Single-Window Percentile Rank Algorithm**: Replaces fixed CCI thresholds with adaptive percentile-based normalization
 - **PercentileRank() Function**: O(n) algorithm for calculating percentile rank without sorting
@@ -46,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CCI Integration**: Uses MT5 standard iCCI() indicator with configurable period
 
 ### Research Foundation
+
 - Analyzed 200,843 bars of EURUSD M12 data
 - Validated through 6 adversarial tests with 95% confidence:
   - Regime change adaptation (instant, 0-bar lag)
@@ -58,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Evaluated and rejected MQL5-Python integration (1000x performance penalty)
 
 ### Technical Implementation
+
 - Native MQL5 implementation (~230 lines vs 318 lines original, 28% reduction)
 - Removed 7 input parameters (fixed thresholds)
 - Removed multiplicative scoring complexity (p, c, v, q components)
@@ -67,12 +75,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Warmup requirement: `InpCCILength + InpAdaptiveWindow - 1` bars
 
 ### Performance
+
 - Compilation: ~1s using CrossOver CLI compilation method
 - Output: 10KB .ex5 file
 - Expected improvement: 300x more GREEN bars (0.1% → 30%)
 - Percentile calculation: ~0.001ms per bar (simple loop counting)
 
 ### Files Added
+
 - `Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/CCI_Neutrality_Adaptive.mq5`
 - `Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/CCI_Neutrality_Adaptive.ex5`
 - `docs/plans/adaptive-cci-normalization.yaml`
@@ -80,6 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `experiments/adaptive-cci-normalization-research/` (research artifacts)
 
 ### Rejected Alternatives
+
 - Multi-scale ensemble (30, 120, 500 bar windows) - single-window outperformed
 - Python integration via DLL - 1000x performance penalty
 - Fixed threshold relaxation (C0=104, C1=124) - only 10x improvement vs 300x
@@ -94,10 +105,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version Comparison
 
-| Version | Key Feature | Window Behavior | Compilation Size |
-|---------|-------------|-----------------|------------------|
-| v4.10 | Timeframe-aware adaptive window | Scales automatically across timeframes | 17KB |
-| v4.0.0 | Single-window percentile rank | Fixed 120 bars on current timeframe | 10KB |
+| Version | Key Feature                     | Window Behavior                        | Compilation Size |
+| ------- | ------------------------------- | -------------------------------------- | ---------------- |
+| v4.10   | Timeframe-aware adaptive window | Scales automatically across timeframes | 17KB             |
+| v4.0.0  | Single-window percentile rank   | Fixed 120 bars on current timeframe    | 10KB             |
 
 ## Documentation
 

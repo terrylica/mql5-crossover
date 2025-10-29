@@ -35,6 +35,7 @@ Time: ~5 seconds (vs 20+ hours for live data)
 **Impact**: Blocks correctness SLO verification (currently 0%, target 100%)
 
 **Reason**: MT5 GUI interaction required - platform limitation documented in:
+
 - **MT5_REFERENCE_HUB.md** - Automation matrix lists this as "MANUAL"
 - **AUTOMATED_TESTING.md** - Documents GUI step requirement
 - **run_cci_validation.sh** - Pauses for user interaction
@@ -62,6 +63,7 @@ Time: ~5 seconds (vs 20+ hours for live data)
 ### What Cannot Be Automated
 
 Per platform limitations:
+
 - MT5 does not provide CLI for indicator attachment
 - MT5 does not provide API for indicator attachment to charts
 - Strategy Tester requires GUI interaction for indicator selection
@@ -110,12 +112,12 @@ Summary
 
 ## Service Level Objectives
 
-| SLO | Target | Actual | Status | Blocker |
-|-----|--------|--------|--------|---------|
-| **Availability** | 100% | 100% | ✅ MET | None |
-| **Correctness** | 100% | 0% | ⚠️ BLOCKED | GUI attachment required |
-| **Observability** | 100% | 100% | ✅ MET | None |
-| **Maintainability** | 100% | 100% | ✅ MET | None |
+| SLO                 | Target | Actual | Status     | Blocker                 |
+| ------------------- | ------ | ------ | ---------- | ----------------------- |
+| **Availability**    | 100%   | 100%   | ✅ MET     | None                    |
+| **Correctness**     | 100%   | 0%     | ⚠️ BLOCKED | GUI attachment required |
+| **Observability**   | 100%   | 100%   | ✅ MET     | None                    |
+| **Maintainability** | 100%   | 100%   | ✅ MET     | None                    |
 
 **Overall**: 3/4 SLOs met, 1 blocked by platform limitation
 
@@ -123,13 +125,13 @@ Summary
 
 ## Automated Components Status
 
-| Component | Status | Details |
-|-----------|--------|---------|
-| Test data generation | ✅ WORKING | Wine Python, 5 seconds |
-| Indicator compilation | ✅ WORKING | 0 errors (debug version) |
-| CSV export | ✅ READY | 19 columns configured |
-| Analysis script | ✅ READY | 7 diagnostic checks |
-| Documentation | ✅ COMPLETE | 5 files with canonical refs |
+| Component             | Status      | Details                     |
+| --------------------- | ----------- | --------------------------- |
+| Test data generation  | ✅ WORKING  | Wine Python, 5 seconds      |
+| Indicator compilation | ✅ WORKING  | 0 errors (debug version)    |
+| CSV export            | ✅ READY    | 19 columns configured       |
+| Analysis script       | ✅ READY    | 7 diagnostic checks         |
+| Documentation         | ✅ COMPLETE | 5 files with canonical refs |
 
 **Blocked by**: Manual GUI step (MT5 platform limitation)
 
@@ -138,6 +140,7 @@ Summary
 ## Files Generated
 
 ### Test Data
+
 ```
 /users/crossover/test_data_EURUSD_M12_5000bars.csv
   - 5000 bars OHLCV data
@@ -147,6 +150,7 @@ Summary
 ```
 
 ### Waiting For
+
 ```
 /users/crossover/AppData/Roaming/MetaQuotes/Terminal/Common/Files/cci_debug_EURUSD_PERIOD_M12_*.csv
   - 19 columns: base, stats, scores, signals, debug sums
@@ -159,12 +163,14 @@ Summary
 ## References
 
 ### Documentation
+
 - **Plan**: `/docs/plans/cci-neutrality-indicator.yaml ` (v1.1.0)
 - **Workflow**: `/Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/AUTOMATED_TESTING.md `
 - **Methodology**: `/docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md `
 - **Hub**: `/docs/MT5_REFERENCE_HUB.md `
 
 ### Scripts
+
 - **Generator**: `/users/crossover/generate_test_data.py ` (COMPLETE)
 - **Analyzer**: `/users/crossover/analyze_cci_debug.py ` (READY)
 - **Workflow**: `/users/crossover/run_cci_validation.sh ` (PAUSED at GUI step)
@@ -180,6 +186,7 @@ Per user requirements: "On any error, raise and propagate—no fallbacks, defaul
 **Impact**: Validation workflow cannot proceed automatically
 
 **Propagation**:
+
 - Plan status set to "blocked"
 - Correctness SLO remains at 0%
 - User action required documented

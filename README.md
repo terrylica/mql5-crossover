@@ -32,20 +32,24 @@ drive_c/
 ## Key Components
 
 ### Indicators
+
 - **ATR Adaptive Smoothed Laguerre RSI** - Custom indicator with temporal violation fixes
 - **atr_refactor_for_python.mq5** - Python-translation-ready version
 
 ### Python Tools
+
 - **export_aligned.py** - Wine Python script for headless MT5 data export
 - **validate_export.py** - CSV validation tool with correlation checks
 
 ### Automation
+
 - **mq5run** - Legacy v2.0.0 script wrapper (startup.ini approach)
 - **setup-bottle-mapping** - CrossOver bottle path mapping
 
 ## Getting Started
 
 See [`CLAUDE.md`](CLAUDE.md) for:
+
 - Complete file paths and MT5 locations
 - Compilation workflow (CLI via CrossOver)
 - Headless execution (v3.0.0 Python API)
@@ -54,6 +58,7 @@ See [`CLAUDE.md`](CLAUDE.md) for:
 ## Documentation
 
 All documentation is in [`docs/`](docs/):
+
 - **Guides**: Step-by-step workflows and technical references
 - **Plans**: Implementation plans and architectural decisions
 - **Reports**: Validation results and status reports
