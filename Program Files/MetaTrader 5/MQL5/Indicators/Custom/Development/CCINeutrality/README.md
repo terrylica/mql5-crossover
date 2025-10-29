@@ -31,6 +31,7 @@ b_t = 1 if |CCI_t| ≤ 100, else 0
 ```
 
 Consecutive streak calculation:
+
 ```
 s_t = count of consecutive bars with b_t = 1
 ```
@@ -38,29 +39,36 @@ s_t = count of consecutive bars with b_t = 1
 ### 3. Statistical Components (Window W)
 
 **Percent Time In Channel**:
+
 ```
 p_t = (1/W) · Σ(i=0 to W-1) b_{t-i}
 ```
 
 **Centering Near Zero**:
+
 ```
 μ_t = SMA_W(CCI)
 c_t = 1 - min(1, |μ_t| / C_0)
 ```
+
 Default: C_0 = 50
 
 **Tight Dispersion**:
+
 ```
 σ_t = StDev_W(CCI)
 v_t = 1 - min(1, σ_t / C_1)
 ```
+
 Default: C_1 = 50
 
 **Breach Magnitude Penalty**:
+
 ```
 e_t = (1/W) · Σ(i=0 to W-1) max(0, |CCI_{t-i}| - 100) / C_2
 q_t = 1 - min(1, e_t)
 ```
+
 Default: C_2 = 100
 
 ### 4. Composite Neutrality Score
@@ -72,6 +80,7 @@ S_t = p_t · c_t · v_t · q_t ∈ [0,1]
 ### 5. Signals
 
 **Neutral Coil** (compression phase):
+
 - s_t ≥ S_min (default: 5)
 - p_t ≥ p_min (default: 0.8)
 - |μ_t| ≤ μ_max (default: 20)
@@ -79,6 +88,7 @@ S_t = p_t · c_t · v_t · q_t ∈ [0,1]
 - S_t ≥ τ (default: 0.8)
 
 **Expansion Trigger**:
+
 - Prior bar had coil signal
 - |CCI_t| crosses 100 or -100
 
@@ -120,12 +130,12 @@ S_t = p_t · c_t · v_t · q_t ∈ [0,1]
 
 ### Performance Characteristics
 
-| Operation | Complexity | Notes |
-|-----------|-----------|-------|
-| First calculation | O(N) | N = rates_total |
-| Incremental update | O(1) | Single bar recalculation |
-| Rolling window slide | O(1) | Running sum updates |
-| Memory | O(N) | Static arrays reused |
+| Operation            | Complexity | Notes                    |
+| -------------------- | ---------- | ------------------------ |
+| First calculation    | O(N)       | N = rates_total          |
+| Incremental update   | O(1)       | Single bar recalculation |
+| Rolling window slide | O(1)       | Running sum updates      |
+| Memory               | O(N)       | Static arrays reused     |
 
 ---
 
@@ -158,6 +168,7 @@ ME="C:/Program Files/MetaTrader 5/MetaEditor64.exe"
 ```
 
 **GUI Method**:
+
 1. Open MetaEditor
 2. File → Open → Navigate to CCI_Neutrality.mq5
 3. Press F7 to compile
@@ -165,6 +176,7 @@ ME="C:/Program Files/MetaTrader 5/MetaEditor64.exe"
 ### 3. Verification
 
 Check compilation log:
+
 ```bash
 tail -1 "$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/logs/metaeditor.log"
 # Expected: "0 errors, X warnings, YYY msec elapsed"
@@ -184,10 +196,12 @@ tail -1 "$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_
 ### Input Parameters
 
 #### CCI Parameters
+
 - **CCI period** (default: 20): Standard CCI lookback period
 - **Window W** (default: 30): Statistics calculation window
 
 #### Neutrality Thresholds
+
 - **Min in-channel streak** (default: 5): Minimum consecutive bars in [-100,100]
 - **Min fraction inside** (default: 0.80): Minimum 80% of window inside range
 - **Max |mean CCI|** (default: 20): Maximum absolute mean for centering
@@ -195,15 +209,18 @@ tail -1 "$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_
 - **Score threshold** (default: 0.80): Minimum composite score
 
 #### Score Components
+
 - **C0** (default: 50): Centering constant
 - **C1** (default: 50): Dispersion constant
 - **C2** (default: 100): Breach magnitude constant
 
 #### Display
+
 - **Coil marker Y** (default: 120): Vertical position for ● markers
 - **Expansion marker Y** (default: 140): Vertical position for ▲ markers
 
 #### Logging
+
 - **Enable CSV logging** (default: false): Write diagnostics to CSV
 - **Log file prefix** (default: "cci_neutrality"): Filename prefix
 - **Flush interval** (default: 500): Write buffer every N bars
@@ -219,16 +236,19 @@ Set `Enable CSV logging = true` in indicator inputs.
 ### Output Location
 
 Files written to:
+
 ```
 ~/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/AppData/Roaming/MetaQuotes/Terminal/Common/Files/
 ```
 
 Filename format:
+
 ```
 cci_neutrality_SYMBOL_TIMEFRAME_DATE_TIME.csv
 ```
 
 Example:
+
 ```
 cci_neutrality_EURUSD_PERIOD_M1_2025.10.27_14.30.csv
 ```
@@ -239,23 +259,23 @@ cci_neutrality_EURUSD_PERIOD_M1_2025.10.27_14.30.csv
 time;bar;cci;in_channel;p;mu;sd;e;c;v;q;score;streak;coil;expansion
 ```
 
-| Column | Description |
-|--------|-------------|
-| time | Bar timestamp |
-| bar | Bar index |
-| cci | CCI value |
-| in_channel | 1 if \|CCI\| ≤ 100, else 0 |
-| p | Percent in channel (window) |
-| mu | Mean CCI (window) |
-| sd | Standard deviation (window) |
-| e | Breach magnitude ratio |
-| c | Centering score [0,1] |
-| v | Dispersion score [0,1] |
-| q | Breach penalty score [0,1] |
-| score | Composite score [0,1] |
-| streak | Consecutive in-channel bars |
-| coil | 1 if coil signal, else 0 |
-| expansion | 1 if expansion signal, else 0 |
+| Column     | Description                   |
+| ---------- | ----------------------------- |
+| time       | Bar timestamp                 |
+| bar        | Bar index                     |
+| cci        | CCI value                     |
+| in_channel | 1 if \|CCI\| ≤ 100, else 0    |
+| p          | Percent in channel (window)   |
+| mu         | Mean CCI (window)             |
+| sd         | Standard deviation (window)   |
+| e          | Breach magnitude ratio        |
+| c          | Centering score [0,1]         |
+| v          | Dispersion score [0,1]        |
+| q          | Breach penalty score [0,1]    |
+| score      | Composite score [0,1]         |
+| streak     | Consecutive in-channel bars   |
+| coil       | 1 if coil signal, else 0      |
+| expansion  | 1 if expansion signal, else 0 |
 
 ---
 
@@ -264,6 +284,7 @@ time;bar;cci;in_channel;p;mu;sd;e;c;v;q;score;streak;coil;expansion
 ### 1. Strategy Tester (Recommended)
 
 **Setup**:
+
 1. View → Strategy Tester
 2. Mode: "Indicator"
 3. Select CCI_Neutrality
@@ -271,6 +292,7 @@ time;bar;cci;in_channel;p;mu;sd;e;c;v;q;score;streak;coil;expansion
 5. Enable "Visual mode" for chart playback
 
 **Why Use Tester**:
+
 - Reproducible historical runs
 - CSV logging works identically
 - No live market data required
@@ -316,11 +338,13 @@ Attach indicator to SYNTH_CCI chart.
 ### 3. Validation Against Original Pine Script
 
 **MT5 Export**:
+
 1. Enable CSV logging
 2. Run on historical data
 3. Collect CSV output
 
 **Pine Script Reference**:
+
 ```pinescript
 //@version=5
 indicator("CCI Neutrality Score", overlay=false)
@@ -330,6 +354,7 @@ W    = input.int(30, "Window W")
 ```
 
 **Compare**:
+
 - CCI values (should match standard CCI)
 - Score values (composite calculation)
 - Coil/expansion signals (threshold logic)
@@ -341,15 +366,18 @@ W    = input.int(30, "Window W")
 ### Timeframe-Specific Adjustments
 
 **Short Timeframes (M1, M5)**:
+
 - Increase `Max |mean|` (30-40)
 - Increase `Max stdev` (40-50)
 - Shorter CCI period (14-20)
 
 **Medium Timeframes (M15, M30, H1)**:
+
 - Default parameters work well
 - CCI period (20-30)
 
 **Long Timeframes (H4, D1)**:
+
 - Tighten thresholds:
   - `Max |mean|` (10-15)
   - `Max stdev` (20-25)
@@ -358,11 +386,13 @@ W    = input.int(30, "Window W")
 ### Market Characteristics
 
 **Trending Markets**:
+
 - Reduce `Min fraction inside` (0.6-0.7)
 - Increase `Score threshold` (0.85-0.9)
 - Expect fewer coil signals
 
 **Range-Bound Markets**:
+
 - Increase `Min fraction inside` (0.85-0.95)
 - Reduce `Score threshold` (0.7-0.75)
 - Expect more coil signals
@@ -374,6 +404,7 @@ W    = input.int(30, "Window W")
 ### State Management
 
 **Rolling Window Sums** (static variables):
+
 ```cpp
 static double sum_b;        // In-channel count
 static double sum_cci;      // CCI sum
@@ -386,6 +417,7 @@ Reset on first calculation or history reload.
 ### Streak Calculation
 
 Lookback approach (not recursive):
+
 ```cpp
 int streak = 0;
 if(b_in == 1.0)
@@ -400,6 +432,7 @@ if(b_in == 1.0)
 ### Expansion Detection
 
 Tracks previous coil bar index:
+
 ```cpp
 static int prev_coil_bar = -1;
 
@@ -420,6 +453,7 @@ bool expansion = (prev_coil_bar == i - 1) &&
 ### Indicator Not Appearing
 
 **Check**:
+
 1. Compilation errors: View → Toolbox → Errors tab
 2. Journal messages: Tools → Options → Expert Advisors → Enable Journal
 3. Indicator handle validity: Check for "ERROR: Failed to create CCI handle"
@@ -427,6 +461,7 @@ bool expansion = (prev_coil_bar == i - 1) &&
 ### No Signals Visible
 
 **Check**:
+
 1. Enough bars: Need at least W + 2 bars
 2. Thresholds too strict: Try default parameters first
 3. CCI range: Most signals occur when CCI oscillates near [-100,100]
@@ -434,6 +469,7 @@ bool expansion = (prev_coil_bar == i - 1) &&
 ### CSV Logging Not Working
 
 **Check**:
+
 1. `Enable CSV logging = true`
 2. File permissions: Terminal may need write access
 3. Log location: Check Common Files path in Journal output
@@ -442,6 +478,7 @@ bool expansion = (prev_coil_bar == i - 1) &&
 ### Performance Issues
 
 **Check**:
+
 1. Window W size: Larger windows = more memory
 2. Flush interval: Increase to 1000+ for large datasets
 3. CSV logging: Disable if not needed
@@ -451,6 +488,7 @@ bool expansion = (prev_coil_bar == i - 1) &&
 ## References
 
 ### MQL5 Documentation
+
 - [OnCalculate Event Handler](https://www.mql5.com/en/docs/event_handlers/oncalculate)
 - [BarsCalculated Function](https://www.mql5.com/en/docs/series/barscalculated)
 - [CopyBuffer Function](https://www.mql5.com/en/docs/series/copybuffer)
@@ -458,6 +496,7 @@ bool expansion = (prev_coil_bar == i - 1) &&
 - [Custom Symbols](https://www.mql5.com/en/docs/customsymbols/customsymbolcreate)
 
 ### Project Documentation
+
 - [MQL5_TO_PYTHON_MIGRATION_GUIDE.md](../../../../docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md)
 - [LESSONS_LEARNED_PLAYBOOK.md](../../../../docs/guides/LESSONS_LEARNED_PLAYBOOK.md)
 - [MQL5_CLI_COMPILATION_SUCCESS.md](../../../../docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md)
@@ -467,6 +506,7 @@ bool expansion = (prev_coil_bar == i - 1) &&
 ## Version History
 
 ### v1.00 (2025-10-27)
+
 - Initial implementation
 - Community-grade audit compliance
 - O(1) rolling window calculations

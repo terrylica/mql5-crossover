@@ -46,6 +46,7 @@ else
 **Status**: ✅ COMPLIANT
 
 **Evidence**:
+
 - First run: Calculates from bar InpWindow-1 to rates_total
 - Subsequent runs: Recalculates only from prev_calculated-1
 - Avoids full history recalculation on each tick
@@ -84,6 +85,7 @@ if(copied < rates_total)
 **Status**: ✅ COMPLIANT
 
 **Evidence**:
+
 - Checks BarsCalculated(hCCI) before CopyBuffer
 - Validates copied bar count matches rates_total
 - Returns prev_calculated on failure (preserves state)
@@ -96,6 +98,7 @@ if(copied < rates_total)
 **Requirement**: Avoid O(N·W) loops. Use running sums for O(1) window slide operations.
 
 **Original Issue** (O(N·W)):
+
 ```cpp
 // BAD: Nested loops recalculate window stats each bar
 for(int i = start; i < rates_total; ++i)
@@ -112,6 +115,7 @@ for(int i = start; i < rates_total; ++i)
 ```
 
 **Fixed Implementation** (O(N)):
+
 ```cpp
 // GOOD: Maintain running sums, slide window with O(1) updates
 static double sum_b = 0.0;
@@ -175,12 +179,14 @@ for(int i = start; i < rates_total && !IsStopped(); i++)
 **Status**: ✅ COMPLIANT
 
 **Evidence**:
+
 - Maintains 4 running sums (sum_b, sum_cci, sum_cci2, sum_excess)
 - Window slide: Single subtract + single add per bar
 - No nested loops in main calculation
 - Complexity reduced from O(N·W) to O(N)
 
 **Performance Impact**:
+
 - For N=5000, W=30: Original O(150,000) vs Fixed O(5,000) = **30x speedup**
 
 ---
@@ -212,6 +218,7 @@ PlotIndexSetInteger(3, PLOT_ARROW, 241); // ▲ (triangle up)
 **Status**: ✅ COMPLIANT
 
 **Evidence**:
+
 - All plots have PLOT_DRAW_BEGIN = InpWindow - 1
 - All plots have explicit PLOT_EMPTY_VALUE = EMPTY_VALUE
 - Arrow glyphs explicitly configured (159, 241)
@@ -224,6 +231,7 @@ PlotIndexSetInteger(3, PLOT_ARROW, 241); // ▲ (triangle up)
 **Requirement**: Avoid using output buffers as state. Track state with dedicated variables.
 
 **Original Issue**:
+
 ```cpp
 // BAD: Using output buffer for state tracking
 bool expansion = (BufCoil[i+1] != EMPTY_VALUE) &&
@@ -233,6 +241,7 @@ bool expansion = (BufCoil[i+1] != EMPTY_VALUE) &&
 **Problem**: BufCoil uses EMPTY_VALUE for non-signals, unsuitable for state.
 
 **Fixed Implementation**:
+
 ```cpp
 // GOOD: Separate state variable
 static int prev_coil_bar = -1; // Last bar with coil signal
@@ -252,6 +261,7 @@ if(i > 0 && prev_coil_bar == i - 1)
 **Status**: ✅ COMPLIANT
 
 **Evidence**:
+
 - State tracked with `static int prev_coil_bar`
 - Output buffer (BufCoil) only stores display values
 - Clear separation of concerns
@@ -276,6 +286,7 @@ ArraySetAsSeries(time, false);
 **Status**: ✅ COMPLIANT
 
 **Evidence**:
+
 - All arrays use forward indexing
 - Matches prev_calculated semantics (index 0 = oldest bar)
 - Loop indices match array indices directly
@@ -323,6 +334,7 @@ if(copied < rates_total)
 **Status**: ✅ COMPLIANT
 
 **Evidence**:
+
 - Parameter validation in OnInit
 - Handle creation failure handling
 - CopyBuffer failure detection
@@ -382,6 +394,7 @@ if(InpLogCSV && g_logger.IsOpen())
 **Status**: ✅ COMPLIANT
 
 **Evidence**:
+
 - Uses FILE_COMMON for persistent storage
 - Files in Terminal\Common\Files directory
 - Flushes periodically (default: every 500 bars)
@@ -392,16 +405,16 @@ if(InpLogCSV && g_logger.IsOpen())
 
 ## Summary
 
-| Requirement | Status | Implementation |
-|-------------|--------|----------------|
-| prev_calculated flow | ✅ COMPLIANT | Lines 228-243 |
-| BarsCalculated check | ✅ COMPLIANT | Lines 189-195 |
-| O(1) rolling window | ✅ COMPLIANT | Lines 254-283, 292-314 |
-| Plot configuration | ✅ COMPLIANT | Lines 131-145 |
-| Buffer state separation | ✅ COMPLIANT | Lines 251, 336-346 |
-| Forward indexing | ✅ COMPLIANT | Lines 206-211 |
-| Error handling | ✅ COMPLIANT | Lines 71-89, 197-203 |
-| CSV logging | ✅ COMPLIANT | Lines 42-67, 351-370 |
+| Requirement             | Status       | Implementation         |
+| ----------------------- | ------------ | ---------------------- |
+| prev_calculated flow    | ✅ COMPLIANT | Lines 228-243          |
+| BarsCalculated check    | ✅ COMPLIANT | Lines 189-195          |
+| O(1) rolling window     | ✅ COMPLIANT | Lines 254-283, 292-314 |
+| Plot configuration      | ✅ COMPLIANT | Lines 131-145          |
+| Buffer state separation | ✅ COMPLIANT | Lines 251, 336-346     |
+| Forward indexing        | ✅ COMPLIANT | Lines 206-211          |
+| Error handling          | ✅ COMPLIANT | Lines 71-89, 197-203   |
+| CSV logging             | ✅ COMPLIANT | Lines 42-67, 351-370   |
 
 **Overall Compliance**: ✅ **8/8 PASS**
 
@@ -411,28 +424,30 @@ if(InpLogCSV && g_logger.IsOpen())
 
 ### Complexity Analysis
 
-| Operation | Original | Fixed | Improvement |
-|-----------|----------|-------|-------------|
-| First calculation | O(N·W) | O(N) | **W times faster** |
-| Incremental update | O(W) | O(1) | **W times faster** |
-| Memory usage | O(N·W) | O(N) | **W times less** |
+| Operation          | Original | Fixed | Improvement        |
+| ------------------ | -------- | ----- | ------------------ |
+| First calculation  | O(N·W)   | O(N)  | **W times faster** |
+| Incremental update | O(W)     | O(1)  | **W times faster** |
+| Memory usage       | O(N·W)   | O(N)  | **W times less**   |
 
 **Example** (N=5000, W=30):
+
 - Original: 150,000 operations per calculation
 - Fixed: 5,000 operations per calculation
 - **Speedup**: 30x
 
 ### Memory Usage
 
-| Component | Size | Notes |
-|-----------|------|-------|
-| CCI buffer | N doubles | 8N bytes |
-| Output buffers | 4N doubles | 32N bytes |
-| Rolling sums | 4 doubles | 32 bytes (constant) |
-| State variables | 1 int | 4 bytes (constant) |
-| **Total** | **40N + 36 bytes** | Linear in N |
+| Component       | Size               | Notes               |
+| --------------- | ------------------ | ------------------- |
+| CCI buffer      | N doubles          | 8N bytes            |
+| Output buffers  | 4N doubles         | 32N bytes           |
+| Rolling sums    | 4 doubles          | 32 bytes (constant) |
+| State variables | 1 int              | 4 bytes (constant)  |
+| **Total**       | **40N + 36 bytes** | Linear in N         |
 
 **Example** (N=5000):
+
 - Total: ~200KB (acceptable for real-time indicator)
 
 ---
@@ -442,12 +457,14 @@ if(InpLogCSV && g_logger.IsOpen())
 ### 1. Unit Tests
 
 **Streak Calculation**:
+
 ```
 Input:  CCI = [50, 60, 70, 80, 90, 95, 105, 110]
 Expected: streaks = [1, 2, 3, 4, 5, 6, 0, 0]
 ```
 
 **Rolling Window**:
+
 ```
 Input:  W=3, CCI = [10, 20, 30, 40, 50]
 Window at bar 2: [10, 20, 30] → mean=20, sum=60
@@ -455,6 +472,7 @@ Window at bar 3: [20, 30, 40] → mean=30, sum=90 (removed 10, added 40)
 ```
 
 **Score Components**:
+
 ```
 p=0.9, c=0.8, v=0.7, q=0.6
 Expected score = 0.9 * 0.8 * 0.7 * 0.6 = 0.3024
@@ -463,12 +481,14 @@ Expected score = 0.9 * 0.8 * 0.7 * 0.6 = 0.3024
 ### 2. Integration Tests
 
 **Strategy Tester**:
+
 - Symbol: EURUSD
 - Period: M1
 - Date range: 2024-01-01 to 2024-12-31
 - Expected: CSV file with ~525,600 rows (1 year of M1 data)
 
 **Custom Symbol**:
+
 - Create SYNTH_CCI with known patterns
 - Verify coil signals at expected locations
 - Validate expansion triggers after coils
@@ -476,11 +496,13 @@ Expected score = 0.9 * 0.8 * 0.7 * 0.6 = 0.3024
 ### 3. Performance Tests
 
 **Large Dataset**:
+
 - N = 50,000 bars
 - Window W = 50
 - Expected completion time: <1 second
 
 **Incremental Updates**:
+
 - Attach to live chart
 - Monitor CPU usage
 - Expected: Minimal CPU spikes on new ticks
