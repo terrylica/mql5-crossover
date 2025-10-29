@@ -1,4 +1,5 @@
 # ATR Adaptive Laguerre RSI - Temporal Leakage Audit
+
 **Date**: 2025-10-16  
 **File**: `ATR_Adaptive_Laguerre_RSI.mq5`  
 **Version**: Post-fix (temporal violations already addressed)
@@ -26,11 +27,13 @@
 ### 1. Main Calculation Loop (Lines 232-297)
 
 **Pattern**:
+
 ```mql5
 for(int i=limit; i<rates_total && !_StopFlag; i++)
 ```
 
 **Assessment**: ✓ **CORRECT**
+
 - Iterates forward in time (oldest → newest)
 - Standard MT5 pattern for causal calculations
 - `limit` correctly set from `prev_calculated`
@@ -40,19 +43,22 @@ for(int i=limit; i<rates_total && !_StopFlag; i++)
 ### 2. True Range Calculation (Lines 240-243)
 
 **Code**:
+
 ```mql5
-atrWork[i].tr = (i>0) ? 
-               (high[i]>close[i-1] ? high[i] : close[i-1]) - 
-               (low[i]<close[i-1] ? low[i] : close[i-1]) 
+atrWork[i].tr = (i>0) ?
+               (high[i]>close[i-1] ? high[i] : close[i-1]) -
+               (low[i]<close[i-1] ? low[i] : close[i-1])
                : high[i]-low[i];
 ```
 
 **Assessment**: ✓ **CORRECT**
+
 - Uses `close[i-1]` (previous bar) when available
 - First bar (`i==0`) uses only current bar data
 - No forward references
 
 **Temporal Dependencies**:
+
 - Current bar: `high[i]`, `low[i]`
 - Previous bar: `close[i-1]` (only when `i>0`)
 
@@ -61,6 +67,7 @@ atrWork[i].tr = (i>0) ?
 ### 3. ATR Calculation (Lines 246-260)
 
 **Code**:
+
 ```mql5
 if(i>inpAtrPeriod)
 {
@@ -78,11 +85,13 @@ atrWork[i].atr = atrWork[i].trSum / (double)inpAtrPeriod;
 ```
 
 **Assessment**: ✓ **CORRECT**
+
 - Sliding window uses `atrWork[i-1]` and `atrWork[i-inpAtrPeriod]`
 - Lookback loop uses `atrWork[i-k]` (historical data only)
 - No forward references
 
 **Temporal Dependencies**:
+
 - Previous ATR sum: `atrWork[i-1].trSum`
 - Historical TR values: `atrWork[i-inpAtrPeriod].tr`, `atrWork[i-k].tr`
 
@@ -91,6 +100,7 @@ atrWork[i].atr = atrWork[i].trSum / (double)inpAtrPeriod;
 ### 4. ATR Min/Max Calculation (Lines 263-283) ⚠️ **CRITICAL SECTION**
 
 **Code**:
+
 ```mql5
 // FIXED: Removed cache check with temporal violation (atrWork[i+1])
 // Always recalculate to avoid look-ahead bias
@@ -113,16 +123,19 @@ if(inpAtrPeriod>1 && i>0)
 **Assessment**: ✓ **CORRECT** (Previously Fixed)
 
 **Evidence of Prior Temporal Violation**:
+
 - Comment at line 263: "FIXED: Removed cache check with temporal violation (atrWork[i+1])"
 - Previous implementation likely used `atrWork[i+1]` for cache validation
 - Current implementation recalculates every bar using only historical data
 
 **Current Temporal Dependencies**:
+
 - Previous ATR: `atrWork[i-1].atr`
 - Historical ATR values: `atrWork[i-k].atr` where `k ∈ [2, inpAtrPeriod)`
 - All references are backward-looking ✓
 
 **Why This Was Critical**:
+
 - Min/max ATR values determine adaptive coefficient
 - Adaptive coefficient affects Laguerre period
 - Using future data here would constitute look-ahead bias
@@ -132,6 +145,7 @@ if(inpAtrPeriod>1 && i>0)
 ### 5. Adaptive Coefficient Calculation (Lines 286-288)
 
 **Code**:
+
 ```mql5
 double _max = atrWork[i].prevMax > atrWork[i].atr ? atrWork[i].prevMax : atrWork[i].atr;
 double _min = atrWork[i].prevMin < atrWork[i].atr ? atrWork[i].prevMin : atrWork[i].atr;
@@ -139,6 +153,7 @@ double _coeff = (_min != _max) ? 1.0-(atrWork[i].atr-_min)/(_max-_min) : 0.5;
 ```
 
 **Assessment**: ✓ **CORRECT**
+
 - Uses `atrWork[i].prevMax` and `atrWork[i].prevMin` (already validated as clean)
 - Uses `atrWork[i].atr` (current bar ATR)
 - Coefficient calculation is memoryless (stateless formula)
@@ -148,12 +163,13 @@ double _coeff = (_min != _max) ? 1.0-(atrWork[i].atr-_min)/(_max-_min) : 0.5;
 ### 6. Laguerre Filter Update (Lines 327-340, 402-408)
 
 **Code**:
+
 ```mql5
 // First stage
 work[currentBar].data[instance].values[0] = price + gamma * (work[currentBar-1].data[instance].values[0] - price);
 
 // Second stage
-work[currentBar].data[instance].values[1] = work[currentBar-1].data[instance].values[0] + 
+work[currentBar].data[instance].values[1] = work[currentBar-1].data[instance].values[0] +
                                   gamma * (work[currentBar-1].data[instance].values[1] - work[currentBar].data[instance].values[0]);
 
 // Third stage (similar pattern)
@@ -161,12 +177,14 @@ work[currentBar].data[instance].values[1] = work[currentBar-1].data[instance].va
 ```
 
 **Assessment**: ✓ **CORRECT**
+
 - Classic Laguerre filter cascade structure
 - Each stage uses previous bar values: `work[currentBar-1]`
 - Cascade flows from stage N-1 at previous bar
 - No forward references
 
 **Temporal Dependencies**:
+
 - Previous bar filter values: `work[currentBar-1].data[instance].values[0..3]`
 - Current bar previous stage: `work[currentBar].data[instance].values[n-1]` (cascade)
 
@@ -175,6 +193,7 @@ work[currentBar].data[instance].values[1] = work[currentBar-1].data[instance].va
 ### 7. Laguerre RSI Calculation (Lines 345-380, 410-424)
 
 **Code**:
+
 ```mql5
 // Compare L0 and L1
 if(work[currentBar].data[instance].values[0] >= work[currentBar].data[instance].values[1])
@@ -189,6 +208,7 @@ return ((CU+CD) != 0) ? CU/(CU+CD) : 0;
 ```
 
 **Assessment**: ✓ **CORRECT**
+
 - Compares filter stages at current bar only
 - All references are `work[currentBar]` (no future bars)
 - RSI formula is memoryless (stateless calculation)
@@ -215,16 +235,16 @@ return ((CU+CD) != 0) ? CU/(CU+CD) : 0;
 
 ## Validation Checklist
 
-| Check | Status | Details |
-|-------|--------|---------|
-| No `[i+1]` or `[i+n]` forward references | ✓ PASS | All references use `[i]`, `[i-1]`, `[i-k]` |
-| Loop direction (oldest → newest) | ✓ PASS | `for(int i=limit; i<rates_total; i++)` |
-| Cache validation without future bars | ✓ PASS | Cache check removed (line 263 comment) |
-| ATR calculation uses historical data only | ✓ PASS | Lines 246-260 |
-| ATR min/max uses historical data only | ✓ PASS | Lines 263-283 |
-| Laguerre filter cascade correct | ✓ PASS | Lines 327-340, 402-408 |
-| RSI calculation memoryless | ✓ PASS | Lines 345-380, 410-424 |
-| True Range uses previous close only | ✓ PASS | Lines 240-243 |
+| Check                                     | Status | Details                                    |
+| ----------------------------------------- | ------ | ------------------------------------------ |
+| No `[i+1]` or `[i+n]` forward references  | ✓ PASS | All references use `[i]`, `[i-1]`, `[i-k]` |
+| Loop direction (oldest → newest)          | ✓ PASS | `for(int i=limit; i<rates_total; i++)`     |
+| Cache validation without future bars      | ✓ PASS | Cache check removed (line 263 comment)     |
+| ATR calculation uses historical data only | ✓ PASS | Lines 246-260                              |
+| ATR min/max uses historical data only     | ✓ PASS | Lines 263-283                              |
+| Laguerre filter cascade correct           | ✓ PASS | Lines 327-340, 402-408                     |
+| RSI calculation memoryless                | ✓ PASS | Lines 345-380, 410-424                     |
+| True Range uses previous close only       | ✓ PASS | Lines 240-243                              |
 
 ---
 
@@ -233,6 +253,7 @@ return ((CU+CD) != 0) ? CU/(CU+CD) : 0;
 **Overall Assessment**: ✓ **CLEAN - NO TEMPORAL LEAKAGE**
 
 The indicator correctly implements causal calculations:
+
 1. All array accesses reference current or historical bars only
 2. Previous temporal violation (atrWork[i+1]) was fixed
 3. Loop direction is correct (forward in time)
@@ -240,6 +261,7 @@ The indicator correctly implements causal calculations:
 5. All filter cascades use proper temporal dependencies
 
 **Trading Viability**: This indicator is suitable for:
+
 - Live trading (no repainting from temporal leakage)
 - Backtesting (historical calculations are valid)
 - Real-time signals (no future data contamination)

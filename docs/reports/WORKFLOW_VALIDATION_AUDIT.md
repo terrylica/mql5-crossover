@@ -25,6 +25,7 @@
 **Issue**: The guide shows Wine Python execution but OMITS the critical `CX_BOTTLE` environment variable that we discovered is mandatory for CrossOver wine wrapper.
 
 **Current Documentation** (WRONG):
+
 ```bash
 "$CX" --bottle "MetaTrader 5" "C:\\Program Files\\Python312\\python.exe" -c '
 import MetaTrader5 as mt5
@@ -33,6 +34,7 @@ import MetaTrader5 as mt5
 ```
 
 **Reality** (CORRECT - from WINE_PYTHON_EXECUTION.md):
+
 ```bash
 CX_BOTTLE="MetaTrader 5" \
 WINEPREFIX="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5" \
@@ -53,6 +55,7 @@ wine "C:\\Program Files\\Python312\\python.exe" \
 **Issue**: Text says "do NOT add `/inc` unless using external includes" but the example immediately shows `/inc` in the command.
 
 **Current Documentation**:
+
 ```bash
 # Text: "Do NOT add /inc unless using external includes"
 # But then shows:
@@ -63,6 +66,7 @@ wine "C:\\Program Files\\Python312\\python.exe" \
 ```
 
 **Reality**: We should show TWO examples:
+
 1. Standard indicators (NO /inc)
 2. External includes (WITH /inc)
 
@@ -79,6 +83,7 @@ wine "C:\\Program Files\\Python312\\python.exe" \
 **Issue**: Guide shows adding export code to `OnCalculate()` function, but our actual workflow uses `ExportAligned.mq5` script separately.
 
 **Current Documentation**:
+
 ```mql5
 // In indicator OnCalculate(), add export code
 if(rates_total > 5000)
@@ -102,19 +107,23 @@ if(rates_total > 5000)
 **Issue**: Guide ASSUMES Wine Python 3.12 + MetaTrader5 package are installed but provides no verification or installation steps.
 
 **Current Documentation**:
+
 ```markdown
 ### Required Tools
+
 - **Wine Python 3.12**: Installed in CrossOver bottle at `C:\Program Files\Python312\`
 - **MetaTrader5 Package**: Installed in Wine Python (`pip install MetaTrader5`)
 ```
 
 **Reality**: New users need:
+
 1. How to verify Wine Python is installed
 2. How to install if missing
 3. How to verify MetaTrader5 package is installed
 4. How to check package version (we're using 5.0.5328, not 2.x)
 
 **Verification Commands** (MISSING from guide):
+
 ```bash
 # Check Wine Python
 ls "Program Files/Python312/python.exe"
@@ -141,6 +150,7 @@ wine "C:\\Program Files\\Python312\\python.exe" -c "import MetaTrader5; print(Me
 **Validated**: Laguerre RSI (1.000000 correlation) ✅
 
 **Not Validated**:
+
 - A second indicator migration following the guide
 - A new person (not us) following the guide
 - The guide's time estimates (are they realistic?)
@@ -157,11 +167,13 @@ wine "C:\\Program Files\\Python312\\python.exe" -c "import MetaTrader5; print(Me
 **Location**: Phase 4.1 - Ensure MT5 is Running
 
 **Issue**: Guide says "Start MT5 if not running" but doesn't verify:
+
 1. MT5 actually started successfully
 2. MT5 is logged in to an account
 3. Symbol data is available
 
 **Current Documentation**:
+
 ```bash
 # Start MT5 if not running
 CX="$HOME/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
@@ -170,6 +182,7 @@ sleep 5
 ```
 
 **Reality**: Wine MT5 startup can fail silently. User needs to verify:
+
 ```bash
 # Check if MT5 process is running
 ps aux | grep terminal64
@@ -194,6 +207,7 @@ wine "C:\\Program Files\\Python312\\python.exe" \
 **Issue**: The guide shows a complex multi-line Python script passed via `-c` flag. This approach is UNTESTED in our workflow.
 
 **Current Documentation**:
+
 ```bash
 "$CX" --bottle "MetaTrader 5" "C:\\Program Files\\Python312\\python.exe" -c '
 import MetaTrader5 as mt5
@@ -330,6 +344,7 @@ if __name__ == "__main__":
 **Test Indicator**: RSI (Relative Strength Index) - Simple, well-understood, fast to validate
 
 **Steps**:
+
 1. Follow MQL5_TO_PYTHON_MIGRATION_GUIDE.md from Phase 1-7
 2. Document every step taken (actual commands, not just guide commands)
 3. Note any deviations from guide
@@ -337,6 +352,7 @@ if __name__ == "__main__":
 5. Document all errors encountered and solutions
 
 **Success Criteria**:
+
 - RSI Python implementation achieves ≥ 0.999 correlation
 - All 7 phases complete without manual intervention
 - Actual time ≤ 150% of documented estimate
@@ -351,12 +367,14 @@ if __name__ == "__main__":
 **Goal**: Test if someone NEW can follow the guide.
 
 **Approach**: Pretend we've never done this before:
+
 1. Start with ONLY the guide (no prior knowledge)
 2. Follow guide EXACTLY as written
 3. Don't fill in implicit steps
 4. Document every point of confusion
 
 **Questions to Answer**:
+
 - Is every command copy-pastable?
 - Are paths absolute or require substitution?
 - Are prerequisites clearly verified?
@@ -372,6 +390,7 @@ if __name__ == "__main__":
 **Goal**: Update MQL5_TO_PYTHON_MIGRATION_GUIDE.md to address all 7 gaps found.
 
 **Changes Required**:
+
 1. Add Phase 0: Prerequisites Verification
 2. Fix Phase 3.2: Split /inc examples
 3. Fix Phase 4.1: Add MT5 connection verification
@@ -389,12 +408,14 @@ if __name__ == "__main__":
 **Goal**: Have teammate follow guide and provide feedback.
 
 **Process**:
+
 1. Share updated guide with one coworker
 2. Ask them to migrate a simple indicator (RSI or MACD)
 3. Observe without helping (unless blocked > 10 minutes)
 4. Collect feedback on clarity, accuracy, completeness
 
 **Success Criteria**:
+
 - Coworker completes workflow in < 3 hours
 - Coworker achieves ≥ 0.999 correlation
 - No more than 2 clarifying questions needed
@@ -406,6 +427,7 @@ if __name__ == "__main__":
 ## Current Status
 
 ### Tools Verified ✅
+
 - [x] Wine Python 3.12: EXISTS at `C:\Program Files\Python312\python.exe`
 - [x] MetaTrader5 Package: v5.0.5328 INSTALLED
 - [x] validate_indicator.py: EXISTS
@@ -413,9 +435,11 @@ if __name__ == "__main__":
 - [x] MT5 Terminal: EXISTS
 
 ### Workflow Validated ✅
+
 - [x] Laguerre RSI: 1.000000 correlation (5000-bar warmup)
 
 ### Workflow NOT Validated ❌
+
 - [ ] Second indicator migration (RSI planned)
 - [ ] Fresh user test (no prior knowledge)
 - [ ] Prerequisites verification script
@@ -450,12 +474,14 @@ if __name__ == "__main__":
 ## Risk Assessment
 
 **If we share now** (WITHOUT validation):
+
 - ❌ Coworker hits Gap 1 (CX_BOTTLE) → fails at Phase 4 → wastes 1 hour
 - ❌ Coworker follows Gap 3 (inline export) → breaks indicator → wastes 2 hours
 - ❌ Team loses confidence in our documentation
 - ❌ We look unprofessional
 
 **If we validate first** (8.5 hours investment):
+
 - ✅ Coworkers succeed on first try
 - ✅ We catch hidden edge cases
 - ✅ Documentation is truly "battle-tested"
@@ -468,6 +494,7 @@ if __name__ == "__main__":
 **You were absolutely right to question this.** The documented workflow has **7 critical gaps** that would cause new users to fail. We need to complete the 5-phase validation test plan (8.5 hours) before sharing with coworkers.
 
 **Next Action**: Choose one:
+
 1. **Fix immediately**: Complete Phase 1-5 validation (8.5 hours, HIGH confidence after)
 2. **Partial fix**: Complete Phase 1-2 only (3 hours, MEDIUM confidence)
 3. **Share with caveat**: "This worked for Laguerre RSI but needs more testing"

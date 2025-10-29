@@ -35,6 +35,7 @@ We evaluated readiness across 5 dimensions:
 **Coverage**: 7-phase end-to-end workflow
 
 **Phases Covered**:
+
 1. Locate & Analyze MQL5 Indicator
 2. Modify MQL5 to Export Indicator Buffers
 3. CLI Compile (CrossOver --cx-app method)
@@ -46,6 +47,7 @@ We evaluated readiness across 5 dimensions:
 **Why Critical**: This is the **SINGLE EXECUTABLE WORKFLOW** that consolidates all knowledge. Anyone can now follow these steps to migrate any indicator.
 
 **Time Estimates**:
+
 - First indicator: 2-4 hours
 - Subsequent indicators: 1-2 hours
 
@@ -54,24 +56,29 @@ We evaluated readiness across 5 dimensions:
 ### ✅ Hard-Learned Lessons (Complete)
 
 #### External Research Breakthroughs
+
 **File**: `docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md`
 **Status**: ✅ COMPLETE
 **Key Discoveries**:
+
 - MQL5 `/inc` parameter OVERRIDES (not augments) default paths
 - Script automation via `[StartUp]` config with `ShutdownTerminal=1`
 - Python MetaTrader5 API cannot access indicator buffers
 - CrossOver path handling: spaces break Wine compilation
 
 #### Python Validation Failures
+
 **File**: `docs/guides/PYTHON_INDICATOR_VALIDATION_FAILURES.md`
 **Status**: ✅ COMPLETE
 **Coverage**: 8 distinct failures, 185-minute timeline
 **Key Lessons**:
+
 - Pandas `rolling().mean()` vs MQL5 ATR expanding window behavior
 - Historical warmup requirement (5000+ bars)
 - Good correlation (0.95) is NOT good enough (need 0.999+)
 
 #### Validation Success Methodology
+
 **File**: `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md`
 **Status**: ✅ COMPLETE
 **Achievement**: 1.000000 correlation (perfect match)
@@ -81,22 +88,24 @@ We evaluated readiness across 5 dimensions:
 
 ### ✅ Technical Component Guides (Complete)
 
-| Component | Document | Status |
-|-----------|----------|--------|
-| Wine Python Execution | `WINE_PYTHON_EXECUTION.md` | ✅ Complete (v3.0.0) |
-| MQL5 CLI Compilation | `MQL5_CLI_COMPILATION_SUCCESS.md` | ✅ Complete (~1s compile) |
-| MT5 File Locations | `MT5_FILE_LOCATIONS.md` | ✅ Complete |
-| MQL5 Encoding | `MQL5_ENCODING_SOLUTIONS.md` | ✅ Complete (UTF-8/UTF-16LE) |
-| Laguerre RSI Algorithm | `LAGUERRE_RSI_ANALYSIS.md` | ✅ Complete |
-| Validation Framework | `validate_indicator.py` | ✅ Complete (undocumented, but functional) |
+| Component              | Document                          | Status                                     |
+| ---------------------- | --------------------------------- | ------------------------------------------ |
+| Wine Python Execution  | `WINE_PYTHON_EXECUTION.md`        | ✅ Complete (v3.0.0)                       |
+| MQL5 CLI Compilation   | `MQL5_CLI_COMPILATION_SUCCESS.md` | ✅ Complete (~1s compile)                  |
+| MT5 File Locations     | `MT5_FILE_LOCATIONS.md`           | ✅ Complete                                |
+| MQL5 Encoding          | `MQL5_ENCODING_SOLUTIONS.md`      | ✅ Complete (UTF-8/UTF-16LE)               |
+| Laguerre RSI Algorithm | `LAGUERRE_RSI_ANALYSIS.md`        | ✅ Complete                                |
+| Validation Framework   | `validate_indicator.py`           | ✅ Complete (undocumented, but functional) |
 
 ---
 
 ### ⚠️ Outdated Documentation (Needs Update)
 
 #### QUICKSTART.md
+
 **Status**: ⚠️ OUTDATED (references v2.0.0)
 **Issues**:
+
 - References deprecated `./scripts/mq5run` (v2.0.0 LEGACY)
 - Doesn't mention v3.0.0 Wine Python approach
 - Missing 5000-bar warmup requirement
@@ -105,8 +114,10 @@ We evaluated readiness across 5 dimensions:
 **Recommendation**: Update to reference `MQL5_TO_PYTHON_MIGRATION_GUIDE.md` instead
 
 #### AI_AGENT_WORKFLOW.md
+
 **Status**: ⚠️ OUTDATED (extensive v2.0.0 coverage)
 **Issues**:
+
 - Extensively documents v2.0.0 `mq5run`/`startup.ini` approach
 - Doesn't document v3.0.0 Wine Python MT5 API
 - Missing Laguerre RSI validation lessons
@@ -154,6 +165,7 @@ We now have THREE documents capturing failures and struggles:
    - Archived lessons from CLI compilation struggles
 
 **Coverage**: Complete - Every failure mode is documented with:
+
 - What we tried
 - What we expected
 - What actually happened
@@ -168,6 +180,7 @@ We now have THREE documents capturing failures and struggles:
 ### ✅ Python Workspace (users/crossover/)
 
 **Structure**:
+
 ```
 users/crossover/
 ├── export_aligned.py              # v3.0.0 Wine Python export
@@ -184,11 +197,13 @@ users/crossover/
 **Status**: ✅ **PRODUCTION-READY**
 
 **Strengths**:
+
 - Clear separation of concerns (export, validation, indicators)
 - Modular indicator library structure
 - Universal validation framework (`validate_indicator.py`)
 
 **What's Ready**:
+
 - ✅ `export_aligned.py` - Fetch OHLC + indicator data via Wine Python MT5 API
 - ✅ `validate_indicator.py` - Universal validator with DuckDB tracking
 - ✅ `indicators/laguerre_rsi.py` - First validated indicator (template for others)
@@ -198,6 +213,7 @@ users/crossover/
 ### ✅ MQL5 Workspace (Program Files/MetaTrader 5/MQL5/)
 
 **Structure**:
+
 ```
 MQL5/
 ├── Indicators/Custom/
@@ -216,6 +232,7 @@ MQL5/
 **Status**: ✅ **PRODUCTION-READY**
 
 **Key Feature**: `PythonInterop/` project folder
+
 - Contains indicators modified to export all buffers for validation
 - Example: `ATR_Adaptive_Laguerre_RSI.mq5` (buffer-exposed version)
 
@@ -224,6 +241,7 @@ MQL5/
 ### ✅ Documentation Workspace (docs/)
 
 **Structure**:
+
 ```
 docs/
 ├── guides/                        # 18 guides (comprehensive)
@@ -254,26 +272,26 @@ docs/
 
 ### ✅ Production Tools
 
-| Tool | Purpose | Status | Documentation |
-|------|---------|--------|---------------|
-| **validate_indicator.py** | Universal indicator validation | ✅ Complete | Referenced in migration guide |
-| **export_aligned.py** | Wine Python MT5 data export | ✅ Complete | `WINE_PYTHON_EXECUTION.md` |
-| **validate_export.py** | CSV validation (legacy) | ✅ Complete | `AI_AGENT_WORKFLOW.md` |
-| **indicators/laguerre_rsi.py** | Python Laguerre RSI | ✅ Validated | `LAGUERRE_RSI_VALIDATION_SUCCESS.md` |
+| Tool                           | Purpose                        | Status       | Documentation                        |
+| ------------------------------ | ------------------------------ | ------------ | ------------------------------------ |
+| **validate_indicator.py**      | Universal indicator validation | ✅ Complete  | Referenced in migration guide        |
+| **export_aligned.py**          | Wine Python MT5 data export    | ✅ Complete  | `WINE_PYTHON_EXECUTION.md`           |
+| **validate_export.py**         | CSV validation (legacy)        | ✅ Complete  | `AI_AGENT_WORKFLOW.md`               |
+| **indicators/laguerre_rsi.py** | Python Laguerre RSI            | ✅ Validated | `LAGUERRE_RSI_VALIDATION_SUCCESS.md` |
 
 ### ✅ Compilation Tools
 
-| Tool | Method | Status | Documentation |
-|------|--------|--------|---------------|
-| **CLI Compilation** | CrossOver `--cx-app` | ✅ Working (~1s) | `MQL5_CLI_COMPILATION_SUCCESS.md` |
-| **GUI Compilation** | MetaEditor F7 | ✅ Fallback | `MQL5_TO_PYTHON_MIGRATION_GUIDE.md` |
+| Tool                | Method               | Status           | Documentation                       |
+| ------------------- | -------------------- | ---------------- | ----------------------------------- |
+| **CLI Compilation** | CrossOver `--cx-app` | ✅ Working (~1s) | `MQL5_CLI_COMPILATION_SUCCESS.md`   |
+| **GUI Compilation** | MetaEditor F7        | ✅ Fallback      | `MQL5_TO_PYTHON_MIGRATION_GUIDE.md` |
 
 ### ✅ Data Fetching Tools
 
-| Tool | Method | Status | Documentation |
-|------|--------|--------|---------------|
-| **Wine Python MT5 API** | `mt5.copy_rates_from_pos()` | ✅ Production | `WINE_PYTHON_EXECUTION.md` |
-| **startup.ini (v2.0.0)** | `[StartUp]` config | ⚠️ Legacy (deprecated) | `EXTERNAL_RESEARCH_BREAKTHROUGHS.md` |
+| Tool                     | Method                      | Status                 | Documentation                        |
+| ------------------------ | --------------------------- | ---------------------- | ------------------------------------ |
+| **Wine Python MT5 API**  | `mt5.copy_rates_from_pos()` | ✅ Production          | `WINE_PYTHON_EXECUTION.md`           |
+| **startup.ini (v2.0.0)** | `[StartUp]` config          | ⚠️ Legacy (deprecated) | `EXTERNAL_RESEARCH_BREAKTHROUGHS.md` |
 
 ---
 
@@ -312,6 +330,7 @@ All critical knowledge for MQL5→Python migrations is documented:
 **Answer**: ✅ **YES - ABSOLUTELY**
 
 **Evidence**:
+
 1. ✅ Complete 7-phase workflow documented
 2. ✅ All hard-learned lessons captured
 3. ✅ One indicator successfully migrated (Laguerre RSI) as proof-of-concept
@@ -325,6 +344,7 @@ All critical knowledge for MQL5→Python migrations is documented:
 **Estimate**: 1-2 hours (vs. 2-4 hours for first)
 
 **Why Faster**:
+
 - No learning curve (workflow is documented)
 - No CLI compilation debugging (method proven)
 - No validation methodology discovery (5000-bar warmup known)
@@ -396,6 +416,7 @@ Phase 7: Documentation
 When migrating the next indicator, verify ALL of these:
 
 ### Before Starting
+
 - [ ] Read `MQL5_TO_PYTHON_MIGRATION_GUIDE.md` completely
 - [ ] Review `EXTERNAL_RESEARCH_BREAKTHROUGHS.md` (know what NOT to do)
 - [ ] Review `PYTHON_INDICATOR_VALIDATION_FAILURES.md` (know the pitfalls)
@@ -403,6 +424,7 @@ When migrating the next indicator, verify ALL of these:
 - [ ] Have Wine Python 3.12 installed with MetaTrader5 package
 
 ### During Migration
+
 - [ ] Copy MQL5 file to simple path (no spaces) before CLI compilation
 - [ ] Do NOT use `/inc` parameter unless using external includes
 - [ ] Verify .ex5 file created AND check MetaEditor log
@@ -411,12 +433,14 @@ When migrating the next indicator, verify ALL of these:
 - [ ] Use manual loops for ATR/EMA (avoid pandas rolling NaN trap)
 
 ### Validation Phase
+
 - [ ] Correlation ≥ 0.999 for ALL buffers
 - [ ] MAE < 0.01 (mean absolute error)
 - [ ] No NaN values in comparison window
 - [ ] No temporal violations (no `buffer[i+1]` look-ahead)
 
 ### Documentation Phase
+
 - [ ] Create algorithm analysis guide
 - [ ] Create validation success report
 - [ ] Update `CLAUDE.md` with new indicator links
@@ -429,6 +453,7 @@ When migrating the next indicator, verify ALL of these:
 ### Before This Documentation Consolidation
 
 **State**: Fragmented knowledge across multiple sessions
+
 - No end-to-end workflow
 - Hard-learned lessons buried in conversation history
 - Unclear which docs were outdated (v2.0.0 vs v3.0.0)
@@ -439,6 +464,7 @@ When migrating the next indicator, verify ALL of these:
 ### After This Documentation Consolidation
 
 **State**: Consolidated, executable workflow
+
 - ✅ Clear entry point: `MQL5_TO_PYTHON_MIGRATION_GUIDE.md`
 - ✅ All failures documented with solutions
 - ✅ Validated methodology (1.000000 correlation proof)
@@ -483,6 +509,7 @@ When you reach 3+ validated indicators, consider:
 ### Overall Readiness Score: ✅ **95/100** (Excellent)
 
 **Breakdown**:
+
 - Documentation Completeness: 95/100 (excellent, minor gaps only)
 - Workflow Clarity: 100/100 (perfect - step-by-step executable)
 - Hard-Learned Lessons: 100/100 (complete failure documentation)
@@ -498,6 +525,7 @@ When you reach 3+ validated indicators, consider:
 **Answer**: ✅ **YES - WITH HIGH CONFIDENCE**
 
 **Supporting Evidence**:
+
 1. Complete 7-phase workflow guide (battle-tested)
 2. All hard-learned lessons documented (failures + breakthroughs)
 3. One successful validation (Laguerre RSI at 1.000000 correlation)
@@ -511,15 +539,18 @@ When you reach 3+ validated indicators, consider:
 ### Entry Points
 
 **For New Developers**:
+
 1. Start: `MQL5_TO_PYTHON_MIGRATION_GUIDE.md`
 2. Reference: `EXTERNAL_RESEARCH_BREAKTHROUGHS.md` (what NOT to do)
 3. Learn from failures: `PYTHON_INDICATOR_VALIDATION_FAILURES.md`
 
 **For Experienced Developers**:
+
 1. Quick reference: `MQL5_TO_PYTHON_MIGRATION_GUIDE.md` (phases 1-7)
 2. Tool docs: `WINE_PYTHON_EXECUTION.md`, `MQL5_CLI_COMPILATION_SUCCESS.md`
 
 **For Debugging**:
+
 1. CLI compilation: `MQL5_CLI_COMPILATION_SUCCESS.md`
 2. Validation failures: `PYTHON_INDICATOR_VALIDATION_FAILURES.md`
 3. External research: `EXTERNAL_RESEARCH_BREAKTHROUGHS.md`

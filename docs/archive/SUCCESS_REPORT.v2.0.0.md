@@ -14,6 +14,7 @@ The ExportAligned.ex5 script successfully exports MT5 data with indicators, and 
 **Test**: ExportAligned.ex5 via MT5 UI (Ctrl+N → Scripts → ExportAligned → drag to EURUSD chart)
 
 **Results**:
+
 - CSV generated: `Export_EURUSD_PERIOD_M1.csv` (308KB, 5000 bars)
 - Time range: 2025-10-08 13:24:00 to 2025-10-14 01:03:00
 - Columns: time, open, high, low, close, tick_volume, spread, real_volume, RSI_14
@@ -21,6 +22,7 @@ The ExportAligned.ex5 script successfully exports MT5 data with indicators, and 
 ### Data Integrity Validation ✅
 
 All integrity checks passed:
+
 - ✅ No missing OHLC values
 - ✅ High >= Low (all bars)
 - ✅ High >= Open, Close (all bars)
@@ -33,12 +35,14 @@ All integrity checks passed:
 **Comparison**: MT5 RSI_14 vs Python pandas implementation
 
 **Metrics**:
+
 - Correlation: **0.999902** (target: >0.999) ✅
 - Mean Absolute Error: **0.014540** (target: <0.1) ✅
 - Max Absolute Error: 6.538439
 - Within 0.01 tolerance: **98.1%** (4893/4987 bars)
 
 **Sample Comparison** (last 10 bars):
+
 ```
 Index   MT5 RSI_14   Python RSI_14   Diff
 -10     58.3800      58.3835         0.0035
@@ -70,7 +74,7 @@ Index   MT5 RSI_14   Python RSI_14   Diff
    - Validates data integrity (OHLC relationships)
    - Computes indicators using pandas
    - Compares MT5 vs Python with statistical metrics
-   - Handles dynamic column names (RSI_14, RSI_<period>)
+   - Handles dynamic column names (RSI*14, RSI*<period>)
 
 3. **Wrapper Script** - mq5run:
    - Correctly invokes CrossOver CLI (cxstart)
@@ -82,11 +86,12 @@ Index   MT5 RSI_14   Python RSI_14   Diff
 **Headless Execution**: MT5 launches but script doesn't execute
 
 **Cause**: Per research findings (2022-2025), MT5 requires:
+
 - Active chart context for script attachment
 - Account session with history loaded
 - Possibly GUI interaction for first-time setup
 
-**Impact**: Manual execution required once, then headless *may* work with workarounds
+**Impact**: Manual execution required once, then headless _may_ work with workarounds
 
 ## What This Means for AI Agents
 
@@ -100,22 +105,26 @@ Index   MT5 RSI_14   Python RSI_14   Diff
 ### 🔧 Current Workflow
 
 **Step 1**: Develop indicator in MQL5
+
 ```mql5
 // Add to ExportAligned.mq5
 #include "modules/MyIndicatorModule.mqh"
 ```
 
 **Step 2**: Export data manually (one-time)
+
 ```
 MT5 UI → Ctrl+N → Scripts → ExportAligned → drag to chart
 ```
 
 **Step 3**: Validate with Python
+
 ```bash
 python python/validate_export.py exports/Export_EURUSD_PERIOD_M1.csv
 ```
 
 **Step 4**: Implement in Python
+
 ```python
 def my_indicator(data: pd.DataFrame) -> pd.Series:
     # Implement using pandas/numpy
@@ -128,6 +137,7 @@ def my_indicator(data: pd.DataFrame) -> pd.Series:
 ### 🎯 Future: Full Automation (Pending)
 
 Once headless execution is debugged:
+
 ```bash
 ./scripts/mq5run --symbol EURUSD --period PERIOD_M1
 # Auto-validates and reports pass/fail
@@ -165,6 +175,7 @@ Once headless execution is debugged:
 Research-based approaches to try:
 
 1. **Strategy Tester Mode**
+
    ```ini
    [Tester]
    Expert=ExportAligned  # Convert script to EA
@@ -194,11 +205,13 @@ Research-based approaches to try:
 ### For Production Use Today ✅
 
 **Use manual workflow** - Validated and working:
+
 - Export data via MT5 UI (2 minutes per symbol/timeframe)
 - Validate with Python (automatic)
 - Develop Python implementations (iterative)
 
 **Advantages**:
+
 - Zero debugging required
 - Proven to work
 - Full validation pipeline
@@ -207,6 +220,7 @@ Research-based approaches to try:
 ### For Future Automation
 
 **Wait for headless debug** OR **use Python API directly**:
+
 - Python MT5 API can fetch data without scripts
 - No MQL5 development needed
 - Direct integration with Python workflow
@@ -224,6 +238,7 @@ rates = mt5.copy_rates_from_pos("EURUSD", mt5.TIMEFRAME_M1, 0, 5000)
 **Core Goal Achieved**: ✅
 
 We can now:
+
 1. Export MT5 data with indicators to CSV
 2. Validate data integrity automatically
 3. Compare MT5 vs Python indicator implementations
@@ -233,6 +248,7 @@ We can now:
 The only limitation is manual script execution, which is a **convenience issue**, not a **capability blocker**.
 
 **AI agents can now**:
+
 - Develop MQL5 indicators
 - Export reference data
 - Build Python equivalents

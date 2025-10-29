@@ -11,6 +11,7 @@
 Validate that MQL5_TO_PYTHON_MINIMAL.md workflow works for a SIMPLE indicator.
 
 **Why SMA**:
+
 - Algorithm: `SMA[i] = sum(close[i-period+1 .. i]) / period`
 - No dependencies (no #include needed)
 - No complex state
@@ -29,9 +30,11 @@ Create minimal SMA indicator from scratch (not use existing complex indicators).
 ## Test Indicator Specification
 
 ### Name
+
 `SimpleSMA_Test.mq5`
 
 ### Algorithm
+
 ```cpp
 // Simple Moving Average - Test Implementation
 #property indicator_chart_window
@@ -95,35 +98,42 @@ int OnCalculate(const int rates_total,
 ## Test Execution Plan
 
 ### Phase 0: Setup (5 min)
+
 - [ ] Create SimpleSMA_Test.mq5 in PythonInterop folder
 - [ ] Verify prerequisites (Wine Python, MT5 package, terminal)
 
 ### Phase 1: Compile (5 min)
+
 - [ ] Compile SimpleSMA_Test.mq5 using CLI method
 - [ ] Verify .ex5 created
 - [ ] Record compilation time
 
 ### Phase 2: Fetch Data (5 min)
+
 - [ ] Use existing EURUSD_M1_5000bars.csv (already have from Laguerre RSI)
 - [ ] Or fetch fresh if needed
 
 ### Phase 3: Export MQL5 Values (10 min)
+
 - [ ] Attach SimpleSMA_Test to EURUSD M1 chart
 - [ ] Wait for calculation
 - [ ] Export last 100 bars to CSV
 - [ ] Record method used (ExportAligned vs manual)
 
 ### Phase 4: Implement Python SMA (15 min)
+
 - [ ] Create users/crossover/indicators/simple_sma.py
 - [ ] Implement SMA function (should be ~10 lines)
 - [ ] Match MQL5 initialization behavior
 
 ### Phase 5: Validate (10 min)
+
 - [ ] Run correlation test
 - [ ] Expect correlation >= 0.999
 - [ ] Record actual correlation value
 
 ### Phase 6: Document (15 min)
+
 - [ ] Record actual time for each phase
 - [ ] Note any deviations from minimal workflow
 - [ ] Identify gaps in documentation
@@ -142,18 +152,18 @@ int OnCalculate(const int rates_total,
 
 ## Deviations to Track
 
-| Step | Expected (from guide) | Actual | Deviation? |
-|------|----------------------|--------|------------|
-| Prerequisites | 5 min | | |
-| Find indicator | N/A (creating new) | | |
-| Analyze | 5 min (simple) | | |
-| Modify/Create | 10 min | | |
-| Compile | 5 min | | |
-| Fetch Data | 5 min | | |
-| Export MQL5 | 10 min | | |
-| Implement Python | 15 min | | |
-| Validate | 10 min | | |
-| **Total** | **1 hour** | | |
+| Step             | Expected (from guide) | Actual | Deviation? |
+| ---------------- | --------------------- | ------ | ---------- |
+| Prerequisites    | 5 min                 |        |            |
+| Find indicator   | N/A (creating new)    |        |            |
+| Analyze          | 5 min (simple)        |        |            |
+| Modify/Create    | 10 min                |        |            |
+| Compile          | 5 min                 |        |            |
+| Fetch Data       | 5 min                 |        |            |
+| Export MQL5      | 10 min                |        |            |
+| Implement Python | 15 min                |        |            |
+| Validate         | 10 min                |        |            |
+| **Total**        | **1 hour**            |        |            |
 
 ---
 

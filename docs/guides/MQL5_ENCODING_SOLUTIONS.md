@@ -7,11 +7,13 @@
 ## Root Cause
 
 MetaEditor (MetaTrader 5's code editor) defaults to saving files as:
+
 - **Encoding**: UTF-16LE (Little Endian)
 - **BOM**: May or may not include Byte Order Mark
 - **Line Endings**: CRLF (Windows style)
 
 This causes:
+
 - Git treats files as binary (no diff/merge support)
 - Python `open()` fails with default UTF-8 encoding
 - Shell tools (cat, grep) show garbled output
@@ -19,6 +21,7 @@ This causes:
 ## Solution 1: Python Automatic Detection (Recommended)
 
 ### Install chardet
+
 ```bash
 # In native macOS Python
 pip install chardet
@@ -160,17 +163,20 @@ Add to your `.gitattributes` file in repo root:
 ```
 
 **What this does**:
+
 - Git stores files as UTF-8 internally (for diffs and merges)
 - Git converts to UTF-16LE when checking out to working directory
 - Enables proper diff/merge support
 - Preserves CRLF line endings (Windows convention)
 
 **Requirements**:
+
 - Git 2.16+ (March 2018)
 - All team members must have Git 2.16+
 - ⚠️ Known issue: May corrupt files on checkout in some edge cases
 
 **Verification**:
+
 ```bash
 # After adding .gitattributes
 git check-attr text working-tree-encoding *.mq5
@@ -190,6 +196,7 @@ If `working-tree-encoding` causes issues, mark as binary:
 ```
 
 **Trade-offs**:
+
 - ✅ No corruption risk
 - ✅ Simple and reliable
 - ❌ No diff/merge support
@@ -200,12 +207,14 @@ If `working-tree-encoding` causes issues, mark as binary:
 ### Option 1: Save as UTF-8 (Not Recommended)
 
 MetaEditor doesn't officially support UTF-8 as default encoding, but you can:
+
 1. Open file in MetaEditor
 2. Edit → Select All
 3. Copy to external editor (VSCode, Sublime Text)
 4. Save as UTF-8 in external editor
 
 **Issues**:
+
 - MetaEditor may add BOM when reopening
 - Loses MetaEditor integration
 - Manual process per file
@@ -213,6 +222,7 @@ MetaEditor doesn't officially support UTF-8 as default encoding, but you can:
 ### Option 2: Accept UTF-16LE (Recommended)
 
 Keep files as UTF-16LE and handle in code:
+
 - ✅ Preserves MetaEditor compatibility
 - ✅ No manual conversion needed
 - ✅ Works with built-in MQL5 tools
@@ -342,6 +352,7 @@ if __name__ == "__main__":
 ```
 
 **Usage**:
+
 ```bash
 python scripts/validate_encoding.py "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Indicators/Custom/ATR adaptive smoothed Laguerre RSI 2 (extended).mq5"
 ```
@@ -415,6 +426,7 @@ def safe_read_mq5(file_path: Path) -> Optional[str]:
 5. **Validation**: Use chardet for robust encoding detection
 
 **Implementation**:
+
 ```bash
 # Update .gitattributes
 echo "*.mq5 binary" >> .gitattributes
@@ -425,6 +437,7 @@ pip install chardet
 ```
 
 **Code pattern**:
+
 ```python
 # Read MQL5 source
 content = Path(mq5_file).read_text(encoding='utf-16-le')

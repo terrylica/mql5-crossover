@@ -11,12 +11,14 @@
 v4.0.0 provides **flexible parameter-based exports** via config file, enabling quick parameter changes without code editing. This is a GUI-based workflow that complements v3.0.0 Python API for headless execution.
 
 **Use Cases**:
+
 - ✅ Manual exports with varying parameters
 - ✅ Custom indicator exports (Laguerre RSI, etc.)
 - ✅ Parameter testing (ATR 32 vs 64)
 - ✅ Validation workflows
 
 **Limitations**:
+
 - ⚠️ Requires GUI interaction (not headless)
 - ⚠️ Cannot be automated via startup.ini
 - ⚠️ Best for manual/semi-automated workflows
@@ -28,6 +30,7 @@ v4.0.0 provides **flexible parameter-based exports** via config file, enabling q
 ### Step 1: Generate Config File
 
 **Method A: Use Python Script** (recommended)
+
 ```bash
 cd "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover"
 
@@ -39,6 +42,7 @@ python3 generate_export_config.py \
 ```
 
 **Method B: Copy Example**
+
 ```bash
 BOTTLE="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5"
 
@@ -47,6 +51,7 @@ cp "$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Files/configs/example_laguer
 ```
 
 **Method C: Manual Creation**
+
 ```bash
 cat > "MQL5/Files/export_config.txt" << 'EOF'
 InpSymbol=EURUSD
@@ -106,35 +111,35 @@ InpOutputName=Export_EURUSD_M1.csv
 
 ### All Parameters
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `InpSymbol` | string | "EURUSD" | Trading symbol |
-| `InpTimeframe` | int | 1 | Timeframe (1=M1, 5=M5, 60=H1, etc.) |
-| `InpBars` | int | 5000 | Number of bars to export |
-| `InpUseRSI` | bool | true | Enable RSI indicator |
-| `InpRSIPeriod` | int | 14 | RSI period |
-| `InpUseSMA` | bool | false | Enable SMA indicator |
-| `InpSMAPeriod` | int | 14 | SMA period |
-| `InpUseLaguerreRSI` | bool | false | Enable Laguerre RSI custom indicator |
-| `InpLaguerreInstanceID` | string | "A" | Laguerre instance ID (A-Z) |
-| `InpLaguerreAtrPeriod` | int | 32 | Laguerre ATR period |
-| `InpLaguerreSmoothPeriod` | int | 5 | Laguerre price smoothing period |
-| `InpLaguerreSmoothMethod` | int | 1 | Smoothing method (0=SMA, 1=EMA, 2=SMMA, 3=LWMA) |
-| `InpOutputName` | string | "" | Custom output filename |
+| Parameter                 | Type   | Default  | Description                                     |
+| ------------------------- | ------ | -------- | ----------------------------------------------- |
+| `InpSymbol`               | string | "EURUSD" | Trading symbol                                  |
+| `InpTimeframe`            | int    | 1        | Timeframe (1=M1, 5=M5, 60=H1, etc.)             |
+| `InpBars`                 | int    | 5000     | Number of bars to export                        |
+| `InpUseRSI`               | bool   | true     | Enable RSI indicator                            |
+| `InpRSIPeriod`            | int    | 14       | RSI period                                      |
+| `InpUseSMA`               | bool   | false    | Enable SMA indicator                            |
+| `InpSMAPeriod`            | int    | 14       | SMA period                                      |
+| `InpUseLaguerreRSI`       | bool   | false    | Enable Laguerre RSI custom indicator            |
+| `InpLaguerreInstanceID`   | string | "A"      | Laguerre instance ID (A-Z)                      |
+| `InpLaguerreAtrPeriod`    | int    | 32       | Laguerre ATR period                             |
+| `InpLaguerreSmoothPeriod` | int    | 5        | Laguerre price smoothing period                 |
+| `InpLaguerreSmoothMethod` | int    | 1        | Smoothing method (0=SMA, 1=EMA, 2=SMMA, 3=LWMA) |
+| `InpOutputName`           | string | ""       | Custom output filename                          |
 
 ### Timeframe Values
 
-| Timeframe | Value | Config |
-|-----------|-------|--------|
-| M1 | 1 | `InpTimeframe=1` |
-| M5 | 5 | `InpTimeframe=5` |
-| M15 | 15 | `InpTimeframe=15` |
-| M30 | 30 | `InpTimeframe=30` |
-| H1 | 60 | `InpTimeframe=60` |
-| H4 | 240 | `InpTimeframe=240` |
-| D1 | 1440 | `InpTimeframe=1440` |
-| W1 | 10080 | `InpTimeframe=10080` |
-| MN1 | 43200 | `InpTimeframe=43200` |
+| Timeframe | Value | Config               |
+| --------- | ----- | -------------------- |
+| M1        | 1     | `InpTimeframe=1`     |
+| M5        | 5     | `InpTimeframe=5`     |
+| M15       | 15    | `InpTimeframe=15`    |
+| M30       | 30    | `InpTimeframe=30`    |
+| H1        | 60    | `InpTimeframe=60`    |
+| H4        | 240   | `InpTimeframe=240`   |
+| D1        | 1440  | `InpTimeframe=1440`  |
+| W1        | 10080 | `InpTimeframe=10080` |
+| MN1       | 43200 | `InpTimeframe=43200` |
 
 ---
 
@@ -155,6 +160,7 @@ ls MQL5/Files/Export_EURUSD_M1_RSI.csv
 ```
 
 **Output CSV**:
+
 ```
 time,open,high,low,close,tick_volume,spread,real_volume,RSI_14
 2025.10.17 10:00,1.16500,1.16520,1.16480,1.16510,45,0,0,58.234
@@ -194,6 +200,7 @@ python3 generate_export_config.py \
 ```
 
 **Output CSV** (multiple buffers):
+
 ```
 time,open,high,low,close,...,Laguerre_RSI_32,ATR_32,Adaptive_Period_32
 2025.10.17 10:00,1.16500,...,0.652,0.00012,28.5
@@ -353,12 +360,14 @@ void OnStart() {
 **Symptom**: Script uses default parameters (5000 bars, RSI enabled)
 
 **Check List**:
+
 - [ ] File location: Must be `MQL5/Files/export_config.txt` (not `Program Files/.../MQL5/Files/`)
 - [ ] File encoding: UTF-8 (not UTF-16LE)
 - [ ] File syntax: `key=value` format (no spaces around `=`)
 - [ ] Run from GUI: startup.ini doesn't work (v2.1.0 failed)
 
 **Debug**:
+
 ```bash
 # Check file exists
 ls -lh "MQL5/Files/export_config.txt"
@@ -373,6 +382,7 @@ cat "MQL5/Files/export_config.txt"
 ```
 
 **Check Logs**:
+
 ```bash
 # MQL5 script logs
 tail -50 "MQL5/Logs/$(date +%Y%m%d).log" | grep -A 10 "ExportAligned"
@@ -385,12 +395,14 @@ tail -50 "MQL5/Logs/$(date +%Y%m%d).log" | grep -A 10 "ExportAligned"
 **Symptom**: Config file loaded but some parameters still use defaults
 
 **Check List**:
+
 - [ ] Parameter names correct (case-sensitive): `InpBars` not `inpBars`
 - [ ] Boolean format: `true` or `false` (lowercase)
 - [ ] Integer format: `5000` not `"5000"` (no quotes)
 - [ ] Timeframe value: `1` not `"M1"` (use numeric value)
 
 **Example Errors**:
+
 ```
 # ❌ WRONG
 inpBars=5000           # Lowercase (ignored)
@@ -409,6 +421,7 @@ InpTimeframe=1         # Numeric value
 **Symptom**: Output file has default name instead of `InpOutputName`
 
 **Check**:
+
 ```
 # Config file
 InpOutputName=Export_EURUSD_M1_Custom.csv
@@ -418,6 +431,7 @@ MQL5/Files/Export_EURUSD_M1_Custom.csv
 ```
 
 **Common Issue**: Special characters in filename
+
 ```
 # ❌ May cause issues
 InpOutputName=Export (EURUSD).csv  # Spaces, parentheses
@@ -431,12 +445,14 @@ InpOutputName=Export_EURUSD_M1.csv  # Underscores only
 **Symptom**: Laguerre RSI enabled but columns missing from output
 
 **Check List**:
+
 - [ ] Indicator exists: `Indicators/Custom/PythonInterop/ATR_Adaptive_Laguerre_RSI.ex5`
 - [ ] Indicator compiles: Open in MetaEditor, press F7, verify "0 errors"
 - [ ] Instance ID valid: A-Z only (case-sensitive)
 - [ ] Parameters valid: ATR period >= 1, smooth period >= 1
 
 **Debug**:
+
 ```bash
 # Check indicator exists
 ls -lh "Indicators/Custom/PythonInterop/ATR_Adaptive_Laguerre_RSI.ex5"
@@ -451,41 +467,42 @@ tail -50 "MQL5/Logs/$(date +%Y%m%d).log" | grep -i "error\|laguerre"
 
 ### Execution Time
 
-| Bars | Indicators | Time | Notes |
-|------|-----------|------|-------|
-| 100 | RSI | ~1s | Quick test |
-| 1000 | RSI + SMA | ~2s | Medium |
-| 5000 | RSI + SMA | ~5s | Standard |
-| 5000 | RSI + SMA + Laguerre | ~8s | With custom indicator |
-| 10000 | All | ~15s | Large dataset |
+| Bars  | Indicators           | Time | Notes                 |
+| ----- | -------------------- | ---- | --------------------- |
+| 100   | RSI                  | ~1s  | Quick test            |
+| 1000  | RSI + SMA            | ~2s  | Medium                |
+| 5000  | RSI + SMA            | ~5s  | Standard              |
+| 5000  | RSI + SMA + Laguerre | ~8s  | With custom indicator |
+| 10000 | All                  | ~15s | Large dataset         |
 
 **Bottleneck**: Custom indicator calculation (Laguerre RSI ~3s overhead)
 
 ### CSV File Sizes
 
-| Bars | Columns | Size | Notes |
-|------|---------|------|-------|
-| 100 | 8 (OHLCV) | ~6KB | Market data only |
-| 100 | 9 (+ RSI) | ~7KB | +1 indicator |
-| 5000 | 8 | ~305KB | Standard |
-| 5000 | 11 (+ 3 indicators) | ~385KB | Multi-indicator |
-| 10000 | 8 | ~610KB | Large dataset |
+| Bars  | Columns             | Size   | Notes            |
+| ----- | ------------------- | ------ | ---------------- |
+| 100   | 8 (OHLCV)           | ~6KB   | Market data only |
+| 100   | 9 (+ RSI)           | ~7KB   | +1 indicator     |
+| 5000  | 8                   | ~305KB | Standard         |
+| 5000  | 11 (+ 3 indicators) | ~385KB | Multi-indicator  |
+| 10000 | 8                   | ~610KB | Large dataset    |
 
 ---
 
 ## Comparison: v3.0.0 vs v4.0.0
 
-| Feature | v3.0.0 Python API | v4.0.0 File Config |
-|---------|------------------|-------------------|
-| **Headless** | ✅ True headless | ❌ Requires GUI |
-| **Custom Indicators** | ❌ No access | ✅ Full access via iCustom() |
-| **Parameterization** | ❌ Code editing | ✅ Config file |
-| **Automation** | ✅ CI/CD, scripts | ⚠️ Semi-automated (GUI step) |
-| **Speed** | ~6-8s (5000 bars) | ~5-8s (5000 bars) |
-| **Use Case** | Automated pipelines | Manual validation, testing |
-| **Production Ready** | ✅ Yes | ✅ Yes (GUI mode) |
+| Feature               | v3.0.0 Python API   | v4.0.0 File Config           |
+| --------------------- | ------------------- | ---------------------------- |
+| **Headless**          | ✅ True headless    | ❌ Requires GUI              |
+| **Custom Indicators** | ❌ No access        | ✅ Full access via iCustom() |
+| **Parameterization**  | ❌ Code editing     | ✅ Config file               |
+| **Automation**        | ✅ CI/CD, scripts   | ⚠️ Semi-automated (GUI step) |
+| **Speed**             | ~6-8s (5000 bars)   | ~5-8s (5000 bars)            |
+| **Use Case**          | Automated pipelines | Manual validation, testing   |
+| **Production Ready**  | ✅ Yes              | ✅ Yes (GUI mode)            |
 
 **Recommendation**: Use both approaches complementarily
+
 - v3.0.0 for automated market data exports
 - v4.0.0 for custom indicator validation
 
@@ -496,6 +513,7 @@ tail -50 "MQL5/Logs/$(date +%Y%m%d).log" | grep -i "error\|laguerre"
 ### Config File Management
 
 1. **Version Control**: Store configs in `MQL5/Files/configs/` directory
+
    ```bash
    configs/
    ├── validation_100bars.txt
@@ -505,6 +523,7 @@ tail -50 "MQL5/Logs/$(date +%Y%m%d).log" | grep -i "error\|laguerre"
    ```
 
 2. **Naming Convention**: Include symbol, timeframe, indicators
+
    ```
    config_EURUSD_M1_RSI_SMA.txt
    config_XAUUSD_H1_Laguerre.txt
@@ -530,6 +549,7 @@ tail -50 "MQL5/Logs/$(date +%Y%m%d).log" | grep -i "error\|laguerre"
 ### Workflow Integration
 
 **Pattern 1: v3.0.0 (market data) + v4.0.0 (custom indicators)**
+
 ```bash
 # Step 1: Export market data (headless)
 wine python.exe export_aligned.py --symbol EURUSD --period M1 --bars 5000
@@ -544,6 +564,7 @@ python validate_indicator.py --csv export.csv --indicator laguerre_rsi --thresho
 ```
 
 **Pattern 2: Parameter sensitivity analysis**
+
 ```bash
 # Test different ATR periods
 for atr in 16 32 64 128; do
@@ -563,6 +584,7 @@ done
 ## Future Enhancements
 
 ### P1: Batch Export Script
+
 ```bash
 # batch_export.sh (future)
 for symbol in EURUSD USDJPY XAUUSD; do
@@ -576,6 +598,7 @@ done
 ```
 
 ### P2: GUI Automation (AppleScript)
+
 ```applescript
 -- auto_export.applescript (future)
 tell application "MetaTrader 5"
@@ -586,6 +609,7 @@ end tell
 ```
 
 ### P3: Config Validation
+
 ```python
 # validate_config.py (future)
 def validate_config(config_file):
@@ -600,12 +624,14 @@ def validate_config(config_file):
 ## References
 
 ### Documentation
+
 - **Implementation Plan**: `docs/plans/HEADLESS_EXECUTION_PLAN.md` (v4.0.0 section)
 - **MQL5 Source**: `Program Files/MetaTrader 5/MQL5/Scripts/DataExport/ExportAligned.mq5` (lines 27-94)
 - **Config Examples**: `MQL5/Files/configs/` (5 examples)
 - **Python Generator**: `users/crossover/generate_export_config.py`
 
 ### Related Guides
+
 - **v3.0.0 Workflow**: `docs/guides/WINE_PYTHON_EXECUTION.md`
 - **Validation**: `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md`
 - **Migration**: `docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md`

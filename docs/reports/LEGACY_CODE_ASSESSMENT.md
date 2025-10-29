@@ -11,11 +11,13 @@
 This assessment surveyed **70+ legacy items** across the repository to determine their status, viability, and whether they should be retested. The key finding: **all major automation approaches have been thoroughly researched and their limitations documented**.
 
 **Critical Guidance**:
+
 - ❌ **DO NOT RETEST**: mq5run shell script (v2.0.0/v2.1.0 startup.ini approaches)
 - ❌ **DO NOT RETEST**: Parameter passing via ScriptParameters or named sections
 - ✅ **USE INSTEAD**: v3.0.0 (Python API headless) + v4.0.0 (file-based config GUI)
 
 **Action Taken**:
+
 - ✅ Fixed cc indicator archive misorganization (10 files moved to proper location)
 - ✅ All legacy items properly categorized and archived
 - ✅ Documentation updated with clear guidance
@@ -25,12 +27,14 @@ This assessment surveyed **70+ legacy items** across the repository to determine
 ## Assessment Methodology
 
 **Survey Scope**:
+
 - Archive directories (`archive/scripts/`, `archive/experiments/`, `archive/plans/`, `archive/docs/`, `archive/indicators/`)
 - Deprecated utilities (`users/crossover/validate_export.py`)
 - Documentation marked as legacy (v2.0.0, v2.1.0, NOT VIABLE)
 - Git history analysis (commit messages, file renames, reorganization)
 
 **Verification Approach**:
+
 - Ultra-thorough investigation (file content analysis, naming patterns, git history)
 - Cross-reference with research documentation (SCRIPT_PARAMETER_PASSING_RESEARCH.md)
 - Review community findings (30+ sources analyzed)
@@ -43,6 +47,7 @@ This assessment surveyed **70+ legacy items** across the repository to determine
 ### Category 1: Shell Scripts (2 files - `archive/scripts/v2.0.0/`)
 
 #### mq5run (200 lines)
+
 **Status**: ❌ **DO NOT RETEST** - Confirmed not viable
 
 - **Original Purpose**: Headless MT5 script execution via startup.ini
@@ -65,6 +70,7 @@ This assessment surveyed **70+ legacy items** across the repository to determine
 ---
 
 #### setup-bottle-mapping (130 lines)
+
 **Status**: DEPRECATED - Partially functional
 
 - **Original Purpose**: Automate CrossOver X: drive mapping
@@ -82,6 +88,7 @@ This assessment surveyed **70+ legacy items** across the repository to determine
 ### Category 2: Python Deprecated Utilities (1 file)
 
 #### validate_export.py
+
 **Status**: DEPRECATED (2025-10-17) - Fully functional but superseded
 
 - **Location**: `/users/crossover/validate_export.py `
@@ -104,6 +111,7 @@ This assessment surveyed **70+ legacy items** across the repository to determine
 All spike tests were **time-boxed research experiments** to validate or disprove specific technical approaches.
 
 #### spike_1_mt5_indicator_access.py
+
 **Research Question**: Can Python MetaTrader5 API access custom indicator buffers?
 
 - **Result**: ❌ FAILED - API limitation confirmed
@@ -114,6 +122,7 @@ All spike tests were **time-boxed research experiments** to validate or disprove
 - **File Path**: `/archive/experiments/spike_1_mt5_indicator_access.py `
 
 #### spike_1_mt5_indicator_access_ascii.py
+
 **Variant**: ASCII output testing version of spike_1
 
 - **Purpose**: Test if ASCII encoding changes API behavior
@@ -122,6 +131,7 @@ All spike tests were **time-boxed research experiments** to validate or disprove
 - **File Path**: `/archive/experiments/spike_1_mt5_indicator_access_ascii.py `
 
 #### spike_2_registry_pattern.py
+
 **Research Question**: Can YAML registry handle complex parameter mappings?
 
 - **Result**: ✅ SUCCESS - YAML enum mappings and type conversions work perfectly
@@ -131,6 +141,7 @@ All spike tests were **time-boxed research experiments** to validate or disprove
 - **File Path**: `/archive/experiments/spike_2_registry_pattern.py `
 
 #### spike_3_duckdb_performance.py & spike_4_backward_compatibility.py
+
 **Research Questions**: Performance optimization + compatibility testing
 
 - **Status**: Research completed, findings applied
@@ -144,6 +155,7 @@ All spike tests were **time-boxed research experiments** to validate or disprove
 ### Category 4: Archived Documentation (3 files - `archive/docs/`)
 
 #### QUICKSTART.v2.0.0.md
+
 - **Content**: Manual execution instructions for v2.0.0 workflow
 - **Status**: DEPRECATED (v2.0.0 approach superseded by v3.0.0)
 - **Value**: Shows evolution from manual to automated workflows
@@ -151,6 +163,7 @@ All spike tests were **time-boxed research experiments** to validate or disprove
 - **File Path**: `/archive/docs/QUICKSTART.v2.0.0.md `
 
 #### AI_AGENT_WORKFLOW.v2.0.0.md
+
 - **Content**: v2.0.0 development patterns and agent interactions
 - **Status**: DEPRECATED (workflow patterns evolved)
 - **Value**: Historical reference for workflow evolution
@@ -158,6 +171,7 @@ All spike tests were **time-boxed research experiments** to validate or disprove
 - **File Path**: `/archive/docs/AI_AGENT_WORKFLOW.v2.0.0.md `
 
 #### MQL5_CLI_COMPILATION_INVESTIGATION.md
+
 - **Content**: Shows 11+ failed compilation attempts before discovering --cx-app flag
 - **Status**: SUPERSEDED by MQL5_CLI_COMPILATION_SUCCESS.md
 - **Value**: **HIGH** - Demonstrates troubleshooting methodology, documents what doesn't work
@@ -172,6 +186,7 @@ All spike tests were **time-boxed research experiments** to validate or disprove
 All implementation plans are **completed** (either successfully implemented or documented as not viable).
 
 #### HEADLESS_MQL5_SCRIPT_SOLUTION_A.NOT_VIABLE.md (22 KB) - PRIMARY
+
 **Status**: ❌ **OFFICIALLY NOT VIABLE** (2025-10-17)
 
 - **Approach Tested**: v2.1.0 parameter passing via startup.ini
@@ -192,18 +207,18 @@ All implementation plans are **completed** (either successfully implemented or d
 
 All successfully completed and archived:
 
-| File | Status | Outcome |
-|------|--------|---------|
-| BUFFER_FIX_COMPLETE.md | ✅ COMPLETED | Buffer issue resolved |
-| BUFFER_FIX_STATUS.md | ✅ COMPLETED | Intermediate status report |
-| BUFFER_ISSUE_ANALYSIS.md | ✅ COMPLETED | Root cause analysis |
-| CC_REFACTORING_PLAN.md | ✅ COMPLETED | cc indicator refactored |
-| exporter_plan.md | ✅ COMPLETED | Exporter implemented |
-| LAGUERRE_RSI_VALIDATION_PLAN.md | ✅ COMPLETED | v1.0.0 validation achieved |
-| MIGRATION_PLAN.md | ✅ COMPLETED | Initial migration strategy |
-| MT5_IDIOMATIC_REFACTORING.md | ✅ COMPLETED | Structure reorganized |
-| UNIVERSAL_VALIDATION_PLAN.md | ✅ COMPLETED | Became validate_indicator.py |
-| WORKSPACE_REFACTORING_PLAN.md | ✅ COMPLETED | Workspace reorganized |
+| File                            | Status       | Outcome                      |
+| ------------------------------- | ------------ | ---------------------------- |
+| BUFFER_FIX_COMPLETE.md          | ✅ COMPLETED | Buffer issue resolved        |
+| BUFFER_FIX_STATUS.md            | ✅ COMPLETED | Intermediate status report   |
+| BUFFER_ISSUE_ANALYSIS.md        | ✅ COMPLETED | Root cause analysis          |
+| CC_REFACTORING_PLAN.md          | ✅ COMPLETED | cc indicator refactored      |
+| exporter_plan.md                | ✅ COMPLETED | Exporter implemented         |
+| LAGUERRE_RSI_VALIDATION_PLAN.md | ✅ COMPLETED | v1.0.0 validation achieved   |
+| MIGRATION_PLAN.md               | ✅ COMPLETED | Initial migration strategy   |
+| MT5_IDIOMATIC_REFACTORING.md    | ✅ COMPLETED | Structure reorganized        |
+| UNIVERSAL_VALIDATION_PLAN.md    | ✅ COMPLETED | Became validate_indicator.py |
+| WORKSPACE_REFACTORING_PLAN.md   | ✅ COMPLETED | Workspace reorganized        |
 
 **Recommendation**: **KEEP ALL ARCHIVED** (historical context, shows successful completion)
 
@@ -212,12 +227,15 @@ All successfully completed and archived:
 ### Category 6: Indicator Development Files (50+ files - `archive/indicators/`)
 
 #### Organizational Status
+
 **Recently Fixed** (2025-10-18, commit f29149e):
+
 - ✅ Moved 10 misplaced cc files from `archive/indicators/laguerre_rsi/development/` to `archive/indicators/cc/development/`
 - ✅ Created proper `archive/indicators/cc/development/` subdirectory
 - ✅ Clean project-based organization achieved
 
 **File Paths** (post-fix):
+
 - `archive/indicators/cc/development/` - 10 cc development files (cc.mq5, cc_v2.mq5, cc_v3.mq5, cc_v4.mq5, cc_backup.mq5, cc_temp.mq5 + .ex5 variants)
 - `archive/indicators/cc/compiled/` - 4 production .ex5 files
 - `archive/indicators/cc/source/` - 3 source/plan files
@@ -244,17 +262,20 @@ archive/indicators/
 **Purpose**: Preserve complete development history from bugs to production
 
 **File Breakdown**:
+
 - 3 compiled versions (original → FIXED → FIXED_COMPLETE)
 - 7 development source files (v2, v3, v4 iterations)
 - 5 original source files (UTF-16LE encoded)
 - 10 test files (encoding tests, compilation experiments)
 
 **Value**:
+
 - Shows bug discovery and fix evolution (see LAGUERRE_RSI_BUG_JOURNEY.md)
 - Documents encoding challenges (UTF-8 vs UTF-16LE)
 - Demonstrates validation methodology development (0.999 → 1.000000 correlation)
 
 **Recommendation**: **KEEP ALL**
+
 - Educational value: Shows complete iteration process
 - Disk space: Not an issue (~2-3 MB total)
 - Git history: Preserved for all files
@@ -264,6 +285,7 @@ archive/indicators/
 **Purpose**: Development history of cc indicator project
 
 **File Breakdown**:
+
 - 4 compiled versions (compiled/ - original, backup, refactored, latest)
 - 10 development iterations (development/ - v2, v3, v4, backup, temp variants)
 - 3 source files (source/ - refactoring plan, backup, M3 variant)
@@ -287,6 +309,7 @@ archive/indicators/
 **Purpose**: Shows evolution from symbol-specific to parameterized design
 
 **Key Files**:
+
 - ExportAligned.mq5 (80 lines OLD) vs current (274 lines NEW)
 - ExportEURUSD.mq5 (legacy symbol-specific exporter)
 - Old library files (pre-modularization)
@@ -294,6 +317,7 @@ archive/indicators/
 - auto_export.ini (Windows UTF-16LE config - v1.0.0 attempt)
 
 **Value**:
+
 - Demonstrates design evolution
 - Shows why parameterization was needed
 - Documents failed automation attempts
@@ -305,12 +329,14 @@ archive/indicators/
 ## Version Evolution Timeline
 
 ### v1.0.0 (Early 2025) - SYMBOL-SPECIFIC EXPORTERS
+
 - **Approach**: Hardcoded symbol in each script (ExportEURUSD.mq5)
 - **Status**: DEPRECATED
 - **Limitation**: Required separate script per symbol
 - **Archived**: `archive/mt5work_legacy/ExportEURUSD.mq5`
 
 ### v2.0.0 (Oct 2025 EARLY) - BASIC STARTUP.INI
+
 - **Approach**: startup.ini `[StartUp]` section
 - **Status**: CONDITIONALLY WORKING (requires GUI setup per symbol)
 - **Limitation**: Cannot create new charts for arbitrary symbols
@@ -318,6 +344,7 @@ archive/indicators/
 - **Issue**: MT5 architectural limitation (requires pre-existing chart)
 
 ### v2.1.0 (Oct 2025 MID) - PARAMETER PASSING ATTEMPTS ❌ NOT VIABLE
+
 - **Approach 1**: Named sections `[ScriptName]` - NOT SUPPORTED
 - **Approach 2**: ScriptParameters directive - BLOCKS EXECUTION
 - **Approach 3**: .set preset files - STRICT REQUIREMENTS (UTF-16LE BOM, location, property)
@@ -326,6 +353,7 @@ archive/indicators/
 - **Archived**: `archive/plans/HEADLESS_MQL5_SCRIPT_SOLUTION_A.NOT_VIABLE.md`
 
 ### v3.0.0 (Oct 2025 LATE) - PYTHON API ✅ PRODUCTION
+
 - **Approach**: Wine Python MetaTrader5 module
 - **Status**: FULLY VALIDATED (0.999+ correlation)
 - **Capability**: True headless for market data (any symbol/timeframe)
@@ -335,6 +363,7 @@ archive/indicators/
 - **Documentation**: `docs/guides/WINE_PYTHON_EXECUTION.md`
 
 ### v4.0.0 (Oct 2025 FINAL) - FILE-BASED CONFIG ✅ PRODUCTION
+
 - **Approach**: export_config.txt (key=value format)
 - **Status**: PRODUCTION (GUI mode, manual exports)
 - **Capability**: Custom indicators, 8+ parameters, no code editing
@@ -347,13 +376,14 @@ archive/indicators/
 
 ## Current Workflow Matrix
 
-| Use Case | Solution | Status | Automation |
-|----------|----------|--------|------------|
-| Manual GUI exports + custom indicators | v4.0.0 file-based config | PRODUCTION | SEMI-AUTOMATED |
-| Automated headless + market data | v3.0.0 Python API | PRODUCTION | FULLY AUTOMATED |
-| Custom indicator data programmatically | NOT POSSIBLE | API limitation | N/A |
+| Use Case                               | Solution                 | Status         | Automation      |
+| -------------------------------------- | ------------------------ | -------------- | --------------- |
+| Manual GUI exports + custom indicators | v4.0.0 file-based config | PRODUCTION     | SEMI-AUTOMATED  |
+| Automated headless + market data       | v3.0.0 Python API        | PRODUCTION     | FULLY AUTOMATED |
+| Custom indicator data programmatically | NOT POSSIBLE             | API limitation | N/A             |
 
 **Key Insight**: v3.0.0 and v4.0.0 are **complementary**, not competing solutions:
+
 - v3.0.0: For headless automation of market data
 - v4.0.0: For GUI-based exports with custom indicators
 
@@ -366,6 +396,7 @@ archive/indicators/
 **Why**: Architectural limitations confirmed by comprehensive research
 
 **Evidence**:
+
 1. **MT5 Platform Limitation**: `[StartUp]` section requires pre-existing chart
    - Source: SCRIPT_PARAMETER_PASSING_RESEARCH.md (30+ community sources)
    - Cannot create new charts programmatically
@@ -402,6 +433,7 @@ archive/indicators/
 ### ✅ KEEP ARCHIVED (All Legacy Items)
 
 **Rationale**:
+
 - Historical context (shows evolution from v1.0.0 → v4.0.0)
 - Educational value (debugging journeys, research findings)
 - Prevents repeated mistakes (documents what doesn't work)
@@ -409,6 +441,7 @@ archive/indicators/
 - Git history preserved for all items
 
 **Specific Items**:
+
 - `/archive/scripts/v2.0.0/` (2 shell scripts) - Reference only, don't retest
 - `/archive/experiments/` (5 spike tests) - Validated API limits
 - `/archive/plans/` (8 completed plans) - Historical documentation
@@ -420,6 +453,7 @@ archive/indicators/
 ### ❌ DO NOT ELIMINATE (Nothing)
 
 **Reason**: All legacy items provide value as:
+
 - Educational material (debugging journeys)
 - Historical documentation (shows why certain approaches failed)
 - Reference implementations (alternative design patterns)
@@ -432,11 +466,13 @@ archive/indicators/
 ### 1. Respect the Research ✅
 
 **DO**:
+
 - Read SCRIPT_PARAMETER_PASSING_RESEARCH.md before attempting startup.ini automation
 - Check LEGACY_CODE_ASSESSMENT.md (this document) before "fixing" legacy code
 - Trust that comprehensive testing was done (30+ sources analyzed)
 
 **DON'T**:
+
 - Assume legacy code just needs "one more fix"
 - Retest mq5run or v2.1.0 parameter passing
 - Try to access custom indicators via Python API
@@ -444,11 +480,13 @@ archive/indicators/
 ### 2. Use Working Solutions ✅
 
 **For Headless Automation**: v3.0.0 Python API
+
 - Documentation: `docs/guides/WINE_PYTHON_EXECUTION.md`
 - Script: `users/crossover/export_aligned.py`
 - Validated: 0.999+ correlation
 
 **For Custom Indicator Exports**: v4.0.0 File-Based Config
+
 - Documentation: `docs/guides/V4_FILE_BASED_CONFIG_WORKFLOW.md`
 - Tool: `users/crossover/generate_export_config.py`
 - Validated: Production-ready
@@ -456,11 +494,13 @@ archive/indicators/
 ### 3. Archive Properly ✅
 
 **When Creating New Experiments**:
+
 - Use `archive/experiments/spike_N_description.py` naming pattern
 - Document research question, result, and recommendation
 - Create NOT_VIABLE.md files for failed approaches (with comprehensive evidence)
 
 **When Deprecating Code**:
+
 - Add deprecation warning to file header
 - Document superseding solution
 - Move to `archive/` with clear version markers (v2.0.0, v2.1.0)
@@ -468,12 +508,14 @@ archive/indicators/
 ### 4. Document Research ✅
 
 **For Failed Approaches**:
+
 - Create detailed research documentation (30+ sources minimum)
 - Document ALL attempted variations
 - Provide evidence from community (forum posts, GitHub issues)
 - State clearly "NOT VIABLE" in filename and document
 
 **For Successful Solutions**:
+
 - Create step-by-step workflow guides
 - Include validation methodology
 - Document time estimates and automation level
@@ -482,18 +524,18 @@ archive/indicators/
 
 ## Assessment Metrics
 
-| Metric | Count | Status |
-|--------|-------|--------|
-| **Total Legacy Items** | 70+ | ✅ All inventoried |
-| **Shell Scripts** | 2 | ✅ Archived, don't retest |
-| **Python Utilities** | 1 | ✅ Deprecated with warning |
-| **Spike Experiments** | 5 | ✅ Research complete |
-| **Implementation Plans** | 8 | ✅ All completed/archived |
-| **Archived Documentation** | 3 | ✅ Reference only |
-| **Indicator Files** | 50+ | ✅ Reorganized (cc fix applied) |
-| **Legacy Workspace** | 14 | ✅ Historical reference |
-| **NOT VIABLE Items** | 3 | ✅ Documented with evidence |
-| **Production Solutions** | 2 | ✅ v3.0.0 + v4.0.0 |
+| Metric                     | Count | Status                          |
+| -------------------------- | ----- | ------------------------------- |
+| **Total Legacy Items**     | 70+   | ✅ All inventoried              |
+| **Shell Scripts**          | 2     | ✅ Archived, don't retest       |
+| **Python Utilities**       | 1     | ✅ Deprecated with warning      |
+| **Spike Experiments**      | 5     | ✅ Research complete            |
+| **Implementation Plans**   | 8     | ✅ All completed/archived       |
+| **Archived Documentation** | 3     | ✅ Reference only               |
+| **Indicator Files**        | 50+   | ✅ Reorganized (cc fix applied) |
+| **Legacy Workspace**       | 14    | ✅ Historical reference         |
+| **NOT VIABLE Items**       | 3     | ✅ Documented with evidence     |
+| **Production Solutions**   | 2     | ✅ v3.0.0 + v4.0.0              |
 
 ---
 
@@ -510,6 +552,7 @@ This comprehensive assessment confirms that:
 **Time Saved**: By documenting what doesn't work, this assessment prevents an estimated **30-50 hours** of wasted effort attempting to fix fundamentally broken approaches.
 
 **Next Actions**:
+
 1. Reference this document when encountering legacy code
 2. Do NOT attempt to retest mq5run or v2.1.0 approaches
 3. Use v3.0.0 (headless) or v4.0.0 (GUI) for new work
@@ -522,6 +565,7 @@ This comprehensive assessment confirms that:
 **Maintainer**: See CLAUDE.md for project context
 
 **Related Documentation**:
+
 - `docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md` - Parameter passing research (30+ sources)
 - `archive/plans/HEADLESS_MQL5_SCRIPT_SOLUTION_A.NOT_VIABLE.md` - v2.1.0 failure documentation
 - `docs/guides/WINE_PYTHON_EXECUTION.md` - v3.0.0 working solution

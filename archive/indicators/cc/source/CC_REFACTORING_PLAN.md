@@ -6,12 +6,12 @@
 
 ## Service Level Objectives
 
-| SLO | Target | Measurement |
-|-----|--------|-------------|
-| **Availability** | 100% | All files accessible, indicator loads without errors |
-| **Correctness** | 100% | Behavioral accuracy: (1) Nth+ inside bars colored, (2) bars can protrude outside 1st inside bar, (3) white color for overlaps, (4) contraction priority maintained |
-| **Observability** | 100% | Compilation logs show 0 errors, visual verification on chart |
-| **Maintainability** | 100% | Modular architecture with .mqh files, clear function separation, documented logic |
+| SLO                 | Target | Measurement                                                                                                                                                        |
+| ------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Availability**    | 100%   | All files accessible, indicator loads without errors                                                                                                               |
+| **Correctness**     | 100%   | Behavioral accuracy: (1) Nth+ inside bars colored, (2) bars can protrude outside 1st inside bar, (3) white color for overlaps, (4) contraction priority maintained |
+| **Observability**   | 100%   | Compilation logs show 0 errors, visual verification on chart                                                                                                       |
+| **Maintainability** | 100%   | Modular architecture with .mqh files, clear function separation, documented logic                                                                                  |
 
 ## Architecture - Option C: Modular Include Files
 
@@ -19,6 +19,7 @@
 **Rationale**: Maintains backward compatibility, enables incremental refactoring, supports independent testing
 
 ### File Structure
+
 ```
 cc.mq5                      # Main indicator orchestrator
 ├── PatternHelpers.mqh      # Utility functions (CheckSameDirection, etc.)
@@ -29,6 +30,7 @@ cc.mq5                      # Main indicator orchestrator
 ## Requirements Summary
 
 ### Core Behavior
+
 1. **Mother Bar**: Larger bar preceding first inside bar in sequence (identified by walking backward until finding non-inside bar)
 2. **Nth Consecutive**: Color only bars where `consecutiveCount >= InpInsideBarThreshold` (default: 2)
 3. **Protrusion Allowed**: Bars can protrude outside previous inside bar as long as within mother bar range
@@ -36,6 +38,7 @@ cc.mq5                      # Main indicator orchestrator
 5. **Overlap Indicator**: White color when bar qualifies as BOTH contraction AND inside bar (Nth+)
 
 ### Color Priority System
+
 - **Contraction only**: Lime (bullish) or Pink (bearish)
 - **Inside bar only (Nth+)**: Purple
 - **Both patterns**: White
@@ -44,6 +47,7 @@ cc.mq5                      # Main indicator orchestrator
 ## Implementation Plan v2.0.0
 
 ### Phase 1: Remove Pre-Filter ✅ COMPLETED (2025-10-14 01:30)
+
 **File**: `cc.mq5:359-361`
 **Action**: Remove `CheckInsideBar()` pre-filter from main loop
 **Reason**: Blocks bars protruding outside 1st inside bar but still inside mother bar
@@ -51,10 +55,12 @@ cc.mq5                      # Main indicator orchestrator
 **Implementation**: Lines 359-361 removed from OnCalculate loop
 
 ### Phase 2: Fix Threshold Logic ✅ COMPLETED (2025-10-14 01:32)
+
 **File**: `CandlePatterns.mqh:97`
 **Action**: Change equality check to greater-than-or-equal
 
 **Implementation**:
+
 ```mql5
 // Changed from: if(consecutiveCount != InpInsideBarThreshold)
 if(consecutiveCount < InpInsideBarThreshold)
@@ -62,28 +68,37 @@ if(consecutiveCount < InpInsideBarThreshold)
 ```
 
 ### Phase 3: Add White Color for Overlap ✅ COMPLETED (2025-10-14 01:38)
+
 **Files**: `cc.mq5`, `CandlePatterns.mqh`
 
 #### 3.1: Add Color Constant ✅
+
 **File**: `cc.mq5:52`
+
 ```mql5
 #define CLR_BOTH 4       // Both contraction and inside bar
 ```
 
 #### 3.2: Update Color Count ✅
+
 **File**: `cc.mq5:146`
+
 ```mql5
 PlotIndexSetInteger(0, PLOT_COLOR_INDEXES, 5); // 5 colors
 ```
 
 #### 3.3: Add White Color Mapping ✅
+
 **File**: `cc.mq5:153`
+
 ```mql5
 PlotIndexSetInteger(0, PLOT_LINE_COLOR, CLR_BOTH, clrWhite);
 ```
 
 #### 3.4: Update SetInsideBarSignal Logic ✅
+
 **File**: `CandlePatterns.mqh:100-109`
+
 ```mql5
 if(InpShowColorBars) {
    if(BufferColorIndex[bar] == COLOR_NONE) {
@@ -97,13 +112,16 @@ if(InpShowColorBars) {
 ```
 
 ### Phase 4: Compilation Checkpoint ✅ COMPLETED (2025-10-14 01:42)
+
 **Result**: 0 errors, 0 warnings, 955 msec elapsed
 **File Size**: 21KB (consistent with previous versions)
 **CPU**: X64 Regular
 **Status**: PASS - All SLOs met (availability, correctness, observability, maintainability)
 
 ### Phase 5: Chart Testing ⏳ PENDING USER VERIFICATION
+
 **Test Cases**:
+
 1. Inside bar only (Nth+) → Purple
 2. Contraction only → Lime/Pink
 3. Both patterns (Nth+ inside + contraction) → White
@@ -111,15 +129,18 @@ if(InpShowColorBars) {
 5. Sequence breaks when bar exits mother range → No color
 
 ### Phase 6: Fix FindMotherBar() Protrusion Bug ✅ COMPLETED (2025-10-14 02:00)
+
 **File**: `CandlePatterns.mqh:30-57`
 **Critical Bug Discovered**: Chart showed only 2 purple bars between red lines (mother bar range) when ~50% of bars inside mother bar should be colored
 
 **Root Cause**:
+
 - Old algorithm walked backward checking if each bar is inside its immediate next bar
 - Stopped at first bar that protrudes from its neighbor (high > high[i+1] OR low < low[i+1])
 - Returned wrong mother bar when bars protrude from immediate neighbor but still inside true mother
 
 **Example Failure**:
+
 ```
 Bar 50: TRUE MOTHER (High=1.2000, Low=1.1800) ← red lines
 Bar 49: H=1.1990, L=1.1850 (inside mother ✓)
@@ -137,6 +158,7 @@ Processing Bar 47:
 ```
 
 **Fix Applied**: Rewrite algorithm to find first expanding bar that contains currentBar
+
 ```mql5
 for(int i = currentBar + 1; i < rates_total; i++)
 {
@@ -166,15 +188,18 @@ return rates_total - 1;  // Reached end, last bar is mother
 **Result**: Partial fix - improved mother bar identification but still had gaps
 
 ### Phase 7: Fix CountConsecutiveInsideBars() Gap Bug ✅ COMPLETED (2025-10-14 02:01)
+
 **File**: `CandlePatterns.mqh:64-78`
 **Critical Bug Discovered**: After fixing FindMotherBar(), chart still showed 2 bars missing purple color within red lines (mother bar range)
 
 **Root Cause**:
+
 - `break` statement (line 75) stopped counting when encountering bar outside mother range
 - Created gaps in consecutive count even though bars after the gap were inside mother range
 - Bars after gaps never reached threshold count
 
 **Example Failure**:
+
 ```
 Bar 50: Mother (red lines)
 Bar 49: Inside mother ✓
@@ -190,6 +215,7 @@ When counting for bar 46 (mother=50, threshold=2):
 ```
 
 **Fix Applied**: Remove `break` statement, count all bars within mother range regardless of gaps
+
 ```mql5
 for(int j = motherBarIndex - 1; j >= currentBar; j--)
 {
@@ -206,26 +232,32 @@ for(int j = motherBarIndex - 1; j >= currentBar; j--)
 ## Design Decisions
 
 ### Q1: Mother Bar Identification
+
 **Decision**: First expanding bar that contains currentBar (walk backward until finding bar that (a) contains currentBar AND (b) is NOT inside previous bar)
 **Rationale**: Correctly identifies true container bar even when intermediate bars protrude from each other. Fixed critical bug where ~50% of bars referenced wrong mother bar.
 
 ### Q2: Boundary Conditions
+
 **Decision**: Touching is inside (<=, >=)
 **Rationale**: Matches traditional inside bar definition, more lenient
 
 ### Q3: Overlapping Sequences
+
 **Decision**: Single sequence tracking only
 **Rationale**: Simpler implementation, clearer visual signals
 
 ### Q4: Contraction Priority
+
 **Decision**: Count continues, white color for overlap
 **Rationale**: Provides all pattern information simultaneously, traders see convergence
 
 ### Q5: Threshold Validation
+
 **Decision**: Allow any positive integer (>=1), no validation
 **Rationale**: Maximum flexibility, user responsible for meaningful values
 
 ### Q6: CheckInsideBar() Function
+
 **Decision**: Keep as helper function
 **Rationale**: Used by FindMotherBar(), maintains code readability
 
@@ -245,6 +277,7 @@ for(int j = motherBarIndex - 1; j >= currentBar; j--)
 ## Changelog
 
 ### 2.2.0 - 2025-10-14 02:01 (Current) ✅ IMPLEMENTED
+
 - ✅ **CRITICAL BUG FIX #2**: Fixed CountConsecutiveInsideBars() gap bug (CandlePatterns.mqh:64-78)
   - Removed `break` statement that stopped counting when encountering gaps
   - Old behavior: Bars after gaps (bars outside mother range) never reached threshold
@@ -254,6 +287,7 @@ for(int j = motherBarIndex - 1; j >= currentBar; j--)
 - ⏳ Testing: Pending user chart verification (expecting ALL bars between red lines colored)
 
 ### 2.1.0 - 2025-10-14 02:00 ✅ IMPLEMENTED
+
 - ✅ **CRITICAL BUG FIX #1**: Rewrote FindMotherBar() algorithm (CandlePatterns.mqh:30-57)
   - Old algorithm stopped at first bar that protrudes from neighbor
   - Caused ~50% of bars inside mother bar to reference wrong mother bar
@@ -263,6 +297,7 @@ for(int j = motherBarIndex - 1; j >= currentBar; j--)
 - ⏳ Result: Partial fix - improved mother bar identification but gaps remained
 
 ### 2.0.0 - 2025-10-14 01:42 ✅ IMPLEMENTED
+
 - ✅ Removed CheckInsideBar() pre-filter from main loop (allows protruding bars)
 - ✅ Changed threshold logic from `!=` to `<` (continuous coloring Nth+)
 - ✅ Added CLR_BOTH constant (value 4) for overlap indication
@@ -275,6 +310,7 @@ for(int j = motherBarIndex - 1; j >= currentBar; j--)
 - ✅ Compilation: 0 errors, 0 warnings, 955ms, 21KB
 
 ### 1.0.0 - 2025-10-14 01:00
+
 - Initial implementation with mother bar tracking
 - Nth consecutive inside bar detection
 - Priority system: contractions > inside bars

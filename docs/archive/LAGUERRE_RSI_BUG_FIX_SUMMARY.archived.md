@@ -11,11 +11,13 @@
 **Root Cause**: Price smoothing inconsistency between two calculation paths in the indicator.
 
 **Path 1 (Normal Timeframe)** - `inpCustomMinutes = 0`:
+
 - Uses iMA indicator handle created with `iMA(_Symbol, _Period, global.maPeriod, 0, inpRsiMaType, inpRsiPrice)`
 - Respects user's `inpRsiMaType` selection (MODE_EMA, MODE_SMA, MODE_SMMA, MODE_LWMA)
 - **Behavior**: Correctly applies user-selected MA method
 
 **Path 2 (Custom Timeframe)** - `inpCustomMinutes > 0`:
+
 - **Before Fix**: Hardcoded SMA calculation (lines 365-382 in original)
 - **After Fix**: Switch statement that respects `inpRsiMaType` parameter
 - **Behavior**: Now matches Path 1 behavior
@@ -42,6 +44,7 @@ double CalculateCustomLWMA(int i, int period);
 **Location**: Lines 349-381 (in CalculateCustomTimeframe function)
 
 **Before** (lines 365-382 in original):
+
 ```mql5
 else
 {
@@ -61,6 +64,7 @@ else
 ```
 
 **After** (lines 349-381 in FIXED):
+
 ```mql5
 // Apply price smoothing on custom bars
 // BUG FIX: Now respects inpRsiMaType parameter (was hardcoded to SMA before)
@@ -102,40 +106,49 @@ for(int i = 0; i < customBarCount; i++)
 **Location**: End of file (after line 692)
 
 #### GetCustomAppliedPrice(int i)
+
 Extracts the applied price from custom bars based on `inpRsiPrice` parameter.
 
 **Supported Price Types**:
+
 - `PRICE_OPEN`: Open price
 - `PRICE_HIGH`: High price
 - `PRICE_LOW`: Low price
 - `PRICE_CLOSE`: Close price (default)
 - `PRICE_MEDIAN`: (High + Low) / 2
 - `PRICE_TYPICAL`: (High + Low + Close) / 3
-- `PRICE_WEIGHTED`: (High + Low + 2*Close) / 4
+- `PRICE_WEIGHTED`: (High + Low + 2\*Close) / 4
 
 #### CalculateCustomSMA(int i, int period)
+
 Simple Moving Average calculation.
 
 **Formula**: Sum of prices over period / period
 
 #### CalculateCustomEMA(int i, int period, double prevEMA)
+
 Exponential Moving Average calculation.
 
 **Formula**:
+
 - Alpha = 2 / (period + 1)
-- EMA = alpha * price + (1 - alpha) * prevEMA
+- EMA = alpha _ price + (1 - alpha) _ prevEMA
 - Initialization: Uses SMA for first `period` bars
 
 #### CalculateCustomSMMA(int i, int period, double prevSMMA)
+
 Smoothed Moving Average (also known as RMA).
 
-**Formula**: (prevSMMA * (period - 1) + price) / period
+**Formula**: (prevSMMA \* (period - 1) + price) / period
+
 - Initialization: Uses SMA for first `period` bars
 
 #### CalculateCustomLWMA(int i, int period)
+
 Linear Weighted Moving Average calculation.
 
-**Formula**: Sum of (price * weight) / Sum of weights
+**Formula**: Sum of (price \* weight) / Sum of weights
+
 - Where weight = period - j (higher weight for recent prices)
 
 ---
@@ -143,16 +156,19 @@ Linear Weighted Moving Average calculation.
 ## File Details
 
 **Original File**:
+
 ```
 /Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Indicators/Custom/ATR adaptive smoothed Laguerre RSI 2 (extended).mq5
 ```
 
 **Fixed File**:
+
 ```
 /Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Indicators/Custom/ATR adaptive smoothed Laguerre RSI 2 (extended) - FIXED.mq5
 ```
 
 **File Statistics**:
+
 - Total lines: 692
 - File size: 56,670 bytes
 - Encoding: UTF-16LE (MetaEditor compatible)
@@ -163,6 +179,7 @@ Linear Weighted Moving Average calculation.
 ## Testing Plan
 
 ### 1. Compilation Test
+
 ```bash
 # Compile in MetaEditor
 MetaEditor64.exe "ATR adaptive smoothed Laguerre RSI 2 (extended) - FIXED.mq5"
@@ -171,21 +188,25 @@ MetaEditor64.exe "ATR adaptive smoothed Laguerre RSI 2 (extended) - FIXED.mq5"
 ### 2. Functional Tests
 
 **Test Case 1: M1 Chart - Normal Timeframe**
+
 - Settings: `inpCustomMinutes = 0`, `inpRsiMaType = MODE_EMA`, `inpRsiMaPeriod = 5`
 - Chart: EURUSD M1
 - Expected: Smooth indicator line using EMA smoothing
 
 **Test Case 2: M1 Chart - Custom 1-Minute**
+
 - Settings: `inpCustomMinutes = 1`, `inpRsiMaType = MODE_EMA`, `inpRsiMaPeriod = 5`
 - Chart: EURUSD M1
 - Expected: **Identical values** to Test Case 1 (this was the bug!)
 
 **Test Case 3: All MA Methods**
+
 - Test with `inpRsiMaType = MODE_SMA, MODE_EMA, MODE_SMMA, MODE_LWMA`
 - Both `inpCustomMinutes = 0` and `inpCustomMinutes = 1`
 - Expected: Each MA method produces consistent results between normal and custom paths
 
 **Test Case 4: Custom Intervals**
+
 - Settings: `inpCustomMinutes = 2, 3, 5, 10, 15`
 - Expected: Proper aggregation and smoothing for custom intervals
 
@@ -203,10 +224,12 @@ MetaEditor64.exe "ATR adaptive smoothed Laguerre RSI 2 (extended) - FIXED.mq5"
 ### Users Affected by Original Bug
 
 **All users who**:
+
 1. Used custom timeframe mode (`inpCustomMinutes > 0`)
 2. Relied on `inpRsiMaType` parameter being anything other than MODE_SMA
 
 **Impact Severity**: High
+
 - Silent failure (no error messages)
 - Incorrect trading signals
 - Default setting (MODE_EMA) was affected
@@ -226,6 +249,7 @@ MetaEditor64.exe "ATR adaptive smoothed Laguerre RSI 2 (extended) - FIXED.mq5"
 **MUST Update**: The Python translation must implement all MA methods to accurately translate both calculation paths.
 
 **Required Python Functions**:
+
 ```python
 def apply_price_smoothing(
     prices: pd.Series,

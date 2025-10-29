@@ -18,12 +18,14 @@ Single source of truth for validating Python indicator implementations against M
 ### 5000-Bar Historical Warmup (NON-OPTIONAL)
 
 **Why Required**:
+
 - MQL5 indicators on live charts have full historical context (4900+ bars)
 - Python calculations from CSV exports have ZERO historical context
 - Indicators with memory (ATR, EMA, adaptive periods) produce different values with different starting conditions
 - Different starting conditions = systematic bias = ~0.95 correlation (FAILURE)
 
 **Mental Model**:
+
 ```
 MQL5 Chart Timeline:
 [......4900 bars of history.......][100 bars exported]
@@ -37,6 +39,7 @@ ATR starts from ZERO ← MISMATCH
 ```
 
 **Specific Requirements**:
+
 - Bars 0-31: ATR uses expanding window
 - Bars 32-63: Adaptive coefficient stabilizes
 - Bar 64+: All components warmed up
@@ -47,6 +50,7 @@ ATR starts from ZERO ← MISMATCH
 MQL5 divides by `period` even for partial windows, NOT by available bar count.
 
 **MQL5**:
+
 ```mql5
 for(int i=0; i<period && i<rates_total; i++)
 {
@@ -61,6 +65,7 @@ for(int i=period; i<rates_total; i++)
 ```
 
 **Python** (manual loops required):
+
 ```python
 atr = pd.Series(index=tr.index, dtype=float)
 
@@ -72,6 +77,7 @@ for i in range(len(tr)):
 ```
 
 **Example**:
+
 ```python
 # Bar 5 (6 bars available, period=32):
 # MQL5:    sum(0-5) / 32 = 0.000123 / 32 = 0.00000384
@@ -157,26 +163,28 @@ else:
 ```
 
 **Why 0.999 not 0.95**:
+
 - 0.95 = systematic bias (usually missing warmup)
 - Production trading requires 99.9%+ accuracy
 - Small errors compound in live trading
 
-| Criterion | Target |
-|-----------|--------|
+| Criterion                | Target  |
+| ------------------------ | ------- |
 | Correlation (per buffer) | ≥ 0.999 |
-| MAE | < 0.001 |
-| NaN count (after warmup) | 0 |
+| MAE                      | < 0.001 |
+| NaN count (after warmup) | 0       |
 
 ### Troubleshooting
 
-| Correlation | Likely Cause | Solution |
-|-------------|--------------|----------|
-| ~0.95 | Missing warmup | Fetch 5000 bars, calculate on all |
-| ~0.85-0.95 | NaN values | Check pandas behavior, use manual loops |
-| ~0.70-0.85 | Algorithm mismatch | Verify EMA/SMA/SMMA formulas |
-| < 0.70 | Major error | Restart with algorithm analysis |
+| Correlation | Likely Cause       | Solution                                |
+| ----------- | ------------------ | --------------------------------------- |
+| ~0.95       | Missing warmup     | Fetch 5000 bars, calculate on all       |
+| ~0.85-0.95  | NaN values         | Check pandas behavior, use manual loops |
+| ~0.70-0.85  | Algorithm mismatch | Verify EMA/SMA/SMMA formulas            |
+| < 0.70      | Major error        | Restart with algorithm analysis         |
 
 **Debug Steps**:
+
 1. Check NaN counts
 2. Compare first 10 bars (initialization)
 3. Compare last 10 bars (steady-state)
@@ -190,6 +198,7 @@ else:
 ### 1. Pandas Rolling Windows Return NaN
 
 **Problem**:
+
 ```python
 # WRONG - First 31 bars are NaN
 atr = tr.rolling(window=32).mean()
@@ -214,6 +223,7 @@ atr = tr.rolling(window=32).mean()
 ### 5. Off-by-One Errors
 
 **Problem**:
+
 ```python
 # WRONG - Misses last bar
 for i in range(len(df) - 1):
@@ -221,6 +231,7 @@ for i in range(len(df) - 1):
 ```
 
 **Solution**:
+
 ```python
 # RIGHT
 for i in range(len(df)):
@@ -233,6 +244,7 @@ assert result['atr'].notna().sum() == len(df)
 ### 6. Series vs iloc Indexing
 
 **Problem**:
+
 ```python
 # WRONG - May fail if index != [0,1,2,...]
 for i in range(len(df)):
@@ -240,6 +252,7 @@ for i in range(len(df)):
 ```
 
 **Solution**:
+
 ```python
 # RIGHT - Position-based
 for i in range(len(df)):
@@ -251,24 +264,29 @@ for i in range(len(df)):
 ## Success Criteria Checklist
 
 **Compilation (MANUAL)**:
+
 - [ ] MQL5: 0 errors, .ex5 created (~25KB)
 - [ ] All buffers exposed
 
 **Data (AUTOMATED)**:
+
 - [ ] 5000+ bars fetched
 - [ ] CSV verified (~305KB for M1)
 
 **Visual (MANUAL)**:
+
 - [ ] Indicator on MT5 chart
 - [ ] Data Window shows values
 - [ ] Warmed up (10+ seconds)
 
 **Python (MANUAL)**:
+
 - [ ] All functions implemented
 - [ ] No pandas NaN traps
 - [ ] Proper `.iloc` indexing
 
 **Validation (AUTOMATED)**:
+
 - [ ] Calculated on 5000 bars
 - [ ] Last 100 extracted
 - [ ] Correlation ≥ 0.999 ALL buffers
@@ -276,11 +294,13 @@ for i in range(len(df)):
 - [ ] Zero NaN in comparison
 
 **Algorithm (MANUAL)**:
+
 - [ ] No look-ahead (`buffer[i+1]`)
 - [ ] All MA methods verified
 - [ ] Consistent behavior
 
 **Documentation (MANUAL)**:
+
 - [ ] Algorithm analysis created
 - [ ] Validation report created
 - [ ] CLAUDE.md updated
@@ -290,17 +310,20 @@ for i in range(len(df)):
 ## Debugging Tools
 
 ### NaN Count
+
 ```python
 print(f"NaN: {result['buffer'].isna().sum()} / {len(result)}")
 ```
 
 ### First/Last Comparison
+
 ```python
 print("Python first 10:", result['buffer'].head(10).values)
 print("MQL5 first 10:", df_mql5['Buffer'].head(10).values)
 ```
 
 ### Statistics
+
 ```python
 print(f"Min: {result['buffer'].min():.6f}")
 print(f"Max: {result['buffer'].max():.6f}")
@@ -308,6 +331,7 @@ print(f"Mean: {result['buffer'].mean():.6f}")
 ```
 
 ### Visual Diff
+
 ```python
 import matplotlib.pyplot as plt
 diff = mql5_values - python_values
@@ -320,13 +344,13 @@ plt.show()
 
 ## Time Estimates
 
-| Phase | First Time | Subsequent |
-|-------|------------|------------|
-| Fetch data | 5-10 min | 2-3 min |
-| Implement | 1-2 hours | 30-60 min |
-| Validate | 15-30 min | 5-10 min |
-| Debug | 1-3 hours | 15-30 min |
-| **Total** | **2-5 hours** | **1-2 hours** |
+| Phase      | First Time    | Subsequent    |
+| ---------- | ------------- | ------------- |
+| Fetch data | 5-10 min      | 2-3 min       |
+| Implement  | 1-2 hours     | 30-60 min     |
+| Validate   | 15-30 min     | 5-10 min      |
+| Debug      | 1-3 hours     | 15-30 min     |
+| **Total**  | **2-5 hours** | **1-2 hours** |
 
 ---
 

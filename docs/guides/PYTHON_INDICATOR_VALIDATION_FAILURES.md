@@ -18,6 +18,7 @@ This document captures the FAILURES, debugging struggles, and trial-and-error pr
 ### Failure #1: Initial Validation - 0.951 Correlation (FAILED ❌)
 
 **What We Tried**:
+
 ```bash
 python validate_indicator.py \
   --csv Export_EURUSD_PERIOD_M1.csv \
@@ -26,10 +27,12 @@ python validate_indicator.py \
 ```
 
 **What We Expected**:
+
 - Correlation ≥ 0.999 (perfect match with MQL5)
 - Python implementation validated
 
 **What Actually Happened**:
+
 ```
 [FAIL] Laguerre_RSI
   Correlation: 0.951193 (threshold: 0.999)
@@ -50,6 +53,7 @@ python validate_indicator.py \
 ```
 
 **Why It Failed**:
+
 - We didn't know yet
 - Correlation was "good" (0.95) but not good enough for production
 - Mean differences suggested systematic bias, not random noise
@@ -64,6 +68,7 @@ python validate_indicator.py \
 Checked Python output for NaN values in the calculated buffers
 
 **What We Found**:
+
 ```python
 # First validation attempt produced:
 NaN count in laguerre_rsi: 99 out of 100 bars
@@ -75,6 +80,7 @@ NaN count in atr: 31 out of 100 bars
 We assumed `pandas.rolling().mean()` would calculate partial windows like MQL5 does.
 
 **The Reality**:
+
 ```python
 # What we wrote (WRONG):
 atr = tr.rolling(window=period).mean()
@@ -88,6 +94,7 @@ atr = tr.rolling(window=period).mean()
 ```
 
 **Why This Was a Problem**:
+
 - MQL5 indicator on chart had 100 valid values (no NaN)
 - Python had 99 NaN values and 1 valid value
 - Impossible to calculate correlation with only 1 data point
@@ -100,22 +107,26 @@ atr = tr.rolling(window=period).mean()
 ### Failure #3: The Wrong Fix - Standard Rolling Mean (FAILED ❌)
 
 **What We Tried**:
+
 ```python
 # Attempt to "fix" by using expanding window
 atr = tr.expanding(min_periods=1).mean()
 ```
 
 **What We Expected**:
+
 - All bars would have values (no NaN)
 - Correlation would improve
 
 **What Actually Happened**:
+
 - Still wrong! Correlation didn't improve
 - Values were different from MQL5
 - MQL5 uses `sum / period` even for partial windows
 - Python `expanding().mean()` uses `sum / actual_window_size`
 
 **Example of the Difference**:
+
 ```python
 # Bar 5 (only 6 bars of data available, period=32):
 # MQL5:    sum(bars 0-5) / 32 = 0.000123 / 32 = 0.00000384
@@ -132,6 +143,7 @@ atr = tr.expanding(min_periods=1).mean()
 MQL5 uses a specific expanding window algorithm that doesn't match any built-in pandas operation.
 
 **The MQL5 Behavior** (discovered through trial-and-error):
+
 ```mql5
 // First 32 bars: accumulate and divide by period
 for(int i=0; i<period && i<rates_total; i++)
@@ -148,6 +160,7 @@ for(int i=period; i<rates_total; i++)
 ```
 
 **The Python Fix** (manual loop, not pandas):
+
 ```python
 atr = pd.Series(index=tr.index, dtype=float)
 
@@ -161,6 +174,7 @@ for i in range(len(tr)):
 ```
 
 **Why This Was Painful**:
+
 - Had to abandon vectorized pandas operations
 - Manual loops are slower (~10x)
 - Required careful index management
@@ -179,17 +193,20 @@ Fixed the ATR calculation to match MQL5 expanding window behavior
 Perfect correlation now that calculation logic matches
 
 **What Actually Happened**:
+
 ```
 [FAIL] Laguerre_RSI
   Correlation: 0.951193 (threshold: 0.999)  // NO IMPROVEMENT!
 ```
 
 **The Confusion**:
+
 - Calculation logic was now correct
 - But correlation was STILL 0.95
 - Where was the remaining error coming from?
 
 **The Breakthrough Realization** (after 30 minutes of head-scratching):
+
 ```
 MQL5 Export (100 bars):
 - Calculated on a live chart
@@ -207,6 +224,7 @@ Result: Different starting conditions = systematic bias
 ```
 
 **Visual Representation of the Problem**:
+
 ```
 MQL5 Chart Timeline:
 [......4900 bars of history.......][100 bars exported to CSV]
@@ -227,6 +245,7 @@ ATR here starts from ZERO context
 
 **What We Tried**:
 Export more bars from MT5 using startup.ini config:
+
 ```ini
 [StartUp]
 Script=DataExport\\ExportAlignedTest.ex5
@@ -241,10 +260,12 @@ InpBars=5000  // Changed from 100 to 5000
 ```
 
 **What We Expected**:
+
 - Script would export 5000 bars instead of 100
 - We'd have enough historical data
 
 **What Actually Happened**:
+
 - startup.ini method is v2.0.0 (LEGACY)
 - Requires manual GUI initialization per symbol
 - Not reliable for programmatic export
@@ -280,12 +301,14 @@ mt5.shutdown()
 ```
 
 **Why This Worked**:
+
 - Programmatic data fetching (no GUI dependency)
 - True headless operation
 - Fetched 5000 bars (305KB CSV file)
 - Time range: 2025-10-13 22:17 to 2025-10-17 09:56
 
 **Result**:
+
 ```
 Fetched 5000 bars
 Saved to C:\users\crossover\EURUSD_M1_5000bars.csv
@@ -296,6 +319,7 @@ Saved to C:\users\crossover\EURUSD_M1_5000bars.csv
 ### Success #8: Two-Stage Validation - Finally Perfect Correlation ✅
 
 **The Final Approach**:
+
 1. Calculate Python indicator on ALL 5000 bars
 2. Extract LAST 100 bars for comparison
 3. Compare with MQL5 export of SAME 100 bars
@@ -315,6 +339,7 @@ result_last100 = result_5000.iloc[-100:].copy()
 ```
 
 **Result**:
+
 ```
 [PASS] Laguerre_RSI
   Correlation: 1.000000 (threshold: 0.999) ✅
@@ -336,12 +361,14 @@ result_last100 = result_5000.iloc[-100:].copy()
 ### 1. Pandas Rolling Windows Don't Match MQL5 Behavior
 
 **The Trap**:
+
 ```python
 # This looks simple and "correct"
 atr = tr.rolling(window=period).mean()
 ```
 
 **The Reality**:
+
 - Pandas returns NaN until full window is available
 - MQL5 calculates partial windows (sum / period)
 - No built-in pandas operation matches MQL5 behavior
@@ -355,6 +382,7 @@ Write manual loops. Painful but necessary.
 "If the calculation logic is correct, correlation should be perfect"
 
 **The Reality**:
+
 - Indicators have memory (ATR, EMA, adaptive periods)
 - Starting conditions matter enormously
 - Can't compare MQL5 with 5000-bar warmup to Python with 100-bar cold start
@@ -368,6 +396,7 @@ Always fetch full historical dataset, calculate on all bars, compare subsets.
 "Export 100 bars from MT5, calculate 100 bars in Python, compare"
 
 **The Reality**:
+
 - MQL5 export shows bars that already have historical warmup
 - Python calculation starts fresh
 - Different starting conditions = systematic bias = ~0.95 correlation
@@ -381,6 +410,7 @@ Calculate on same historical dataset, compare same time range.
 "0.95 correlation means 95% accurate, that's pretty good"
 
 **The Reality**:
+
 - 0.95 correlation means systematic bias
 - Production trading requires 0.999+ (99.9% or better)
 - Small errors compound over time in live trading
@@ -394,6 +424,7 @@ Set strict thresholds (0.999) and don't compromise.
 "Pandas is a standard library, it must match industry conventions"
 
 **The Reality**:
+
 - Pandas `rolling().mean()` has specific behavior (NaN for partial windows)
 - MQL5 has different conventions (calculate on partial windows)
 - NumPy, pandas, TA-Lib all have different assumptions
@@ -406,12 +437,14 @@ Always verify behavior with test data. Don't trust "standard" functions.
 ## Debugging Tools That Helped
 
 ### 1. Print NaN Counts
+
 ```python
 print(f"NaN count in laguerre_rsi: {result['laguerre_rsi'].isna().sum()}")
 print(f"NaN count in atr: {result['atr'].isna().sum()}")
 ```
 
 ### 2. Compare First/Last N Bars
+
 ```python
 # First 10 bars
 print("Python ATR:", result['atr'].head(10).values)
@@ -423,6 +456,7 @@ print("MQL5 ATR:", df_mql5['ATR_32'].tail(10).values)
 ```
 
 ### 3. Check Mean/Min/Max
+
 ```python
 print(f"Python: min={result['laguerre_rsi'].min():.6f}, " +
       f"max={result['laguerre_rsi'].max():.6f}, " +
@@ -430,6 +464,7 @@ print(f"Python: min={result['laguerre_rsi'].min():.6f}, " +
 ```
 
 ### 4. Plot Differences
+
 ```python
 diff = mql5_values - python_values
 plt.plot(diff)
@@ -442,6 +477,7 @@ plt.show()
 ## Common Pitfalls (Still Lurking)
 
 ### 1. Off-by-One Errors in Loops
+
 ```python
 # WRONG: Misses last bar
 for i in range(len(df) - 1):
@@ -453,6 +489,7 @@ for i in range(len(df)):
 ```
 
 ### 2. Series vs Array Indexing
+
 ```python
 # WRONG: Index by position on Series with non-default index
 atr[i] = value  // Uses label-based indexing!
@@ -462,6 +499,7 @@ atr.iloc[i] = value
 ```
 
 ### 3. Copy vs View
+
 ```python
 # WRONG: Modifying view affects original
 subset = result.iloc[-100:]
@@ -476,17 +514,17 @@ subset['atr'] = 0  // Safe
 
 ## Time Investment Summary
 
-| Activity | Time Spent | Outcome |
-|----------|-----------|---------|
-| Initial validation failure | 15 min | Found 0.951 correlation |
-| NaN discovery | 20 min | Found pandas behavior mismatch |
-| Wrong fix (expanding mean) | 30 min | Still wrong |
-| Manual loop implementation | 45 min | Calculation fixed |
-| Still bad correlation debugging | 30 min | Found warmup issue |
-| startup.ini export attempt | 15 min | Failed approach |
-| Wine Python MT5 API solution | 20 min | Success! |
-| Two-stage validation | 10 min | Perfect correlation |
-| **TOTAL** | **185 minutes** | **~3 hours** |
+| Activity                        | Time Spent      | Outcome                        |
+| ------------------------------- | --------------- | ------------------------------ |
+| Initial validation failure      | 15 min          | Found 0.951 correlation        |
+| NaN discovery                   | 20 min          | Found pandas behavior mismatch |
+| Wrong fix (expanding mean)      | 30 min          | Still wrong                    |
+| Manual loop implementation      | 45 min          | Calculation fixed              |
+| Still bad correlation debugging | 30 min          | Found warmup issue             |
+| startup.ini export attempt      | 15 min          | Failed approach                |
+| Wine Python MT5 API solution    | 20 min          | Success!                       |
+| Two-stage validation            | 10 min          | Perfect correlation            |
+| **TOTAL**                       | **185 minutes** | **~3 hours**                   |
 
 ---
 

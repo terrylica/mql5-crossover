@@ -11,6 +11,7 @@
 ## Bug Description
 
 The indicator has **two calculation paths**:
+
 1. **Normal Timeframe** (`inpCustomMinutes = 0`) - Uses chart's native timeframe
 2. **Custom Timeframe** (`inpCustomMinutes > 0`) - Builds custom bars from M1 data
 
@@ -33,6 +34,7 @@ global.maHandle = iMA(_Symbol, _Period, global.maPeriod, 0, inpRsiMaType, inpRsi
 ```
 
 **Behavior**: Uses the MA method specified by `inpRsiMaType` input parameter:
+
 - `MODE_EMA` (default)
 - `MODE_SMA`
 - `MODE_SMMA`
@@ -72,17 +74,20 @@ else
 ## Test Case Demonstrating Bug
 
 **Setup**:
+
 - Symbol: EURUSD
 - Chart Timeframe: M1
 - `inpRsiMaType = MODE_EMA` (default)
 - `inpRsiMaPeriod = 5` (default)
 
 **Test 1**: `inpCustomMinutes = 0`
+
 - Uses chart timeframe (M1)
 - Applies **EMA(5)** to prices
 - Result: Smooth indicator line
 
 **Test 2**: `inpCustomMinutes = 1`
+
 - Builds custom 1-minute bars from M1 data (identical bars)
 - Applies **SMA(5)** to prices (BUG!)
 - Result: **Different indicator values** even though data is identical
@@ -98,16 +103,19 @@ else
 ### Affected Users
 
 **All users who**:
+
 1. Use custom timeframe mode (`inpCustomMinutes > 0`)
 2. Rely on `inpRsiMaType` parameter (EMA, SMMA, LWMA)
 
 **Not Affected**:
+
 - Users with `inpRsiMaType = MODE_SMA` (SMA is used in both paths)
 - Users with `inpRsiMaPeriod = 1` (no smoothing applied)
 
 ### Severity Assessment
 
 **High Severity** because:
+
 1. **Silent Failure**: No error message, indicator appears to work correctly
 2. **Data Integrity**: Indicator values are incorrect but look plausible
 3. **Trading Impact**: Wrong signals could lead to incorrect trading decisions
@@ -234,6 +242,7 @@ input ENUM_MA_METHOD  inpRsiMaType = MODE_SMA;  // Price smoothing method (SMA o
 ```
 
 Add validation in OnInit:
+
 ```mql5
 if(inpCustomMinutes > 0 && inpRsiMaType != MODE_SMA)
 {
@@ -245,6 +254,7 @@ if(inpCustomMinutes > 0 && inpRsiMaType != MODE_SMA)
 ### Option 3: Use iMA Handle for Custom Bars (Hybrid)
 
 Create temporary series and use iMA:
+
 ```mql5
 // In CalculateCustomTimeframe after building custom bars:
 // Copy custom bars to a series
@@ -259,6 +269,7 @@ Create temporary series and use iMA:
 ## Recommendation
 
 **Implement Option 1** (Full MA implementation) because:
+
 1. ✅ Fixes the bug completely
 2. ✅ Respects user's `inpRsiMaType` choice
 3. ✅ Maintains consistency between both paths
@@ -273,6 +284,7 @@ Create temporary series and use iMA:
 ### Current Analysis Document
 
 The `LAGUERRE_RSI_ANALYSIS.md` currently documents:
+
 - EMA smoothing (based on default `inpRsiMaType = MODE_EMA`)
 - But the custom timeframe path uses SMA!
 
@@ -321,6 +333,7 @@ def apply_price_smoothing(
 ### Validation Strategy
 
 **Test both MQL5 paths**:
+
 1. Export with `inpCustomMinutes = 0` → Compare with Python EMA path
 2. Export with `inpCustomMinutes = 1` → Compare with Python SMA path (current bug)
 3. After bug fix, both should match Python with correct MA method
@@ -375,6 +388,7 @@ After implementing fix:
 **Fixed File**: `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Indicators/Custom/ATR adaptive smoothed Laguerre RSI 2 (extended) - FIXED.mq5 `
 
 **Changes**:
+
 1. Added 5 helper function declarations (after line 109)
 2. Replaced buggy price smoothing loop (lines 349-381) with switch statement respecting `inpRsiMaType`
 3. Implemented 5 helper functions at end of file:
@@ -385,6 +399,7 @@ After implementing fix:
    - `CalculateCustomLWMA(int i, int period)` - Linear Weighted Moving Average
 
 **Next Steps**:
+
 1. Compile fixed indicator in MetaEditor
 2. Run functional tests on M1 chart with `inpCustomMinutes=0` and `inpCustomMinutes=1`
 3. Validate all MA methods produce consistent results

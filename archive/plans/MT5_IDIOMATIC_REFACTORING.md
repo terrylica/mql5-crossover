@@ -9,8 +9,9 @@
 ## 🎯 Core Principle: Everything Must Be Visible in Navigator
 
 **MetaTrader 5 Navigator Window** displays files from:
+
 - `/MQL5/Experts/` - Expert Advisors
-- `/MQL5/Indicators/` - Indicators  
+- `/MQL5/Indicators/` - Indicators
 - `/MQL5/Scripts/` - Scripts
 - `/MQL5/Include/` - Include files (libraries)
 - `/MQL5/Services/` - Services
@@ -49,10 +50,12 @@
 ### Best Practice for Project Organization
 
 **From MT5 Documentation**:
-> "If you develop a trading robot, create a separate folder for it in the Experts directory. 
+
+> "If you develop a trading robot, create a separate folder for it in the Experts directory.
 > For indicators – in the Indicators directory, for scripts – in Scripts, etc."
 
 **Example**:
+
 ```
 /MQL5/Scripts/MyDataExporter/
 ├── Main.mq5
@@ -67,6 +70,7 @@
 ### Problem 1: Source Files in Wrong Location
 
 **mt5work/** (NOT visible in Navigator):
+
 ```
 mt5work/
 ├── ExportAligned.mq5          ❌ Should be in /MQL5/Scripts/
@@ -82,6 +86,7 @@ mt5work/
 ```
 
 **Include Path Problem**:
+
 ```mql5
 // Current code in mt5work/ExportAligned.mq5:
 #include "../Include/DataExportCore.mqh"  ❌ Broken in mt5work/
@@ -93,6 +98,7 @@ mt5work/
 ### Problem 2: Only Compiled Files in MT5 Directories
 
 **Program Files/MetaTrader 5/MQL5/Scripts/**:
+
 ```
 Scripts/
 ├── ExportAligned.ex5    ✅ Compiled file
@@ -103,6 +109,7 @@ Scripts/
 ### Current Good Structure
 
 **Indicators/** (Already following MT5 conventions):
+
 ```
 Indicators/
 ├── Custom/                              ✅ Your main custom indicators
@@ -160,6 +167,7 @@ Program Files/MetaTrader 5/MQL5/
 ### Include Path Updates
 
 **After refactoring, scripts will use**:
+
 ```mql5
 #include <DataExport/DataExportCore.mqh>
 #include <DataExport/modules/RSIModule.mqh>
@@ -211,6 +219,7 @@ cp ../../../mt5work/Include/modules/RSIModule.mqh Include/DataExport/modules/
 ```
 
 **Edit `Scripts/DataExport/ExportEURUSD.mq5`**:
+
 - Same include path updates
 
 ### Phase 4: Verify in MT5 Navigator
@@ -252,6 +261,7 @@ mv mt5work/* archive/mt5work_legacy/
 ## 📊 Python Workspace (Unchanged)
 
 **users/crossover/** remains the Python workspace:
+
 ```
 users/crossover/
 ├── export_aligned.py          # Wine Python v3.0.0 script
@@ -262,7 +272,8 @@ users/crossover/
 └── exports/                   # CSV outputs
 ```
 
-**Rationale**: 
+**Rationale**:
+
 - Python code doesn't need to be in MT5 directories
 - Wine Python runs from `users/crossover/`
 - Keeps Python and MQL5 workspaces cleanly separated
@@ -351,4 +362,3 @@ After refactoring:
 4. **Standard Syntax**: `#include <DataExport/...>` uses MT5 conventions
 5. **Compiled Files**: `.ex5` files auto-generated in same directories
 6. **Source Control**: Only track source files (`.mq5`, `.mqh`), ignore `.ex5`
-

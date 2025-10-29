@@ -19,6 +19,7 @@ The Python implementation of the ATR Adaptive Smoothed Laguerre RSI indicator ha
 ### Challenge
 
 Initial validation attempts failed because:
+
 1. MQL5 indicator on live chart had full historical warmup (all prior bars)
 2. Python calculation started fresh from CSV export (limited history)
 3. ATR requires 32-bar lookback, Adaptive Period requires 64-bar warmup for stable values
@@ -43,10 +44,10 @@ Initial validation attempts failed because:
 
 ### Perfect Correlation Achieved ✅
 
-| Buffer | Correlation | MAE | Result |
-|--------|-------------|-----|--------|
-| **Laguerre_RSI** | **1.000000** | 0.000000 | ✅ PASS |
-| **ATR** | **0.999987** | 0.000000 | ✅ PASS |
+| Buffer              | Correlation  | MAE      | Result  |
+| ------------------- | ------------ | -------- | ------- |
+| **Laguerre_RSI**    | **1.000000** | 0.000000 | ✅ PASS |
+| **ATR**             | **0.999987** | 0.000000 | ✅ PASS |
 | **Adaptive_Period** | **1.000000** | 0.001124 | ✅ PASS |
 
 **Sample Values (First 10 bars of comparison window)**:
@@ -76,6 +77,7 @@ Bar | Python Laguerre | MQL5 Laguerre | Python ATR | MQL5 ATR | Python Period | 
 To match MQL5 behavior exactly, the Python implementation required these modifications:
 
 1. **ATR Calculation** (lines 50-85 in `indicators/laguerre_rsi.py`):
+
    ```python
    # Matches MQL5: uses expanding window for first `period` bars
    for i in range(len(tr)):
@@ -90,6 +92,7 @@ To match MQL5 behavior exactly, the Python implementation required these modific
    **Critical**: MQL5 divides by `period` even for partial windows, not by number of available bars.
 
 2. **ATR Min/Max Calculation** (lines 88-128 in `indicators/laguerre_rsi.py`):
+
    ```python
    # Matches MQL5: expanding window then sliding window
    for i in range(len(atr)):
@@ -113,17 +116,20 @@ To match MQL5 behavior exactly, the Python implementation required these modific
 ## Files Validated
 
 ### MQL5 Reference Implementation
+
 - **File**: `/Program Files/MetaTrader 5/MQL5/Indicators/Custom/PythonInterop/ATR_Adaptive_Laguerre_RSI.mq5`
 - **Compiled**: ATR_Adaptive_Laguerre_RSI.ex5 (0 errors, 0 warnings, 818ms)
 - **Buffer Exposure**: Added buffers 3-4 for Adaptive Period and ATR export
 
 ### Python Implementation
+
 - **File**: `/users/crossover/indicators/laguerre_rsi.py`
 - **Version**: 1.0.0
 - **Dependencies**: numpy, pandas, scipy
 - **Functions**: 11 functions implementing complete indicator algorithm
 
 ### Test Data
+
 - **OHLC Dataset**: `EURUSD_M1_5000bars.csv` (5000 bars, 305KB)
 - **MQL5 Export**: `Export_EURUSD_PERIOD_M1.csv` (100 bars with indicator values)
 - **Time Range**: 2025-10-13 22:17 to 2025-10-17 09:56
@@ -192,15 +198,15 @@ PYEOF
 
 ## Success Criteria Met
 
-| Criterion | Target | Actual | Status |
-|-----------|--------|--------|--------|
-| Correlation (Laguerre RSI) | ≥ 0.999 | **1.000000** | ✅ |
-| Correlation (ATR) | ≥ 0.999 | **0.999987** | ✅ |
-| Correlation (Adaptive Period) | ≥ 0.999 | **1.000000** | ✅ |
-| MAE (Laguerre RSI) | < 0.1 | **0.000000** | ✅ |
-| MAE (ATR) | < 0.0001 | **0.000000** | ✅ |
-| Zero NaN after warmup | Required | **0 NaN** | ✅ |
-| Algorithm correctness | 100% | **100%** | ✅ |
+| Criterion                     | Target   | Actual       | Status |
+| ----------------------------- | -------- | ------------ | ------ |
+| Correlation (Laguerre RSI)    | ≥ 0.999  | **1.000000** | ✅     |
+| Correlation (ATR)             | ≥ 0.999  | **0.999987** | ✅     |
+| Correlation (Adaptive Period) | ≥ 0.999  | **1.000000** | ✅     |
+| MAE (Laguerre RSI)            | < 0.1    | **0.000000** | ✅     |
+| MAE (ATR)                     | < 0.0001 | **0.000000** | ✅     |
+| Zero NaN after warmup         | Required | **0 NaN**    | ✅     |
+| Algorithm correctness         | 100%     | **100%**     | ✅     |
 
 ---
 
@@ -227,6 +233,7 @@ PYEOF
 ## Next Steps
 
 ### Completed ✅
+
 - [x] Implement all 11 Laguerre RSI functions
 - [x] Fix ATR calculation to match MQL5 expanding window behavior
 - [x] Fix min/max calculation to use expanding windows
@@ -234,6 +241,7 @@ PYEOF
 - [x] Achieve perfect correlation (1.000000)
 
 ### Future Enhancements
+
 - [ ] Add unit tests for each component function
 - [ ] Optimize performance with Numba JIT
 - [ ] Create class-based API for incremental real-time updates

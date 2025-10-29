@@ -8,12 +8,12 @@
 
 ## Service Level Objectives - Current Status
 
-| Metric | Target | Actual | Status |
-|--------|--------|--------|--------|
-| **Availability** | 100% | 80% | 🟡 Partial |
-| **Correctness** | 100% | N/A | ⏸️ Cannot test |
-| **Observability** | 100% | 75% | 🟡 Partial |
-| **Maintainability** | ≥ 90% | 85% | 🟡 Acceptable |
+| Metric              | Target | Actual | Status         |
+| ------------------- | ------ | ------ | -------------- |
+| **Availability**    | 100%   | 80%    | 🟡 Partial     |
+| **Correctness**     | 100%   | N/A    | ⏸️ Cannot test |
+| **Observability**   | 100%   | 75%    | 🟡 Partial     |
+| **Maintainability** | ≥ 90%  | 85%    | 🟡 Acceptable  |
 
 **Root Cause**: Automated script execution via config file not working.
 
@@ -22,18 +22,21 @@
 ## What We Accomplished
 
 ### Phase 1: SimpleSMA_Test.mq5 Creation ✅ COMPLETE
+
 - Created minimal SMA indicator (14-period, 70 lines)
 - Location: `MQL5/Indicators/Custom/PythonInterop/SimpleSMA_Test.mq5`
 - Compilation: Successful (7.4KB, 0 errors, 721ms)
 - **Learning**: CLI compilation works WITHOUT `/inc` flag (flag OVERRIDES default paths)
 
 ### Phase 2: SMAModule.mqh Creation ✅ COMPLETE
+
 - Created module following RSIModule.mqh pattern
 - Location: `MQL5/Include/DataExport/modules/SMAModule.mqh`
 - Uses `iCustom()` to load SimpleSMA_Test indicator
 - **Learning**: Module pattern is reusable for any custom indicator
 
 ### Phase 3: ExportAligned.mq5 Update ✅ COMPLETE
+
 - Added `#include <DataExport/modules/SMAModule.mqh>`
 - Added inputs: `InpUseSMA` (bool), `InpSMAPeriod` (int)
 - Added SMA loading logic at lines 68-80
@@ -41,6 +44,7 @@
 - **Critical Discovery**: `/inc` flag causes 101 errors, omitting it works perfectly
 
 ### Phase 4: Automated Execution ❌ BLOCKED
+
 - Created `sma_export_config.ini` with [StartUp] section
 - Terminal launched but script did not execute
 - No export file created
@@ -51,6 +55,7 @@
 ## Critical Learnings
 
 ### Learning 1: /inc Flag Behavior
+
 **Problem**: Compilation with `/inc:"C:/Program Files/MetaTrader 5/MQL5"` failed with 101 errors
 
 **Root Cause**: CLAUDE.md states `/inc` parameter OVERRIDES (not augments) default include paths
@@ -58,6 +63,7 @@
 **Solution**: Omit `/inc` flag entirely for standard indicators/scripts
 
 **Evidence**:
+
 ```bash
 # FAILED (101 errors)
 /log /compile:"C:/ExportAligned.mq5" /inc:"C:/Program Files/MetaTrader 5/MQL5"
@@ -71,9 +77,11 @@
 ---
 
 ### Learning 2: Module Pattern Scalability
+
 **Finding**: SMAModule.mqh was created in 5 minutes by following RSIModule.mqh pattern
 
 **Pattern**:
+
 ```cpp
 bool [Indicator]Module_Load(
     const string symbol,
@@ -108,9 +116,11 @@ bool [Indicator]Module_Load(
 ---
 
 ### Learning 3: Config File Execution Unclear
+
 **Attempted**: MT5 terminal launch with `/config:"C:\\users\\crossover\\sma_export_config.ini"`
 
 **Config File**:
+
 ```ini
 [StartUp]
 Script=Scripts\\DataExport\\ExportAligned
@@ -129,6 +139,7 @@ InpSMAPeriod=14
 **Result**: Terminal launched, no script execution, no log entry
 
 **Possible Issues**:
+
 1. Config file path or format incorrect
 2. Terminal must be already logged in for scripts to run
 3. [StartUp] section requires specific syntax we haven't discovered
@@ -141,6 +152,7 @@ InpSMAPeriod=14
 ## File Locations
 
 ### Created Files
+
 ```bash
 # SimpleSMA Test Indicator
 $BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Indicators/Custom/PythonInterop/SimpleSMA_Test.mq5
@@ -161,6 +173,7 @@ $BOTTLE/drive_c/users/crossover/sma_export_config.ini
 ```
 
 ### Expected Output (Not Created)
+
 ```bash
 $BOTTLE/drive_c/users/crossover/exports/Export_EURUSD_M1_SMA.csv
 ```
@@ -170,9 +183,11 @@ $BOTTLE/drive_c/users/crossover/exports/Export_EURUSD_M1_SMA.csv
 ## Blockers
 
 ### Blocker 1: Script Execution
+
 **Issue**: Cannot run ExportAligned.mq5 script automatically
 
 **Options**:
+
 1. **Manual Execution** (Fastest)
    - Open MT5 GUI
    - Navigate to Navigator → Scripts → DataExport → ExportAligned
@@ -239,15 +254,15 @@ $BOTTLE/drive_c/users/crossover/exports/Export_EURUSD_M1_SMA.csv
 
 ## Updated Reality Check
 
-| Phase | Documented | Actual | Match? |
-|-------|-----------|--------|--------|
-| Prerequisites | Missing | N/A | ❌ |
-| Indicator Creation | N/A | SimpleSMA_Test.mq5 created | ✅ |
-| Compilation | "Use /inc flag" | "/inc OVERRIDES, omit it" | ❌ |
-| Module Creation | Not documented | SMAModule.mqh pattern | ❌ |
-| Export Script Update | Not documented | Updated ExportAligned.mq5 | ❌ |
-| Script Execution | "Use config file" | Config didn't work | ❌ |
-| Python Validation | Generic | Needs SMA support | ⏸️ |
+| Phase                | Documented        | Actual                     | Match? |
+| -------------------- | ----------------- | -------------------------- | ------ |
+| Prerequisites        | Missing           | N/A                        | ❌     |
+| Indicator Creation   | N/A               | SimpleSMA_Test.mq5 created | ✅     |
+| Compilation          | "Use /inc flag"   | "/inc OVERRIDES, omit it"  | ❌     |
+| Module Creation      | Not documented    | SMAModule.mqh pattern      | ❌     |
+| Export Script Update | Not documented    | Updated ExportAligned.mq5  | ❌     |
+| Script Execution     | "Use config file" | Config didn't work         | ❌     |
+| Python Validation    | Generic           | Needs SMA support          | ⏸️     |
 
 **Reality Check Score**: 14% (1/7 phases match)
 

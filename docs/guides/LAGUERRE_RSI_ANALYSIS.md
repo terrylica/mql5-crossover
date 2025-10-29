@@ -11,6 +11,7 @@
 **Status**: Fixed - Implementation complete, awaiting testing
 
 **Bug**: Price smoothing inconsistency between chart timeframe and custom timeframe modes.
+
 - `inpCustomMinutes = 0` (chart timeframe) used **EMA** for price smoothing (default)
 - `inpCustomMinutes = 1` (custom 1-minute) used **SMA** for price smoothing (hardcoded)
 - Even on M1 chart, these produced **different indicator values**
@@ -18,6 +19,7 @@
 **Fix**: Created `ATR adaptive smoothed Laguerre RSI 2 (extended) - FIXED.mq5` with all MA methods implemented in custom timeframe path.
 
 **Documentation**:
+
 - **Bug Report**: `LAGUERRE_RSI_BUG_REPORT.md ` - Complete bug analysis
 - **Fix Summary**: `LAGUERRE_RSI_BUG_FIX_SUMMARY.md ` - Implementation details and testing plan
 
@@ -28,6 +30,7 @@
 ## Executive Summary
 
 This indicator combines three advanced techniques:
+
 1. **ATR (Average True Range)** - Volatility measurement
 2. **Adaptive Period** - Period adjusts based on market volatility (ATR min/max range)
 3. **Laguerre Filter** - Four-stage recursive filter for smooth RSI calculation
@@ -51,6 +54,7 @@ input bool                   inpShowDebug       = false;    // Show debug inform
 ```
 
 **Python Translation Requirements**:
+
 - `atr_period`: int (default 32)
 - `price_type`: str (default 'close') - 'open', 'high', 'low', 'close', 'median', 'typical', 'weighted'
 - `price_smooth_period`: int (default 5)
@@ -66,6 +70,7 @@ input bool                   inpShowDebug       = false;    // Show debug inform
 ### Step 1: True Range Calculation
 
 **Formula**:
+
 ```python
 # For i > 0:
 TR[i] = max(high[i], close[i-1]) - min(low[i], close[i-1])
@@ -75,6 +80,7 @@ TR[0] = high[0] - low[0]
 ```
 
 **MQL5 Code** (lines 242-245):
+
 ```mql5
 atrWork[i].tr = (i > 0) ?
                 (high[i] > close[i-1] ? high[i] : close[i-1]) -
@@ -83,6 +89,7 @@ atrWork[i].tr = (i > 0) ?
 ```
 
 **Python Implementation**:
+
 ```python
 import numpy as np
 import pandas as pd
@@ -115,6 +122,7 @@ def calculate_true_range(high: pd.Series, low: pd.Series, close: pd.Series) -> p
 ### Step 2: ATR Calculation (Simple Moving Average of TR)
 
 **Formula**:
+
 ```python
 # Initial accumulation (i <= atr_period):
 trSum[i] = sum(TR[0:i+1])  # Sum all TR values up to current bar
@@ -127,6 +135,7 @@ ATR[i] = trSum[i] / atr_period
 ```
 
 **MQL5 Code** (lines 248-262):
+
 ```mql5
 if(i > inpAtrPeriod)
 {
@@ -146,6 +155,7 @@ atrWork[i].atr = atrWork[i].trSum / (double)inpAtrPeriod;
 ```
 
 **Python Implementation**:
+
 ```python
 def calculate_atr(tr: pd.Series, period: int = 14) -> pd.Series:
     """
@@ -173,6 +183,7 @@ def calculate_atr(tr: pd.Series, period: int = 14) -> pd.Series:
 **Purpose**: Find the minimum and maximum ATR values over the lookback period to calculate the adaptive coefficient.
 
 **Formula**:
+
 ```python
 # For each bar i:
 lookback_start = max(0, i - atr_period + 1)
@@ -183,6 +194,7 @@ max_atr[i] = max(ATR[lookback_start:lookback_end])
 ```
 
 **MQL5 Code** (lines 271-283):
+
 ```mql5
 if(inpAtrPeriod > 1 && i > 0)
 {
@@ -206,6 +218,7 @@ else
 ```
 
 **Python Implementation**:
+
 ```python
 def calculate_atr_min_max(atr: pd.Series, period: int) -> tuple[pd.Series, pd.Series]:
     """
@@ -232,6 +245,7 @@ def calculate_atr_min_max(atr: pd.Series, period: int) -> tuple[pd.Series, pd.Se
 **Purpose**: Calculate a coefficient (0.0 to 1.0) that adjusts the Laguerre RSI period based on current volatility.
 
 **Formula**:
+
 ```python
 # Ensure current ATR is within min/max range
 _max = max(max_atr[i], atr[i])
@@ -248,6 +262,7 @@ adaptive_period = atr_period * (coeff + 0.75)
 ```
 
 **MQL5 Code** (lines 293-298):
+
 ```mql5
 // Calculate adaptive parameters for Laguerre RSI
 double _max = atrWork[i].prevMax > atrWork[i].atr ? atrWork[i].prevMax : atrWork[i].atr;
@@ -259,6 +274,7 @@ val[i] = iLaGuerreRsi(prices[i], inpAtrPeriod*(_coeff+0.75), i, rates_total);
 ```
 
 **Python Implementation**:
+
 ```python
 def calculate_adaptive_coefficient(atr: pd.Series, min_atr: pd.Series, max_atr: pd.Series) -> pd.Series:
     """
@@ -302,6 +318,7 @@ def calculate_adaptive_period(atr_period: int, coeff: pd.Series) -> pd.Series:
 ```
 
 **Key Insight**:
+
 - When volatility is LOW (ATR near minimum): coeff ≈ 1.0 → period ≈ 1.75 × atr_period (longer, smoother)
 - When volatility is HIGH (ATR near maximum): coeff ≈ 0.0 → period ≈ 0.75 × atr_period (shorter, more responsive)
 
@@ -312,6 +329,7 @@ def calculate_adaptive_period(atr_period: int, coeff: pd.Series) -> pd.Series:
 **Purpose**: Apply a four-stage recursive filter to the price, creating smooth transitions.
 
 **Formula**:
+
 ```python
 # Gamma calculation
 gamma = 1.0 - 10.0 / (period + 9.0)
@@ -327,6 +345,7 @@ L0[0] = L1[0] = L2[0] = L3[0] = price[0]
 ```
 
 **MQL5 Code** (lines 657-668):
+
 ```mql5
 if(i > 0 && period > 1)
 {
@@ -344,6 +363,7 @@ if(i > 0 && period > 1)
 ```
 
 **Python Implementation**:
+
 ```python
 def calculate_laguerre_filter(prices: pd.Series, period: pd.Series) -> pd.DataFrame:
     """
@@ -396,6 +416,7 @@ def calculate_laguerre_filter(prices: pd.Series, period: pd.Series) -> pd.DataFr
 **Purpose**: Calculate RSI from the four Laguerre filter stages by measuring cumulative up/down movements.
 
 **Formula**:
+
 ```python
 CU = 0  # Cumulative Up movements
 CD = 0  # Cumulative Down movements
@@ -421,6 +442,7 @@ RSI = CU / (CU + CD) if (CU + CD) != 0 else 0
 ```
 
 **MQL5 Code** (lines 670-693):
+
 ```mql5
 // Calculate up/down movements
 if(laguerreWork[i].data[instance].values[0] >= laguerreWork[i].data[instance].values[1])
@@ -443,6 +465,7 @@ return ((CU+CD) != 0) ? CU/(CU+CD) : 0;
 ```
 
 **Python Implementation**:
+
 ```python
 def calculate_laguerre_rsi(laguerre_df: pd.DataFrame) -> pd.Series:
     """
@@ -492,6 +515,7 @@ def calculate_laguerre_rsi(laguerre_df: pd.DataFrame) -> pd.Series:
 **Purpose**: Classify RSI values into three zones for visual coloring.
 
 **Formula**:
+
 ```python
 if RSI > level_up (default 0.85):
     signal = 1  # Bullish (DodgerBlue)
@@ -502,12 +526,14 @@ else:
 ```
 
 **MQL5 Code** (line 301):
+
 ```mql5
 // Set color based on RSI thresholds
 valc[i] = (val[i]>inpLevelUp) ? 1 : (val[i]<inpLevelDown) ? 2 : 0;
 ```
 
 **Python Implementation**:
+
 ```python
 def classify_signal(rsi: pd.Series, level_up: float = 0.85, level_down: float = 0.15) -> pd.Series:
     """
@@ -776,6 +802,7 @@ import pandas as pd
 ```
 
 **Optional Performance Enhancements**:
+
 ```python
 import numba  # For JIT compilation of hot paths
 ```

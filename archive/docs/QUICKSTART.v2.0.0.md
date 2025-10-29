@@ -46,6 +46,7 @@ python python/validate_export.py exports/$(ls -t exports/*.csv | head -1)
 ```
 
 Expected output:
+
 ```
 ✓ All integrity checks passed
 ✓ RSI validation PASSED - Python implementation matches MT5
@@ -76,11 +77,13 @@ Expected output:
 ### "No CSV files found"
 
 **Check MT5 logs**:
+
 ```bash
 find ~/Library/Application\ Support/CrossOver/Bottles/MetaTrader\ 5/drive_c/Program\ Files/MetaTrader\ 5/MQL5/Logs/ -name "*.log" -type f -exec tail -20 {} \;
 ```
 
 **Common causes**:
+
 - Script not found (check name)
 - Symbol not available (check spelling)
 - Account not logged in
@@ -89,11 +92,13 @@ find ~/Library/Application\ Support/CrossOver/Bottles/MetaTrader\ 5/drive_c/Prog
 ### "MT5 execution timed out"
 
 **Increase timeout**:
+
 ```bash
 ./scripts/mq5run --timeout 300
 ```
 
 **Or check if MT5 hung**:
+
 ```bash
 ps aux | grep terminal64
 # Kill if stuck:
@@ -103,6 +108,7 @@ pkill -f terminal64.exe
 ### "Script found but didn't run"
 
 **Check config**:
+
 1. Is `[Experts] Enabled=1`? (mq5run sets this automatically)
 2. Is script compiled? (should be .ex5 in MQL5/Scripts/)
 3. Check MT5 Experts log for error messages

@@ -22,15 +22,15 @@
 
 ## Timeline Overview
 
-| Time | Event | Status |
-|------|-------|--------|
-| 09:00 | Bug #1 Discovered: Price smoothing inconsistency | 🔴 BUG |
-| 15:00 | Fix #1 Implemented: All MA methods in custom path | ✅ FIXED |
-| 22:00 | User Testing: Screenshot shows values still different | 🔴 BUG |
-| 22:34 | Bug #2 Discovered: Array indexing direction inverted | 🔴 BUG |
-| 22:34 | Fix #2 Implemented: Reverse loop direction | ✅ FIXED |
-| 22:44 | Bug #3 Discovered: Shared static array (ROOT CAUSE) | 🔴 BUG |
-| 22:44 | Fix #3 Implemented: Separate instances | ✅ FIXED |
+| Time  | Event                                                 | Status   |
+| ----- | ----------------------------------------------------- | -------- |
+| 09:00 | Bug #1 Discovered: Price smoothing inconsistency      | 🔴 BUG   |
+| 15:00 | Fix #1 Implemented: All MA methods in custom path     | ✅ FIXED |
+| 22:00 | User Testing: Screenshot shows values still different | 🔴 BUG   |
+| 22:34 | Bug #2 Discovered: Array indexing direction inverted  | 🔴 BUG   |
+| 22:34 | Fix #2 Implemented: Reverse loop direction            | ✅ FIXED |
+| 22:44 | Bug #3 Discovered: Shared static array (ROOT CAUSE)   | 🔴 BUG   |
+| 22:44 | Fix #3 Implemented: Separate instances                | ✅ FIXED |
 
 ---
 
@@ -43,6 +43,7 @@
 ### Root Cause Analysis
 
 The indicator has **two calculation paths**:
+
 1. **Normal Timeframe** (`inpCustomMinutes = 0`) - Uses chart's native timeframe
 2. **Custom Timeframe** (`inpCustomMinutes > 0`) - Builds custom bars from M1 data
 
@@ -96,11 +97,13 @@ else
 **Severity**: High
 
 **Affected Users**:
+
 - All users using custom timeframe mode (`inpCustomMinutes > 0`)
 - All users relying on `inpRsiMaType` parameter (EMA, SMMA, LWMA)
 - Default settings used MODE_EMA, so most users were affected
 
 **Not Affected**:
+
 - Users with `inpRsiMaType = MODE_SMA` (SMA used in both paths)
 - Users with `inpRsiMaPeriod = 1` (no smoothing)
 
@@ -251,6 +254,7 @@ Output: ATR adaptive smoothed Laguerre RSI 2 (extended) - FIXED.ex5 (26KB)
 
 **Time**: 2025-10-13 22:00
 **Evidence**: User provided screenshot showing two instances on EURUSD M1 chart:
+
 - Top panel: `inpCustomMinutes=1` (explicit M1)
 - Bottom panel: `inpCustomMinutes=0` (chart timeframe = M1)
 
@@ -294,11 +298,13 @@ for(int i = 0; i < customBarCount; i++)
 ### Technical Explanation: MQL5 Series Indexing
 
 With `ArraySetAsSeries(customPrices, true)`:
+
 - **Index 0** = newest bar (current)
 - **Index 1** = previous bar
 - **Index 50** = 50 bars ago
 
 When loop goes **forward** (0 → customBarCount):
+
 - `i=0` (newest) tries to use `customPrices[i-1]` = `customPrices[-1]` (invalid!)
 - `i=10` uses `customPrices[9]` which is **newer** than `i=10` - wrong direction!
 
@@ -388,6 +394,7 @@ double CalculateCustomSMMA(int i, int period, double prevSMMA)
 #### Why Original Code Used `i + j`
 
 The original buggy code had this pattern:
+
 ```mql5
 for(int i = 0; i < customBarCount; i++)
 {
@@ -399,6 +406,7 @@ for(int i = 0; i < customBarCount; i++)
 ```
 
 This **accidentally worked** because:
+
 - Outer loop `i` went forward (0 → customBarCount)
 - Inner loop `j` went forward (0 → barCount)
 - Sum `i + j` created increasing indices that processed older bars
@@ -456,11 +464,13 @@ This creates a **recursive dependency** where each bar's calculation depends on 
 ### State Pollution Mechanism
 
 When `inpCustomMinutes=0`:
+
 1. Indicator runs **normal timeframe** path (line 242-309)
 2. Calls `iLaGuerreRsi(prices[i], ..., i, rates_total, 0)` with instance=0
 3. Populates `laguerreWork[0..rates_total]` with filter state
 
 When `inpCustomMinutes=1` on M1 chart:
+
 1. Indicator runs **custom timeframe** path (line 318-455)
 2. Builds custom bars (nearly identical to M1 bars)
 3. Calls `iLaGuerreRsi(customPrices[i], ..., i, customBarCount, 0)` with instance=0
@@ -475,6 +485,7 @@ MQL5 provides an `instance` parameter specifically for this purpose! The code st
 #### Changes Made
 
 **1. Increase instance count** (line 13):
+
 ```mql5
 // OLD
 #define _lagRsiInstances 1
@@ -484,6 +495,7 @@ MQL5 provides an `instance` parameter specifically for this purpose! The code st
 ```
 
 **2. Use instance 1 for custom timeframe** (line 448):
+
 ```mql5
 // OLD
 customResults[i] = iLaGuerreRsi(customPrices[i], inpAtrPeriod * (_coeff + 0.75), i, customBarCount);
@@ -497,6 +509,7 @@ Normal timeframe continues to use instance 0 (default parameter).
 #### How It Works Now
 
 The `laguerreWork` array structure:
+
 ```mql5
 struct sLaguerreWorkStruct
 {
@@ -530,6 +543,7 @@ Stage 3: L3 = L2[i-1] + γ(L3[i-1] - L2)
 ```
 
 Where:
+
 - `γ` (gamma) = filter coefficient derived from period
 - `[i-1]` denotes previous bar value
 - Each stage feeds into the next
@@ -541,6 +555,7 @@ This creates a **chain of dependencies** where the entire calculation sequence m
 Consider two calculation sequences:
 
 **Normal Timeframe (M1 chart, 100 bars)**:
+
 ```
 Bar 0:  L0[0] = price[0]
 Bar 1:  L0[1] = price[1] + γ(L0[0] - price[1])
@@ -550,6 +565,7 @@ Bar 99: L0[99] = price[99] + γ(L0[98] - price[99])
 ```
 
 **Custom Timeframe (M1 custom, 98 bars)** - runs AFTER normal:
+
 ```
 Bar 0:  L0[0] = customPrice[0]  // OVERWRITES normal's L0[0]!
 Bar 1:  L0[1] = customPrice[1] + γ(L0[0] - customPrice[1])  // Uses WRONG L0[0]!
@@ -563,12 +579,14 @@ The custom calculation starts with **corrupted state** from the normal calculati
 With separate instances:
 
 **Normal Timeframe**:
+
 ```
 Bar 0:  laguerreWork[0].data[0].values[0] = price[0]
 Bar 1:  laguerreWork[1].data[0].values[0] = price[1] + γ(laguerreWork[0].data[0].values[0] - price[1])
 ```
 
 **Custom Timeframe**:
+
 ```
 Bar 0:  laguerreWork[0].data[1].values[0] = customPrice[0]  // Different instance!
 Bar 1:  laguerreWork[1].data[1].values[0] = customPrice[1] + γ(laguerreWork[0].data[1].values[0] - customPrice[1])
@@ -595,6 +613,7 @@ The actual issue was **state pollution in a shared global array**.
 **File**: `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Indicators/Custom/ATR adaptive smoothed Laguerre RSI 2 (extended) - FIXED.mq5`
 
 **Total Changes**:
+
 1. **Line 13**: Changed `_lagRsiInstances` from 1 to 2
 2. **Line 109**: Added 5 helper function declarations
 3. **Lines 349-381**: Replaced SMA-only loop with MA-method-respecting loop (backward direction)
@@ -602,6 +621,7 @@ The actual issue was **state pollution in a shared global array**.
 5. **End of file**: Implemented 5 helper functions (GetCustomAppliedPrice, CalculateCustomSMA, CalculateCustomEMA, CalculateCustomSMMA, CalculateCustomLWMA)
 
 **File Statistics**:
+
 - Total lines: 692
 - File size: 60,108 bytes
 - Encoding: UTF-16LE (MetaEditor compatible)
@@ -610,11 +630,13 @@ The actual issue was **state pollution in a shared global array**.
 ### Final Verification
 
 **Test Case**:
+
 - Chart: EURUSD M1
 - Indicator 1: `inpCustomMinutes=0` (chart timeframe, uses instance 0)
 - Indicator 2: `inpCustomMinutes=1` (explicit M1, uses instance 1)
 
 **Expected Result**: Both indicators produce **identical values** because:
+
 1. They process the same underlying M1 data
 2. They use the same smoothing parameters
 3. They maintain separate, non-interfering filter states
@@ -737,11 +759,13 @@ def apply_price_smoothing(
 ## Performance Impact
 
 **Memory Increase**: Negligible
+
 - Old: `sizeof(sLaguerreWorkStruct) * bars`
 - New: `sizeof(sLaguerreWorkStruct) * bars` (struct size increased but array size same)
 - Each struct now has 2 instances instead of 1: `4 doubles * 2 instances = 64 bytes per bar`
 
 **CPU Impact**: None
+
 - Same number of calculations
 - No additional loops
 - Just using different memory locations
@@ -751,15 +775,18 @@ def apply_price_smoothing(
 ## Related Documentation
 
 ### Core Analysis
+
 - **Algorithm Analysis**: `docs/guides/LAGUERRE_RSI_ANALYSIS.md` - Complete algorithm breakdown
 - **Validation Success**: `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md` - 1.000000 correlation methodology
 - **Temporal Audit**: `docs/guides/LAGUERRE_RSI_TEMPORAL_AUDIT.md` - No look-ahead bias verification
 
 ### Technical References
+
 - **CLI Compilation**: `docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md` - Compilation workflow
 - **Encoding Guide**: `docs/guides/MQL5_ENCODING_SOLUTIONS.md` - UTF-16LE handling
 
 ### Source Files
+
 - **Original**: `MQL5/Indicators/Custom/ATR adaptive smoothed Laguerre RSI 2 (extended).mq5`
 - **Fixed**: `MQL5/Indicators/Custom/ATR adaptive smoothed Laguerre RSI 2 (extended) - FIXED.mq5`
 

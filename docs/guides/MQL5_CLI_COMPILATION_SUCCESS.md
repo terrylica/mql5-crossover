@@ -46,6 +46,7 @@ INC="C:/Program Files/MetaTrader 5/MQL5"
 ## Successful Compilation Example
 
 ### Command Executed
+
 ```bash
 /Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine \
   --bottle "MetaTrader 5" \
@@ -55,11 +56,13 @@ INC="C:/Program Files/MetaTrader 5/MQL5"
 ```
 
 ### Result
+
 ```
 0  2025.10.13 22:25:45.825  Compile  C:/LaguerreRSI_Fixed.mq5 - 0 errors, 1 warnings, 1080 msec elapsed, cpu='X64 Regular'
 ```
 
 **Output Files**:
+
 - ✅ **LaguerreRSI_Fixed.ex5** created (25KB)
 - ✅ Log entry in `metaeditor.log`
 - ✅ Compilation time: 1.08 seconds
@@ -75,6 +78,7 @@ INC="C:/Program Files/MetaTrader 5/MQL5"
 All previous attempts used `/Applications/CrossOver.app/...` which didn't exist. The actual installation is at `~/Applications/CrossOver.app/...`.
 
 **Verification**:
+
 ```bash
 ls -la ~/Applications/ | grep -i cross
 # drwxr-xr-x@   3 terryli  staff     96 Sep 12 10:17 CrossOver.app
@@ -83,6 +87,7 @@ ls -la ~/Applications/ | grep -i cross
 ### 2. Path Limitations
 
 **File paths with spaces and parentheses don't work reliably**:
+
 - ❌ `C:/Program Files/MetaTrader 5/MQL5/Indicators/Custom/ATR adaptive smoothed Laguerre RSI 2 (extended) - FIXED.mq5`
 - ✅ `C:/LaguerreRSI_Fixed.mq5` (copy to simpler location first)
 
@@ -93,6 +98,7 @@ ls -la ~/Applications/ | grep -i cross
 MetaEditor expects MQL5 files in **UTF-16 Little Endian** encoding.
 
 **Verification**:
+
 ```bash
 file /path/to/file.mq5
 # Unicode text, UTF-16, little-endian text
@@ -156,11 +162,13 @@ cp "$EX5" "$DEST"
 **Symptoms**: Command returns exit code 0, but no .ex5 file created and no log entry.
 
 **Causes**:
+
 1. Path with spaces/special characters not handled
 2. Missing function implementations causing compilation errors
 3. Wrong CrossOver installation path
 
 **Solutions**:
+
 1. Copy file to `C:/simple_name.mq5`
 2. Check MetaEditor log for actual errors
 3. Verify wine binary exists at `~/Applications/CrossOver.app/.../bin/wine`
@@ -168,6 +176,7 @@ cp "$EX5" "$DEST"
 ### Compilation Errors
 
 **Check the log**:
+
 ```python
 from pathlib import Path
 
@@ -181,6 +190,7 @@ for line in lines[-5:]:
 ```
 
 **Common Errors**:
+
 - `undefined function` - Missing implementations
 - `invalid syntax` - UTF-8 instead of UTF-16LE
 - `cannot open include file` - Wrong `/inc:` path
@@ -188,6 +198,7 @@ for line in lines[-5:]:
 ### Timeout or Hang
 
 If command times out without producing output:
+
 1. Verify bottle name: `ls "~/Library/Application Support/CrossOver/Bottles/"`
 2. Check MetaEditor exists: `ls "~/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MetaEditor64.exe"`
 3. Try without timeout to see actual errors
@@ -196,9 +207,9 @@ If command times out without producing output:
 
 ## Performance Metrics
 
-| Indicator | Size (.mq5) | Size (.ex5) | Compile Time | Errors | Warnings |
-|-----------|-------------|-------------|--------------|--------|----------|
-| LaguerreRSI_Fixed | 58 KB | 25 KB | 1.08s | 0 | 1 |
+| Indicator                                                                  | Size (.mq5) | Size (.ex5) | Compile Time | Errors | Warnings |
+| -------------------------------------------------------------------------- | ----------- | ----------- | ------------ | ------ | -------- |
+| LaguerreRSI_Fixed                                                          | 58 KB       | 25 KB       | 1.08s        | 0      | 1        |
 | (Previous compilations were showing errors due to missing implementations) |
 
 ---
@@ -258,6 +269,7 @@ fi
 ```
 
 **Usage**:
+
 ```bash
 chmod +x compile_mql5.sh
 ./compile_mql5.sh "MQL5/Indicators/Custom/My Indicator.mq5"
@@ -288,11 +300,13 @@ chmod +x compile_mql5.sh
 ## Credits
 
 **Research Sources**:
+
 - CodeWeavers official `--bottle` and `--cx-app` flag documentation
 - nvimfreak.com Wineskin MQL5 compilation guide (validation that CLI works on macOS)
 - User research prompt that identified new methods to try
 
 **Key Insights**:
+
 1. CrossOver has bottle-aware CLI (not documented in main guides)
 2. Path simplification is critical for reliability
 3. Function implementations must be complete (not just declarations)
@@ -305,6 +319,7 @@ chmod +x compile_mql5.sh
 ### 1. Handle Long Paths Automatically
 
 Investigate if Z: drive mapping works with proper configuration:
+
 ```bash
 # Try Z: drive approach
 SRC_WIN="Z:/Users/terryli/path/to/file.mq5"
@@ -313,6 +328,7 @@ SRC_WIN="Z:/Users/terryli/path/to/file.mq5"
 ### 2. Parse Compilation Output
 
 Capture and parse MetaEditor log to extract:
+
 - Error messages
 - Warning details
 - Line numbers
@@ -321,6 +337,7 @@ Capture and parse MetaEditor log to extract:
 ### 3. CI/CD Integration
 
 Create GitHub Actions workflow:
+
 ```yaml
 name: Compile MQL5 Indicators
 
@@ -336,7 +353,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: compiled-indicators
-          path: '**/*.ex5'
+          path: "**/*.ex5"
 ```
 
 ---

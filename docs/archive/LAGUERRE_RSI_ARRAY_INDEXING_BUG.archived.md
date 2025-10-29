@@ -18,6 +18,7 @@ The "FIXED" indicator still produced different values for `inpCustomMinutes=0` v
 ### User's Discovery
 
 User provided screenshot evidence showing two instances of the "FIXED" indicator on EURUSD M1 chart:
+
 - Top panel: `inpCustomMinutes=1` (explicit M1)
 - Bottom panel: `inpCustomMinutes=0` (chart timeframe = M1)
 
@@ -61,11 +62,13 @@ for(int i = 0; i < customBarCount; i++)
 ### Why This Failed
 
 With `ArraySetAsSeries(customPrices, true)`:
+
 - **Index 0** = newest bar (current)
 - **Index 1** = previous bar
 - **Index 50** = 50 bars ago
 
 When loop goes **forward** (0 → customBarCount):
+
 - `i=0` (newest) tries to use `customPrices[i-1]` = `customPrices[-1]` (invalid!)
 - `i=10` uses `customPrices[9]` which is **newer** than `i=10` - wrong direction!
 
@@ -194,12 +197,14 @@ ArraySetAsSeries(array, true);  // Series: 0=newest, size-1=oldest
 ```
 
 **Impact on loops**:
+
 - **Normal indexing**: Loop forward (0 → size) to process oldest → newest
 - **Series indexing**: Loop backward (size → 0) to process oldest → newest
 
 ### Why Original Code Used `i + j`
 
 The original buggy code had this pattern:
+
 ```mql5
 for(int i = 0; i < customBarCount; i++)
 {
@@ -211,6 +216,7 @@ for(int i = 0; i < customBarCount; i++)
 ```
 
 This **accidentally worked** because:
+
 - Outer loop `i` went forward (0 → customBarCount)
 - Inner loop `j` went forward (0 → barCount)
 - Sum `i + j` created increasing indices that processed older bars

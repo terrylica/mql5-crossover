@@ -6,6 +6,7 @@
 **Legacy**: mq5run (v2.0.0 startup.ini approach, conditionally working)
 
 ## Core Locations
+
 - Wine toolchain (CrossOver build): `/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin`
 - Bottle prefix: `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5`
 - MetaEditor: `C:\Program Files\MetaTrader 5\metaeditor64.exe`
@@ -15,6 +16,7 @@
 - **MQL5 Script Logs**: `~/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Logs/` - Script execution output
 
 ## Wine Builds
+
 - Preferred (CrossOver-managed): `/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin` (symlink into `CrossOver-Hosted Application/`)
 - Legacy MetaTrader bundle (avoid mixing): `/Applications/MetaTrader 5.app/Contents/SharedSupport/wine/bin`
 - Confirm the active toolchain after updating:  
@@ -24,6 +26,7 @@
   `PlistBuddy -c 'Print :CFBundleShortVersionString' "/Applications/MetaTrader 5.app/Contents/Info.plist"`
 
 ## Shell Prep (zsh / Ghostty)
+
 ```zsh
 export PATH="/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin:$PATH"
 export MVK_CONFIG_LOG_LEVEL=0    # silence MoltenVK spam (optional)
@@ -32,19 +35,23 @@ wine --version # verify output identifies the CrossOver toolchain
 ```
 
 ## Compile mq5 from Terminal
+
 ```zsh
 mq5c path/to/script.mq5          # stages file, compiles under C:\mt5work, copies .ex5 back
 ```
+
 - MetaEditor build 4865 under CrossOver refuses to compile files outside a simple, space-free path. All scripts are staged to `C:\mt5work` before compilation; the helper keeps this in sync automatically.
 - Resulting `.ex5` and UTF-16 `.log` live in `…/drive_c/mt5work/`; the helper also converts the log to UTF-8 and drops it alongside the staged file.
 - Wine quirk: `metaeditor64.exe /log:CON ...` can mirror logs to stdout, but file logs are the reliable artefact. Always inspect the UTF-8 copy or the raw UTF-16 version.
 - Stage any required `#include`/`Libraries` dependencies under `C:\mt5work` (or ensure they already live inside the bottle’s standard `MQL5` tree) so MetaEditor can resolve them.
 
 ## Handy Helpers
+
 - `mq5c <script.mq5>` stages the script directory under `C:\mt5work\staging\`, invokes MetaEditor headlessly, converts the UTF-16 log to UTF-8, copies the `.ex5` next to the source, and prints the compile summary. Non-zero exit highlights a compilation error.
 - `mq5run [--symbol SYMBOL] [--period PERIOD] [--timeout SECONDS]` executes MT5 scripts headlessly via CrossOver. Generates startup.ini config, launches terminal64.exe with `/portable /skipupdate /config:`, collects CSV exports, shows preview. **Validated working 2025-10-13** with config path fix applied.
 
 ## Aligned Exporter Workflow
+
 - `mql5/Scripts/ExportAligned.mq5` (with `../Include/DataExportCore.mqh` and `../Include/modules/RSIModule.mqh`) exports bar data plus RSI values in a single CSV row set.
 - Compile via `mq5c mql5/Scripts/ExportAligned.mq5`, then manually run the script from MT5 or call `scripts/mq5run` headlessly.
 - Default output files follow `Export_<symbol>_<timeframe>.csv` and reside in `…/MQL5/Files/`. The helper copies them into the repository `exports/` directory for downstream Python validation.
@@ -59,12 +66,14 @@ mq5c path/to/script.mq5          # stages file, compiles under C:\mt5work, copie
 **Headless execution works ONLY for symbols/timeframes previously opened in GUI**
 
 **Empirical Evidence** (2025-10-13 16:09):
+
 - EURUSD M1 (previously executed manually): ✅ SUCCESS
 - XAUUSD H1 (never opened in GUI): ❌ FAILED (script never executed)
 
 **Root Cause**: MT5 startup.ini `[StartUp]` section requires existing chart context. Cannot create new charts programmatically.
 
 **Workaround**: Manually open each symbol/timeframe in GUI once:
+
 1. Open MT5 terminal
 2. Create chart: Ctrl+N → Select symbol → OK
 3. Run ExportAligned script once (drag from Navigator → Scripts)
@@ -72,6 +81,7 @@ mq5c path/to/script.mq5          # stages file, compiles under C:\mt5work, copie
 5. Headless execution will work for that symbol/timeframe
 
 ### Usage
+
 ```bash
 # After GUI initialization (see limitation above)
 ./mq5run --symbol EURUSD --period PERIOD_M1       # Works if EURUSD M1 previously opened
@@ -86,6 +96,7 @@ mq5c path/to/script.mq5          # stages file, compiles under C:\mt5work, copie
 **Root Cause**: Absolute path with spaces + shell quoting → MT5 receives double-quoted path → load failure
 
 **Solution** (mq5run:114):
+
 ```bash
 # ❌ FAILS - Absolute path requires quotes, MT5 receives double quotes
 CONFIG_WIN_PATH="C:\\Program Files\\MetaTrader 5\\config\\startup_${TIMESTAMP}.ini"
@@ -118,6 +129,7 @@ ShutdownTerminal=1           # Auto-close after completion (headless CI)
 ### Diagnostic Log Locations
 
 **MT5 Terminal Logs** (portable mode):
+
 ```bash
 # Primary location (contains startup errors)
 ~/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/logs/YYYYMMDD.log
@@ -144,6 +156,7 @@ python python/validate_export.py exports/$(ls -t exports/*.csv | head -1)
 ```
 
 ### Validated Configuration (Production)
+
 - CrossOver 24.0.5 + MT5 Build 5.0.4865
 - macOS Sequoia 15.1 (24B83)
 - EURUSD M1, 5000 bars, RSI(14) - ✅ Works after GUI initialization
@@ -152,6 +165,7 @@ python python/validate_export.py exports/$(ls -t exports/*.csv | head -1)
 - Success rate: 100% for initialized symbols, 0% for cold start
 
 ## GUI / Runtime
+
 - Launch MetaEditor GUI for debugging: `mt5-start "C:\Program Files\MetaTrader 5\metaeditor64.exe"`
 - Launch MetaTrader terminal: `mt5-start "C:\Program Files\MetaTrader 5\terminal64.exe"`
 - Restart wineserver if needed: `mt5-start wineserver -k`
@@ -159,6 +173,7 @@ python python/validate_export.py exports/$(ls -t exports/*.csv | head -1)
 ## References
 
 **Essential Reading**:
+
 - **This file** - Core MT5/CrossOver operations and empirical fixes
 - `../reports/VALIDATION_STATUS.md` - Current validation status and SLO metrics
 - `../plans/HEADLESS_EXECUTION_PLAN.md` - Implementation plan with diagnostic process (v3.0.0 COMPLETE)

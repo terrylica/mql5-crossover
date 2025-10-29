@@ -8,12 +8,12 @@
 
 ## Service Level Objectives
 
-| Metric | Target | Method |
-|--------|--------|--------|
-| **Availability** | 100% | All commands executable |
-| **Correctness** | ≥ 0.999 correlation | scipy.stats.pearsonr validation |
-| **Observability** | 100% | Verification step per phase |
-| **Maintainability** | ≥ 90% | Commands use absolute paths |
+| Metric              | Target              | Method                          |
+| ------------------- | ------------------- | ------------------------------- |
+| **Availability**    | 100%                | All commands executable         |
+| **Correctness**     | ≥ 0.999 correlation | scipy.stats.pearsonr validation |
+| **Observability**   | 100%                | Verification step per phase     |
+| **Maintainability** | ≥ 90%               | Commands use absolute paths     |
 
 ---
 
@@ -82,6 +82,7 @@ print(content)
 ```
 
 **Document**:
+
 1. Indicator buffers (what values it calculates)
 2. Input parameters
 3. Dependencies (`#include` directives)
@@ -208,11 +209,13 @@ ls -lh "$BOTTLE/drive_c/users/crossover/EURUSD_M1_5000bars.csv"
 ## Phase 6: Export MQL5 Indicator Values
 
 **Method 1**: ExportAligned.mq5 script (if available)
+
 - Attach indicator to chart
 - Run ExportAligned.mq5 script
 - Output: `/MQL5/Files/Export_EURUSD_PERIOD_M1.csv`
 
 **Method 2**: Manual export from chart
+
 - Open MT5, attach indicator to EURUSD M1 chart
 - Right-click chart → Data Window
 - Copy last 100 bars to CSV manually
@@ -260,6 +263,7 @@ def calculate_your_indicator(
 ```
 
 **Critical**: Match MQL5 behavior exactly:
+
 - Expanding windows: `sum(all_bars) / period` not `sum(available_bars) / available_bars`
 - Initialization: First bar values often need special handling
 - Loop direction: MQL5 series are reversed (newest=0)
@@ -360,18 +364,18 @@ for i in range(len(data)):
 
 ## Time Estimates
 
-| Phase | Time |
-|-------|------|
-| 0. Prerequisites | 5 min |
-| 1. Find Indicator | 2 min |
-| 2. Analyze Algorithm | 15-60 min |
-| 3. Expose Buffers | 10 min |
-| 4. Compile | 5 min |
-| 5. Fetch Data | 5 min |
-| 6. Export MQL5 Values | 10 min |
-| 7. Implement Python | 30-120 min |
-| 8. Validate | 10 min |
-| **Total** | **1.5-3.5 hours** |
+| Phase                 | Time              |
+| --------------------- | ----------------- |
+| 0. Prerequisites      | 5 min             |
+| 1. Find Indicator     | 2 min             |
+| 2. Analyze Algorithm  | 15-60 min         |
+| 3. Expose Buffers     | 10 min            |
+| 4. Compile            | 5 min             |
+| 5. Fetch Data         | 5 min             |
+| 6. Export MQL5 Values | 10 min            |
+| 7. Implement Python   | 30-120 min        |
+| 8. Validate           | 10 min            |
+| **Total**             | **1.5-3.5 hours** |
 
 **Note**: Times based on Laguerre RSI (complex indicator). Simple indicators (SMA, EMA) should be faster.
 
@@ -380,6 +384,7 @@ for i in range(len(data)):
 ## What's Different From Other Guides
 
 This workflow documents:
+
 - What we ACTUALLY did for Laguerre RSI validation
 - One method per phase (no alternatives)
 - Copy-pastable commands with absolute paths

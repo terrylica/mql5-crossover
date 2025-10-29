@@ -17,6 +17,7 @@ Successfully resolved MQL5 CLI compilation failures for scripts with custom incl
 ## Problem Statement
 
 ### Symptoms
+
 ```bash
 # CLI Compilation (FAILED)
 metaeditor64.exe /compile:"C:/ExportAlignedTest.mq5" /inc:"C:/Program Files/MetaTrader 5/MQL5"
@@ -28,6 +29,7 @@ metaeditor64.exe /compile:"C:/ExportAlignedTest.mq5" /inc:"C:/Program Files/Meta
 ```
 
 ### Environment
+
 - **Platform**: macOS (Darwin 24.6.0)
 - **Wine Layer**: CrossOver (~/Applications/CrossOver.app)
 - **MetaTrader**: Version 5 Build 4360
@@ -36,6 +38,7 @@ metaeditor64.exe /compile:"C:/ExportAlignedTest.mq5" /inc:"C:/Program Files/Meta
 ### Root Cause Analysis
 
 **Detailed Error Log** (`ExportAlignedTest.log`):
+
 ```
 Line 4: error 106: file 'C:\Program\Include\DataExport\DataExportCore.mqh' not found
 ```
@@ -59,6 +62,7 @@ ln -s "Program Files/MetaTrader 5" MT5
 ```
 
 **Verification**:
+
 ```bash
 ls -la | grep MT5
 # Output: lrwxr-xr-x  MT5 -> Program Files/MetaTrader 5
@@ -76,11 +80,13 @@ CX="$HOME/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
 ```
 
 **Key Changes**:
+
 1. ✅ Use `/include:` (full word, NOT `/inc:`)
 2. ✅ Reference symlink path: `C:/MT5/...` (no spaces)
 3. ✅ Apply to both MetaEditor path AND include path
 
 **Result**:
+
 ```
 0 errors, 0 warnings, 887 msec elapsed, cpu='X64 Regular'
 ```
@@ -145,6 +151,7 @@ fi
 ```
 
 **Usage**:
+
 ```bash
 ./compile_mql5_script.sh "C:/ExportAlignedTest.mq5" "$BOTTLE/drive_c/MT5/MQL5/Scripts/DataExport"
 ```
@@ -155,26 +162,29 @@ fi
 
 ### Flag Reference
 
-| Flag | Purpose | Example | Notes |
-|------|---------|---------|-------|
-| `/compile:` | Source file path | `/compile:"C:/Script.mq5"` | Accepts single file or folder |
-| `/include:` | MQL5 base directory | `/include:"C:/MT5/MQL5"` | **NOT** the Include subfolder! |
-| `/log` | Generate detailed log | `/log` or `/log:"C:/output.log"` | Creates `<source>.log` by default |
-| `/log:CON` | Log to console | `/log:CON` | Wine-compatible console output |
-| `/s` | Syntax check only | `/s` | No .ex5 generation |
+| Flag        | Purpose               | Example                          | Notes                             |
+| ----------- | --------------------- | -------------------------------- | --------------------------------- |
+| `/compile:` | Source file path      | `/compile:"C:/Script.mq5"`       | Accepts single file or folder     |
+| `/include:` | MQL5 base directory   | `/include:"C:/MT5/MQL5"`         | **NOT** the Include subfolder!    |
+| `/log`      | Generate detailed log | `/log` or `/log:"C:/output.log"` | Creates `<source>.log` by default |
+| `/log:CON`  | Log to console        | `/log:CON`                       | Wine-compatible console output    |
+| `/s`        | Syntax check only     | `/s`                             | No .ex5 generation                |
 
 ### Include Path Resolution
 
 **How MetaEditor finds includes**:
+
 ```mql5
 #include <DataExport/DataExportCore.mqh>
 ```
 
 **Search order**:
+
 1. `/include` base directory + `\Include\` + relative path
 2. Example: `C:\MT5\MQL5\Include\DataExport\DataExportCore.mqh`
 
 **Important**: Do NOT point to the Include folder itself:
+
 ```bash
 # ❌ WRONG
 /include:"C:/MT5/MQL5/Include"
@@ -191,6 +201,7 @@ fi
 **Encoding**: UTF-16LE (use `iconv` or Python with `encoding='utf-16-le'`)
 
 **Example log output**:
+
 ```
 C:/ExportAlignedTest.mq5 : information: compiling C:/ExportAlignedTest.mq5
 C:/ExportAlignedTest.mq5 : information: including C:\MT5\MQL5\Include\DataExport\DataExportCore.mqh
@@ -261,6 +272,7 @@ head -3 Export_EURUSD_PERIOD_M1.csv
 ### Issue: Still Getting 102 Errors
 
 **Check**:
+
 1. Verify symlink exists: `ls -la "$BOTTLE/drive_c/" | grep MT5`
 2. Use `/include:` (NOT `/inc:`)
 3. Point to MQL5 folder (NOT Include subfolder)
@@ -276,6 +288,7 @@ head -3 Export_EURUSD_PERIOD_M1.csv
 **Cause**: Path still contains spaces or is being truncated.
 
 **Solutions**:
+
 ```bash
 # 1. Verify symlink target
 ls -l "$BOTTLE/drive_c/MT5"
@@ -293,6 +306,7 @@ cp "My Script.mq5" "$BOTTLE/drive_c/Script.mq5"
 ### Issue: No Log File Created
 
 **Check**:
+
 1. MetaEditor actually ran (no Wine errors)
 2. Source file path is correct
 3. Try explicit log path:
@@ -319,6 +333,7 @@ WINEPREFIX="$BOTTLE" wine "C:/MT5/MetaEditor64.exe" ...
 ## Performance
 
 **Compilation Speed**:
+
 - **Indicators** (no custom includes): ~800ms
 - **Scripts** (with custom includes): ~900ms
 - **Large projects** (many includes): ~1500ms
@@ -382,10 +397,7 @@ jobs:
       "label": "Compile MQL5 Script",
       "type": "shell",
       "command": "${workspaceFolder}/scripts/compile_mql5_script.sh",
-      "args": [
-        "C:/${relativeFile}",
-        "${workspaceFolder}/build"
-      ],
+      "args": ["C:/${relativeFile}", "${workspaceFolder}/build"],
       "group": {
         "kind": "build",
         "isDefault": true
@@ -419,6 +431,7 @@ jobs:
 ### Workarounds
 
 **Multiple include paths**: Create unified include directory:
+
 ```bash
 # Combine multiple include sources
 mkdir -p "$BOTTLE/drive_c/MT5_Unified/MQL5/Include"
@@ -434,6 +447,7 @@ cp -r ~/custom-includes/* "$BOTTLE/drive_c/MT5_Unified/MQL5/Include/"
 ## Research Credit
 
 **Source**: Deep research covering:
+
 - MQL5.com official documentation (MetaEditor CLI flags)
 - MQL5.com forums (community solutions, 2015-2025)
 - Stack Overflow (Wine compilation issues)
@@ -446,27 +460,26 @@ cp -r ~/custom-includes/* "$BOTTLE/drive_c/MT5_Unified/MQL5/Include/"
 
 ## Success Criteria
 
-| Criterion | Target | Actual | Status |
-|-----------|--------|--------|--------|
-| **Compilation Result** | 0 errors | 0 errors | ✅ |
-| **Compilation Speed** | < 1000ms | 887ms | ✅ |
-| **Binary Match** | Byte-identical to GUI | Byte-identical | ✅ |
-| **Automated Workflow** | Config.ini execution | Working | ✅ |
-| **CSV Export** | All buffers populated | All buffers | ✅ |
-| **Production Ready** | No manual steps | Fully automated | ✅ |
+| Criterion              | Target                | Actual          | Status |
+| ---------------------- | --------------------- | --------------- | ------ |
+| **Compilation Result** | 0 errors              | 0 errors        | ✅     |
+| **Compilation Speed**  | < 1000ms              | 887ms           | ✅     |
+| **Binary Match**       | Byte-identical to GUI | Byte-identical  | ✅     |
+| **Automated Workflow** | Config.ini execution  | Working         | ✅     |
+| **CSV Export**         | All buffers populated | All buffers     | ✅     |
+| **Production Ready**   | No manual steps       | Fully automated | ✅     |
 
 ---
 
 ## Version History
 
-| Version | Date | Change | Status |
-|---------|------|--------|--------|
-| 1.0.0 | 2025-10-16 | Initial CLI attempts (102 errors) | ❌ |
-| 1.1.0 | 2025-10-16 | Discovered `/include:` vs `/inc:` | ⚠️ Still failing |
-| 1.2.0 | 2025-10-16 | Analyzed detailed log (space issue found) | 🔍 Diagnosis |
-| **2.0.0** | **2025-10-16 23:56** | **Symlink solution (0 errors)** | **✅ SUCCESS** |
+| Version   | Date                 | Change                                    | Status           |
+| --------- | -------------------- | ----------------------------------------- | ---------------- |
+| 1.0.0     | 2025-10-16           | Initial CLI attempts (102 errors)         | ❌               |
+| 1.1.0     | 2025-10-16           | Discovered `/include:` vs `/inc:`         | ⚠️ Still failing |
+| 1.2.0     | 2025-10-16           | Analyzed detailed log (space issue found) | 🔍 Diagnosis     |
+| **2.0.0** | **2025-10-16 23:56** | **Symlink solution (0 errors)**           | **✅ SUCCESS**   |
 
 ---
 
 **🎉 CLI COMPILATION FULLY OPERATIONAL - PRODUCTION READY 🎉**
-

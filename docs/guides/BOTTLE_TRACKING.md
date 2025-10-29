@@ -28,6 +28,7 @@ Config templates in:     X:\config\
 ### Step 1: Map Project as X: Drive
 
 **GUI Method** (Recommended):
+
 1. Open CrossOver
 2. Select "MetaTrader 5" bottle
 3. Click "Manage Bottle" → "Configuration"
@@ -38,6 +39,7 @@ Config templates in:     X:\config\
 6. Click "Apply"
 
 **CLI Method** (Alternative):
+
 ```bash
 # Edit bottle registry (requires Wine registry editor)
 BOTTLE_REG="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/windows/system32/config/system"
@@ -72,6 +74,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 ### Step 4: Update mq5run for X: Paths
 
 See `scripts/mq5run-x-drive` for updated version that:
+
 - Copies config from `X:\config\startup_template.ini` to MT5 directory
 - Points MT5 to scripts in `X:\mql5\Scripts\` (via mapped path)
 - Exports land in `X:\exports\` automatically
@@ -109,6 +112,7 @@ git commit -m "Add .gitattributes for Wine/macOS line ending normalization"
 ### Step 6: Backup Strategy
 
 **Periodic bottle snapshots**:
+
 ```bash
 # Export bottle via CrossOver GUI
 # File → "MetaTrader 5" → "Manage Bottle" → "Archive"
@@ -119,6 +123,7 @@ git commit -m "Add .gitattributes for Wine/macOS line ending normalization"
 ```
 
 **Git repo backups**:
+
 ```bash
 # Standard git operations - bottle files are already tracked
 git add exports/*.csv config/startup.ini
@@ -176,6 +181,7 @@ git commit -m "Add EURUSD M1 export validation"
 ### Issue: X: Drive Not Visible in Wine Apps
 
 **Check mapping**:
+
 ```bash
 # List bottle drives
 BOTTLE_ROOT="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5"
@@ -192,6 +198,7 @@ mt5-start cmd /c "dir X:\"
 **Cause**: macOS file permissions on repo directory.
 
 **Solution**:
+
 ```bash
 # Ensure bottle user can write
 chmod -R u+w /Users/terryli/eon/mql5-crossover/exports/
@@ -203,6 +210,7 @@ chmod -R u+w /Users/terryli/eon/mql5-crossover/logs/
 **Cause**: Python path not including `X:\python\`.
 
 **Solution**:
+
 ```python
 # Add at top of Wine Python script
 import sys
@@ -214,6 +222,7 @@ sys.path.insert(0, r'X:\python')
 **Cause**: Some MT5 paths are hardcoded to `C:\Program Files\...`.
 
 **Solution**:
+
 - Keep compiled `.ex5` in standard MT5 location
 - Only redirect exports and user-editable configs to `X:`
 - Use mq5c staging (it handles this automatically)
@@ -221,11 +230,13 @@ sys.path.insert(0, r'X:\python')
 ## Security Considerations
 
 **Do NOT commit**:
+
 - MT5 account credentials
 - API keys or tokens
 - Broker-specific configurations with account numbers
 
 **Use .gitignore**:
+
 ```bash
 # Add to .gitignore
 config/startup.ini        # Contains symbol-specific configs
@@ -235,6 +246,7 @@ config/account_*.ini      # Account credentials
 ```
 
 **Template pattern**:
+
 ```bash
 # Commit template
 config/startup_template.ini
@@ -263,6 +275,7 @@ sed -i '' 's/SYMBOL_PLACEHOLDER/EURUSD/g' config/startup.ini
 ## Alternative: Git Inside Bottle (Not Recommended)
 
 If you must use Git inside the bottle:
+
 ```bat
 REM Inside bottle, install Git for Windows
 REM Then initialize repo

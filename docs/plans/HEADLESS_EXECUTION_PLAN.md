@@ -6,12 +6,14 @@
 **Status**: COMPLETE ✅
 
 **Version History**:
+
 - v4.0.0 (2025-10-17): File-based configuration for GUI exports - COMPLETE ✅ (GUI mode only)
 - v3.0.0 (2025-10-13): Python API for market data - COMPLETE ✅ (true headless)
 - v2.1.0 (2025-10-17): Startup.ini parameter passing - FAILED ❌ (NOT VIABLE)
 - v2.0.0 (2025-10-13): Startup.ini basic script launch - CONDITIONALLY WORKING ⚠️
 
 **Summary**: Two complementary approaches validated:
+
 - **v3.0.0 Python API**: True headless execution for any symbol/timeframe (production-ready)
 - **v4.0.0 File-based config**: Flexible parameter-based GUI exports (no code editing needed)
 
@@ -25,12 +27,14 @@
 **Objective**: Enable flexible parameter-based exports via config file
 
 **Approach**: MQL5 script reads parameters from `export_config.txt` in `MQL5/Files/` sandbox
+
 - Simple key=value text format (no JSON parsing needed)
 - Config file optional - falls back to input parameters if not present
 - Works with custom indicators (unlike v3.0.0 Python API)
 - **Scope**: GUI-based manual exports (complements v3.0.0 for headless)
 
 **Result**: ✅ **SUCCESS** - Config reader working in GUI mode
+
 - 8 parameters successfully override defaults
 - 100% functional for manual exports with flexible parameters
 - Graceful degradation (falls back to input params if config missing)
@@ -39,6 +43,7 @@
 **Limitation Discovered**: startup.ini doesn't execute scripts reliably in headless mode (same as v2.0.0). v4.0.0 file-based config works perfectly in GUI mode but doesn't solve headless execution. For true headless, use v3.0.0 Python API.
 
 **Use Cases**:
+
 - ✅ Manual exports with varying parameters (no code editing)
 - ✅ Quick parameter changes for testing different configurations
 - ✅ Custom indicator exports (Laguerre RSI, etc.) via GUI
@@ -47,6 +52,7 @@
 ### Implementation Phases
 
 **Phase 1: Design** ✅ COMPLETE
+
 - [x] Choose config format: key=value text (simpler, no JSON parsing needed)
 - [x] Define parameter mappings: Match `ExportAligned.mq5` input names exactly
 - [x] Document file location: `MQL5/Files/export_config.txt` (accessible from MQL5 + Python)
@@ -55,6 +61,7 @@
 **Design Decisions**:
 
 **1. Config Format: Key=Value Text**
+
 ```
 # Example: export_config.txt
 InpSymbol=EURUSD
@@ -66,6 +73,7 @@ InpSMAPeriod=14
 InpUseLaguerreRSI=false
 InpOutputName=Export_EURUSD_M1_SMA.csv
 ```
+
 - **Rationale**: Simple parsing with MQL5 `FileReadString()` + `StringSplit()`
 - **Alternative Rejected**: JSON (requires external library like JAson.mqh, more complex)
 - **Format Rules**:
@@ -94,22 +102,26 @@ InpOutputName=Export_EURUSD_M1_SMA.csv
 | `InpOutputName` | `InpOutputName` | string | "" | Custom output filename |
 
 **3. File Location**: `MQL5/Files/export_config.txt`
+
 - **MQL5 Access**: `FileOpen("export_config.txt", FILE_READ|FILE_TXT)`
 - **Python Access (macOS)**: `$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Files/export_config.txt`
 - **Python Access (Wine)**: `C:\Program Files\MetaTrader 5\MQL5\Files\export_config.txt`
 - **Rationale**: MQL5/Files/ is the sandbox directory accessible from both MQL5 and external scripts
 
 **4. Encoding**: UTF-8
+
 - **Rationale**: Standard encoding, MQL5 `FileOpen()` with `FILE_TXT` handles UTF-8
 - **Alternative Rejected**: UTF-16LE (used by .set files, but adds complexity)
 
 **5. Loading Strategy**:
+
 - Config file is **optional** - if not present, use input parameters from .mq5
 - Config file **overrides** input parameters if present
 - Missing parameters in config → fall back to defaults
 - Invalid values → log error and use defaults (no silent failures)
 
 **6. Error Handling**:
+
 - Config file not found → Use input parameters (graceful degradation)
 - Invalid format (no `=` delimiter) → Skip line, log warning
 - Invalid boolean (`true1`) → Default to `false`, log warning
@@ -117,12 +129,14 @@ InpOutputName=Export_EURUSD_M1_SMA.csv
 - Unknown parameter name → Ignore, log warning (forward compatibility)
 
 **Phase 2: MQL5 Config Reader** ✅ COMPLETE
+
 - [x] Implement `LoadConfigFromFile()` function (13 parameters by reference)
 - [x] Add parameter parsing logic (key=value format with StringSplit)
 - [x] Add fallback to input parameters if no config (working copies pattern)
 - [x] Handle MQL5 const input limitation (create mutable working copies in OnStart)
 
 **Phase 3: Baseline Test (EURUSD)** ✅ COMPLETE
+
 - [x] Create test config (100 bars, SMA enabled, custom filename)
 - [x] Run export script via GUI
 - [x] Verify logs show config loaded (8 parameters from export_config.txt)
@@ -130,6 +144,7 @@ InpOutputName=Export_EURUSD_M1_SMA.csv
 - [x] Add debug logging for file open errors
 
 **Phase 4: Headless Test** ❌ FAILED (startup.ini limitation)
+
 - [x] Attempt headless execution via startup.ini
 - [x] Result: Script not executed (same limitation as v2.0.0)
 - [x] Conclusion: File-based config works in GUI mode only
@@ -139,16 +154,19 @@ InpOutputName=Export_EURUSD_M1_SMA.csv
 ### Files Created
 
 **MQL5 Config Reader** (integrated into ExportAligned.mq5:27-94):
+
 - `LoadConfigFromFile()` - Reads export_config.txt, overrides 13 parameters by reference
 - Working copies pattern - Handles MQL5 const input limitation
 - Debug logging - Shows config status and error codes
 
 **Test Config**:
+
 ```
 /Users/terryli/.../MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Files/export_config.txt
 ```
 
 **Output CSV** (validated):
+
 ```
 /Users/terryli/.../MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Files/Export_EURUSD_M1_Baseline.csv
 101 lines (1 header + 100 data bars)
@@ -158,14 +176,17 @@ Columns: time,open,high,low,close,tick_volume,spread,real_volume,SMA_14
 ### Future Work (Optional)
 
 **Phase 5 (Optional): Config Templates**
+
 - [ ] Create example configs for common scenarios (RSI, SMA, Laguerre RSI)
 - [ ] Document config file format in user guide
 
 **Phase 6 (Optional): Python Config Generator**
+
 - [ ] Create `generate_export_config.py` script for programmatic config generation
 - [ ] Useful for batch exports with varying parameters
 
 **Phase 7 (Optional): Workflow Documentation**
+
 - [ ] Create step-by-step guide for GUI-based config workflow
 - [ ] Update CLAUDE.md with v4.0.0 usage examples
 
@@ -180,6 +201,7 @@ Columns: time,open,high,low,close,tick_volume,spread,real_volume,SMA_14
 **Result**: ✅ **SUCCESS** - All 5 phases completed
 
 **Key Achievements**:
+
 1. ✅ Wine Python 3.12.8 + MetaTrader5 5.0.5328 working with NumPy 1.26.4
 2. ✅ Custom RSI calculation (pandas ewm) - no pandas-ta dependency
 3. ✅ MT5 connection via Wine Python - no bridge complexity
@@ -189,11 +211,13 @@ Columns: time,open,high,low,close,tick_volume,spread,real_volume,SMA_14
 **Critical Test**: XAUUSD (never opened in GUI) exported successfully for both M1 and H1 timeframes - **proving true headless capability**
 
 **Files**:
+
 - Export script: `C:\users\crossover\export_aligned.py`
 - Outputs: `C:\Users\crossover\exports\Export_{SYMBOL}_PERIOD_{TIMEFRAME}.csv`
 - Test scripts: `test_mt5_connection.py`, `test_numpy_workaround.bat`
 
 **Usage**:
+
 ```bash
 # From macOS command line (via cxstart)
 cxstart --bottle "MetaTrader 5" -- cmd /c "\"C:\Program Files\Python312\python.exe\" C:\users\crossover\export_aligned.py --symbol XAUUSD --period M1 --bars 5000"
@@ -207,6 +231,7 @@ cat "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/d
 ## Problem Statement
 
 **v2.0.0 Limitation Discovered** (2025-10-13 16:09):
+
 - startup.ini approach requires prior GUI initialization for each symbol/timeframe
 - EURUSD M1: ✅ Works (manually initialized at 15:03)
 - XAUUSD H1: ❌ Fails (never opened in GUI)
@@ -227,6 +252,7 @@ macOS filesystem (shared)
 ```
 
 **Key Capabilities**:
+
 - `mt5.symbol_select()` - programmatically add symbols to Market Watch
 - `mt5.copy_rates_range()` - fetch OHLC data without charts
 - No GUI interaction required - eliminates chart context dependency
@@ -234,6 +260,7 @@ macOS filesystem (shared)
 - pandas-ta for RSI calculation (installable in Wine Python)
 
 **Architecture Rationale**:
+
 - mt5linux/pymt5adapter both require MetaTrader5 package (Windows-only) on macOS side - fundamentally incompatible
 - Direct Wine Python execution simplifies architecture, eliminates bridge complexity
 - macOS can read CSV files directly from shared bottle filesystem
@@ -241,21 +268,25 @@ macOS filesystem (shared)
 ## Service Level Objectives
 
 ### Availability
+
 - **Target**: 95% success rate for any symbol/timeframe without prior GUI setup
 - **Measurement**: Successful CSV generation for never-before-initialized symbols
 - **Failure condition**: Cold start test (XAUUSD H1) fails
 
 ### Correctness
+
 - **Target**: 100% data integrity, correlation ≥ 0.999 with MT5 native indicators
 - **Measurement**: python/validate_export.py all checks pass
 - **Failure condition**: Any integrity check fails OR RSI correlation < 0.999
 
 ### Observability
+
 - **Target**: All API calls logged with errors propagated (no silent failures)
 - **Measurement**: Log entries for mt5.initialize(), symbol_select(), copy_rates_range() with error codes
 - **Failure condition**: API call fails without logged error via mt5.last_error()
 
 ### Maintainability
+
 - **Target**: Single command data export, no manual Wine/MT5 management
 - **Measurement**: User runs one script, bridge auto-starts, MT5 auto-connects
 - **Failure condition**: User must manually start Wine processes or MT5 terminal between runs
@@ -263,6 +294,7 @@ macOS filesystem (shared)
 ## Implementation Phases
 
 ### Phase 1: Wine Python Environment Setup
+
 **Status**: COMPLETE ✅
 **Resolution**: NumPy 1.26.4 downgrade successful
 **Validation**: MetaTrader5 5.0.5328 imports successfully in Wine Python
@@ -279,6 +311,7 @@ macOS filesystem (shared)
    - Validation output: `SUCCESS: MetaTrader5 version: 5.0.5328`
 
 **Tasks Completed**:
+
 1. ✅ Python 3.12.8 installed in CrossOver bottle via GUI (MetaTrader 5 bottle)
 2. ✅ NumPy 2.3.3 uninstalled
 3. ✅ NumPy 1.26.4 installed (MetaTrader5-compatible version)
@@ -286,17 +319,20 @@ macOS filesystem (shared)
 5. ✅ MetaTrader5 import test successful
 
 **Success Criteria Met**:
+
 - ✅ Wine Python 3.12.8 installed and functional
 - ✅ `import MetaTrader5` succeeds in Wine Python
 - ✅ Package version: MetaTrader5 5.0.5328
 
 **Validation Result**:
+
 ```bash
 # Executed in Wine Python via test_numpy_workaround.bat
 SUCCESS: MetaTrader5 version: 5.0.5328
 ```
 
 ### Phase 2: Wine Python Dependencies (REVISED)
+
 **Status**: COMPLETE ✅
 **Previous Approach**: mt5linux bridge - ABANDONED (requires MetaTrader5 package on macOS, which is Windows-only)
 **New Approach**: Run entire Python script in Wine, output CSV to shared filesystem
@@ -306,23 +342,27 @@ SUCCESS: MetaTrader5 version: 5.0.5328
 **Objective**: Install dependencies for RSI calculation in Wine Python
 
 **Resolution Details**:
+
 1. ✅ pandas 2.3.3 installed with NumPy 1.26.4 pinned
 2. ✅ pandas-ta SKIPPED - RSI calculation implemented directly with pandas ewm()
 3. ✅ Output directory working - CrossOver provides automatic filesystem integration
 
 **Tasks Completed**:
+
 - pandas installed successfully with --no-deps to avoid NumPy upgrade
 - pandas dependencies manually installed (python-dateutil, pytz, tzdata)
 - Environment restored after initial pandas-ta installation broke NumPy pinning
 - RSI calculation implemented manually (3 lines of code vs pandas-ta dependency)
 
 **Success Criteria Met**:
+
 - ✅ pandas imports successfully in Wine Python
 - ✅ NumPy 1.26.4 remains stable (no upgrade to 2.x)
 - ✅ Output directory accessible from both Wine and macOS
 - ✅ Custom RSI calculation working correctly
 
 **Validation Result**:
+
 ```bash
 # Environment diagnostic via restore_and_test.bat
 Python 3.12.8, NumPy 1.26.4, MetaTrader5 5.0.5328, pandas 2.3.3
@@ -330,6 +370,7 @@ SUCCESS: All packages working without crashes
 ```
 
 ### Phase 3: MT5 Connection Test
+
 **Status**: COMPLETE ✅
 **Completion Time**: 2025-10-13 17:40
 **Validation**: test_mt5_connection.py successful
@@ -337,12 +378,14 @@ SUCCESS: All packages working without crashes
 **Objective**: Verify Wine Python can connect to MT5 and fetch data
 
 **Resolution Details**:
+
 - ✅ Connected to MT5 build 5331 successfully
 - ✅ EURUSD selected programmatically (no GUI needed)
 - ✅ Fetched 7,175 bars of M1 data
 - ✅ Latest close: 1.15702
 
 **Tasks Completed**:
+
 1. ✅ Created test_mt5_connection.py with proper error handling
 2. ✅ MT5 initialize() successful
 3. ✅ terminal_info() returned MT5 build 5331
@@ -350,11 +393,13 @@ SUCCESS: All packages working without crashes
 5. ✅ copy_rates_range() fetched data successfully
 
 **Success Criteria Met**:
+
 - ✅ `mt5.initialize()` returns True
 - ✅ `mt5.terminal_info()` returns build info
 - ✅ `copy_rates_range()` returns bars with OHLCV fields
 
 **Validation Result**:
+
 ```bash
 # Executed via run_test_now.bat
 [OK] MT5 initialized successfully
@@ -372,6 +417,7 @@ Phase 3 Test: PASSED
 ```
 
 ### Phase 4: Data Export Script Development
+
 **Status**: COMPLETE ✅
 **Completion Time**: 2025-10-13 17:45
 **Validation**: EURUSD M1 export successful (5,001 rows)
@@ -379,6 +425,7 @@ Phase 3 Test: PASSED
 **Objective**: Rewrite ExportAligned.mq5 logic in Python with RSI calculation
 
 **Resolution Details**:
+
 - ✅ Created export_aligned.py with full functionality
 - ✅ Custom RSI implementation using pandas ewm() (Wilder's smoothing)
 - ✅ Command-line interface with --symbol, --period, --bars, --output
@@ -387,6 +434,7 @@ Phase 3 Test: PASSED
 - ✅ Updated to use copy_rates_from_pos() for non-24/7 markets
 
 **Tasks Completed**:
+
 1. ✅ Created export_aligned.py with argparse CLI
 2. ✅ Implemented symbol selection with error checking
 3. ✅ Fetched OHLC data using copy_rates_from_pos() (more reliable than date ranges)
@@ -394,11 +442,13 @@ Phase 3 Test: PASSED
 5. ✅ Exported to CSV with matching format
 
 **Success Criteria Met**:
+
 - ✅ Script runs without errors for any symbol/timeframe
 - ✅ CSV format matches ExportAligned.mq5 (Time, Open, High, Low, Close, Volume, RSI)
 - ✅ RSI values calculated correctly for all bars (14-period warmup included)
 
 **Validation Result**:
+
 ```bash
 # EURUSD M1 test export
 File: Export_EURUSD_PERIOD_M1.csv
@@ -410,6 +460,7 @@ Time format: 2025.10.14 00:39:00 (matches MQL5)
 ```
 
 ### Phase 5: Cold Start Validation
+
 **Status**: COMPLETE ✅
 **Completion Time**: 2025-10-13 17:48
 **Validation**: XAUUSD M1 and H1 both successful - TRUE HEADLESS CONFIRMED
@@ -417,6 +468,7 @@ Time format: 2025.10.14 00:39:00 (matches MQL5)
 **Objective**: Verify headless execution for symbols never opened in GUI
 
 **Resolution Details**:
+
 - ✅ XAUUSD M1: 5,000 bars exported successfully (never opened in GUI)
 - ✅ XAUUSD H1: 5,000 bars exported successfully (never opened in GUI)
 - ✅ Both symbol/timeframe combinations worked without ANY manual initialization
@@ -424,6 +476,7 @@ Time format: 2025.10.14 00:39:00 (matches MQL5)
 - ✅ copy_rates_from_pos() more reliable than copy_rates_range() for non-24/7 markets
 
 **Tasks Completed**:
+
 1. ✅ Confirmed XAUUSD never manually opened in MT5 GUI
 2. ✅ Ran export for XAUUSD M1: 5,000 bars (2025-10-08 to 2025-10-13)
 3. ✅ Ran export for XAUUSD H1: 5,000 bars (2024-12-04 to 2025-10-13)
@@ -431,6 +484,7 @@ Time format: 2025.10.14 00:39:00 (matches MQL5)
 5. ✅ RSI values calculated correctly
 
 **Success Criteria Met**:
+
 - ✅ Script completed without GUI interaction
 - ✅ CSV files exist with 5,000 bars each
 - ✅ CSV format matches ExportAligned.mq5 exactly
@@ -439,6 +493,7 @@ Time format: 2025.10.14 00:39:00 (matches MQL5)
 **Validation Results**:
 
 **XAUUSD M1**:
+
 ```bash
 File: Export_XAUUSD_PERIOD_M1.csv
 Rows: 5,000
@@ -450,6 +505,7 @@ Sample data:
 ```
 
 **XAUUSD H1**:
+
 ```bash
 File: Export_XAUUSD_PERIOD_H1.csv
 Rows: 5,000
@@ -471,12 +527,14 @@ Exit code: 0 (SUCCESS)
 ### Test Results (All Failed)
 
 **Test 1: Named Section Method** - ❌ FAILED
+
 - Config: `[ExportAligned]` section with all parameters
 - Expected: 100 bars, SMA column, `Export_EURUSD_M1_SMA.csv`
 - Actual: 5000 bars (defaults), RSI column, `Export_EURUSD_PERIOD_M1.csv`
 - **Conclusion**: Named sections NOT supported by MT5 (only `[StartUp]` section documented)
 
 **Test 2: ScriptParameters with .set Preset File** - ❌ FAILED (Script didn't execute)
+
 - Config: `ScriptParameters=ExportAligned.set`
 - Preset file: UTF-16LE BOM encoded, `MQL5/Presets/ExportAligned.set`
 - Expected: Script executes with preset parameters
@@ -486,12 +544,14 @@ Exit code: 0 (SUCCESS)
 ### Research Findings (4 Parallel Subtasks)
 
 **Finding 1: Named Sections NOT Supported**
+
 - MT5 documentation only specifies predefined sections (`[StartUp]`, `[Experts]`, etc.)
 - Custom named sections like `[ScriptName]` are NOT documented
 - Windows users report same failure - NOT a Wine bug
 - ✅ Confirmed: Universal MT5 limitation
 
 **Finding 2: ScriptParameters Silent Failure**
+
 - ScriptParameters IS valid for scripts (not EA-only)
 - Fails silently when:
   - Wrong encoding (must be UCS-2 LE with BOM)
@@ -501,12 +561,14 @@ Exit code: 0 (SUCCESS)
 - ✅ Confirmed: Strict requirements cause silent failures
 
 **Finding 3: No Wine-Specific Issues**
+
 - No Wine bugs found for parameter passing
 - All failures replicate on native Windows
 - Community reports confirm same issues on Windows
 - ✅ Confirmed: MT5 design limitation, not Wine compatibility issue
 
 **Finding 4: Alternative Methods Exist**
+
 - File-based config reading (MQL5 FileOpen/FileReadString)
 - JSON/INI parsing libraries available (JAson.mqh, IniFiles.mqh)
 - Python MetaTrader5 API (v3.0.0 - already working)
@@ -517,6 +579,7 @@ Exit code: 0 (SUCCESS)
 **Status**: ❌ NOT VIABLE on CrossOver (or native Windows)
 
 **Reasons**:
+
 1. Named sections don't work (MT5 limitation, all platforms)
 2. ScriptParameters has strict requirements with silent failures
 3. No error feedback when configuration fails
@@ -529,12 +592,14 @@ Exit code: 0 (SUCCESS)
 ## Off-the-Shelf Components
 
 ### Required Packages
+
 - **Python 3.12+** (x64 Windows): python.org/downloads/windows/
 - **MetaTrader5 Python package**: pypi.org/project/MetaTrader5/
 - **mt5linux bridge**: pypi.org/project/mt5linux/ (Lucas Campagna, Linux/Mac bridge)
 - **pandas-ta**: pypi.org/project/pandas-ta/ (RSI and technical indicators)
 
 ### Alternatives Considered
+
 - **TA-Lib**: Requires C compilation, more complex setup (rejected)
 - **Custom RPyC server**: Re-inventing mt5linux (rejected - use existing solution)
 - **REST API wrapper**: Over-engineered for single-user local setup (rejected)
@@ -556,29 +621,34 @@ if not mt5.initialize():
 ```
 
 **Error Categories**:
+
 1. **Environment errors**: Python/package installation issues
 2. **Connection errors**: mt5linux bridge or MT5 terminal communication failures
 3. **Data errors**: Symbol not found, data fetch failures, empty results
 4. **Validation errors**: RSI correlation below threshold, integrity check failures
 
 **Logging Requirements**:
-- All mt5.* API calls logged with timestamps
+
+- All mt5.\* API calls logged with timestamps
 - Error codes from `mt5.last_error()` always included in exceptions
 - Full tracebacks preserved (no exception swallowing)
 
 ## Migration from v2.0.0
 
 **Deprecated**:
+
 - `mq5run` script (startup.ini approach)
 - Manual GUI initialization requirement
 - startup.ini config file generation
 
 **Preserved**:
+
 - CSV output format (backward compatible)
 - `python/validate_export.py` validation logic
 - MT5 terminal in CrossOver (still required, but no GUI interaction)
 
 **New Entry Point**:
+
 ```bash
 # Old (conditional - requires GUI setup)
 ./scripts/mq5run --symbol XAUUSD --period PERIOD_H1
@@ -590,6 +660,7 @@ uv run --active python -m export_aligned_py --symbol XAUUSD --period H1 --bars 5
 ## Progress Tracking
 
 ### Phase 1: Wine Python Setup ✅ COMPLETE (2025-10-13 17:20)
+
 - [x] Python 3.12 Windows installer downloaded (via CrossOver GUI)
 - [x] Python 3.12.8 installed in CrossOver bottle (MetaTrader 5 bottle)
 - [x] NumPy 1.26.4 workaround tested and successful
@@ -597,18 +668,21 @@ uv run --active python -m export_aligned_py --symbol XAUUSD --period H1 --bars 5
 - [x] Import test successful - MetaTrader5 imports in Wine Python
 
 ### Phase 2: Wine Python Dependencies ✅ COMPLETE (2025-10-13 17:35)
+
 - [x] pandas 2.3.3 installed with NumPy 1.26.4 pinned
 - [x] pandas-ta SKIPPED - custom RSI implementation chosen
 - [x] Environment stable after restore
 - [x] Output directory accessible from Wine and macOS
 
 ### Phase 3: MT5 Connection ✅ COMPLETE (2025-10-13 17:40)
+
 - [x] mt5.initialize() successful
 - [x] mt5.terminal_info() returns data (build 5331)
 - [x] Basic data fetch works (EURUSD M1 - 7,175 bars)
 - [x] symbol_select() works without prior GUI initialization
 
 ### Phase 4: Export Script ✅ COMPLETE (2025-10-13 17:45)
+
 - [x] export_aligned.py created with full CLI
 - [x] Symbol selection logic implemented with error checking
 - [x] OHLC data fetch implemented (copy_rates_from_pos)
@@ -617,6 +691,7 @@ uv run --active python -m export_aligned_py --symbol XAUUSD --period H1 --bars 5
 - [x] EURUSD M1 validation passed (5,000 bars)
 
 ### Phase 5: Cold Start Validation ✅ COMPLETE (2025-10-13 17:48)
+
 - [x] XAUUSD M1 export successful (never initialized in GUI - 5,000 bars)
 - [x] XAUUSD H1 export successful (never initialized in GUI - 5,000 bars)
 - [x] CSV format matches ExportAligned.mq5
@@ -635,6 +710,7 @@ uv run --active python -m export_aligned_py --symbol XAUUSD --period H1 --bars 5
 **Impact**: Cannot run MetaTrader5 Python package under Wine with NumPy 2.x
 
 **Resolution**:
+
 1. ✅ **NumPy 1.26.4 downgrade** - SUCCESSFUL
    - Community-verified working (MQL5 forum, Sep 2024)
    - Test script: `test_numpy_workaround.bat`
@@ -650,35 +726,41 @@ uv run --active python -m export_aligned_py --symbol XAUUSD --period H1 --bars 5
 ## Decision Log
 
 ### Decision 1: NumPy 1.26.4 workaround for Wine compatibility - SUCCESSFUL ✅
+
 **Date**: 2025-10-13 17:15 (Created) → 2025-10-13 17:20 (Resolved)
 **Initial Status**: Python API approach blocked by Wine UCRT incompatibility
 **Research Findings**: Community-verified workarounds exist (NumPy 1.x pinning, Wine upgrade, native DLL)
 **Rationale**: MetaTrader5 package compiled against NumPy 1.x API, not 2.x. NumPy 2.x uses additional UCRT functions not in Wine 10.0.
 **Evidence**:
+
 - `ucrtbase.dll.crealf` unimplemented function error during NumPy 2.x import
 - MQL5 community confirmation (Sep 2024): MetaTrader5 incompatible with NumPy 2.x
 - WineHQ forum (Mar 2025): Wine 10.1+ has improved UCRT support
-**Resolution**: NumPy 1.26.4 downgrade via `test_numpy_workaround.bat` - SUCCESSFUL
-**Outcome**: MetaTrader5 5.0.5328 imports successfully, all 5 phases completed
-**Alternative**: Revert to v2.0.0 startup.ini approach - NOT NEEDED
+  **Resolution**: NumPy 1.26.4 downgrade via `test_numpy_workaround.bat` - SUCCESSFUL
+  **Outcome**: MetaTrader5 5.0.5328 imports successfully, all 5 phases completed
+  **Alternative**: Revert to v2.0.0 startup.ini approach - NOT NEEDED
 
 ### Decision 2: Abandon mt5linux bridge, use Wine Python only
+
 **Date**: 2025-10-13 17:30
 **Initial Plan**: Use mt5linux/pymt5adapter bridge for macOS Python → Wine MT5
 **Blocking Issue**: Both bridge packages require MetaTrader5 package (Windows-only) importable on macOS side
 **Evidence**:
+
 - mt5linux 0.1.9 requires ancient numpy==1.21.4 (incompatible with Python 3.13, distutils removed)
 - pymt5adapter all versions require exact metatrader5==5.0.31 or 5.0.33 (not available for macOS)
 - MetaTrader5 package is Windows-only, cannot run on macOS even with Wine bridge
-**Revised Architecture**: Run entire Python script in Wine, write CSV to shared macOS filesystem
-**Rationale**: Simplifies architecture, eliminates bridge complexity, leverages CrossOver's filesystem integration
-**Trade-off**: Script execution happens in Wine (slightly more friction), but eliminates dependency hell
+  **Revised Architecture**: Run entire Python script in Wine, write CSV to shared macOS filesystem
+  **Rationale**: Simplifies architecture, eliminates bridge complexity, leverages CrossOver's filesystem integration
+  **Trade-off**: Script execution happens in Wine (slightly more friction), but eliminates dependency hell
 
 ### Decision 3: pandas-ta for RSI vs TA-Lib
+
 **Rationale**: pandas-ta is pure Python (no C compilation), simpler installation, sufficient accuracy
 **Alternative**: TA-Lib (rejected - requires compilation, overkill for RSI only)
 
 ### Decision 4: Raise errors immediately vs retry logic
+
 **Rationale**: User requirement - "no fallbacks, defaults, retries". Fail fast for transparency.
 **Alternative**: Automatic retry with exponential backoff (rejected per requirements)
 

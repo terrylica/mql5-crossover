@@ -9,6 +9,7 @@
 ## Executive Summary
 
 After comprehensive survey, the workspace contains **significant prunable content**:
+
 - **9 documentation files** should be archived or deleted (outdated v2.0.0 content)
 - **4 spike test files** should be archived (experiments confirmed negative, now documented)
 - **3 legacy Python tools** should be deprecated (superseded by newer tools)
@@ -18,6 +19,7 @@ After comprehensive survey, the workspace contains **significant prunable conten
 **Total Cleanup Impact**: ~150KB documentation, clearer navigation, faster onboarding
 
 **Confidence**: High - All recommendations based on:
+
 - File modification dates (Oct 13-17, 2025)
 - Content supersession (v3.0.0 replaces v2.0.0)
 - Documented completion status
@@ -30,12 +32,14 @@ After comprehensive survey, the workspace contains **significant prunable conten
 ### 🗑️ **ARCHIVE** - Outdated v2.0.0 Documentation (5 files)
 
 #### 1.1 QUICKSTART.md
+
 **File**: `docs/guides/QUICKSTART.md`
 **Status**: ⚠️ OUTDATED - References v2.0.0
 **Last Modified**: Pre-2025-10-17 (inherited from repo)
 **Size**: ~3KB
 
 **Issues**:
+
 - References deprecated `./scripts/mq5run` (v2.0.0 LEGACY)
 - No mention of v3.0.0 Wine Python MT5 API
 - Missing 5000-bar warmup methodology
@@ -49,12 +53,14 @@ After comprehensive survey, the workspace contains **significant prunable conten
 ---
 
 #### 1.2 AI_AGENT_WORKFLOW.md
+
 **File**: `docs/guides/AI_AGENT_WORKFLOW.md`
 **Status**: ⚠️ OUTDATED - Extensive v2.0.0 coverage
 **Last Modified**: Inherited from repo
 **Size**: ~18KB
 
 **Issues**:
+
 - Extensively documents v2.0.0 `mq5run`/`startup.ini` approach
 - Doesn't document v3.0.0 Wine Python MT5 API
 - Missing Laguerre RSI validation lessons
@@ -68,12 +74,14 @@ After comprehensive survey, the workspace contains **significant prunable conten
 ---
 
 #### 1.3 MQL5_CLI_COMPILATION_INVESTIGATION.md
+
 **File**: `docs/guides/MQL5_CLI_COMPILATION_INVESTIGATION.md`
 **Status**: ⚠️ HISTORICAL - 11+ failed attempts documented
 **Last Modified**: Oct 13, 2025 (pre-success)
 **Size**: ~15KB
 
 **Issues**:
+
 - Documents 11 FAILED CLI compilation attempts
 - Superseded by `MQL5_CLI_COMPILATION_SUCCESS.md` (working method)
 - Historical value only (shows learning process)
@@ -85,12 +93,14 @@ After comprehensive survey, the workspace contains **significant prunable conten
 ---
 
 #### 1.4 MQL5_CLI_COMPILATION_SOLUTION.md
+
 **File**: `docs/guides/MQL5_CLI_COMPILATION_SOLUTION.md`
 **Status**: ⚠️ SUPERSEDED - Intermediate solution
 **Last Modified**: Oct 13, 2025
 **Size**: ~8KB
 
 **Issues**:
+
 - Intermediate solution between INVESTIGATION and SUCCESS
 - Superseded by `MQL5_CLI_COMPILATION_SUCCESS.md`
 - Contains partial solutions that were refined
@@ -102,12 +112,14 @@ After comprehensive survey, the workspace contains **significant prunable conten
 ---
 
 #### 1.5 CROSSOVER_MQ5.md
+
 **File**: `docs/guides/CROSSOVER_MQ5.md`
 **Status**: ⚠️ LEGACY - v2.0.0 shell setup
 **Last Modified**: Pre-Oct 13, 2025
 **Size**: ~12KB
 
 **Issues**:
+
 - Documents v2.0.0 shell setup
 - Contains useful path info (now in MT5_FILE_LOCATIONS.md)
 - v2.0.0 workflow details (now in WINE_PYTHON_EXECUTION.md)
@@ -123,11 +135,13 @@ After comprehensive survey, the workspace contains **significant prunable conten
 These files are current, actively referenced, and provide unique value:
 
 **Master Guides** (3):
+
 - `MQL5_TO_PYTHON_MIGRATION_GUIDE.md` - ⭐ Master workflow
 - `EXTERNAL_RESEARCH_BREAKTHROUGHS.md` - Hard-learned lessons
 - `PYTHON_INDICATOR_VALIDATION_FAILURES.md` - Debugging journey
 
 **Technical Guides** (7):
+
 - `WINE_PYTHON_EXECUTION.md` - v3.0.0 Wine Python
 - `MQL5_CLI_COMPILATION_SUCCESS.md` - Working CLI method
 - `MT5_FILE_LOCATIONS.md` - File paths
@@ -137,12 +151,14 @@ These files are current, actively referenced, and provide unique value:
 - `BOTTLE_TRACKING.md` - CrossOver bottle tracking
 
 **Bug Documentation** (4):
+
 - `LAGUERRE_RSI_SHARED_STATE_BUG.md` - Root cause analysis
 - `LAGUERRE_RSI_ARRAY_INDEXING_BUG.md` - Series indexing fix
 - `LAGUERRE_RSI_BUG_FIX_SUMMARY.md` - Price smoothing fix
 - `LAGUERRE_RSI_BUG_REPORT.md` - Original bug report
 
 **Reports** (4):
+
 - `DOCUMENTATION_READINESS_ASSESSMENT.md` - This assessment's companion
 - `LAGUERRE_RSI_VALIDATION_SUCCESS.md` - Success methodology
 - `VALIDATION_STATUS.md` - SLO metrics
@@ -155,6 +171,7 @@ These files are current, actively referenced, and provide unique value:
 ### 🗑️ **ARCHIVE** - Spike/Experiment Files (4 files)
 
 #### 2.1 spike_1_mt5_indicator_access.py
+
 **Purpose**: Test if mt5.create_indicator() works with custom indicators
 **Result**: ❌ FAILED - Python API cannot access indicator buffers
 **Status**: Documented in `EXTERNAL_RESEARCH_BREAKTHROUGHS.md`
@@ -168,6 +185,7 @@ These files are current, actively referenced, and provide unique value:
 ---
 
 #### 2.2 spike_1_mt5_indicator_access_ascii.py
+
 **Purpose**: Variant of spike_1 with ASCII encoding handling
 **Result**: ❌ FAILED (same as spike_1)
 **Status**: Redundant variant
@@ -179,6 +197,7 @@ These files are current, actively referenced, and provide unique value:
 ---
 
 #### 2.3 spike_2_registry_pattern.py
+
 **Purpose**: Test indicator registry pattern for validation framework
 **Result**: ✅ SUCCESS - Pattern implemented in `validate_indicator.py`
 **Status**: Code incorporated into production tool
@@ -192,6 +211,7 @@ These files are current, actively referenced, and provide unique value:
 ---
 
 #### 2.4 spike_3_duckdb_performance.py
+
 **Purpose**: Test DuckDB performance for validation tracking
 **Result**: ✅ SUCCESS - DuckDB used in `validate_indicator.py`
 **Status**: Implementation complete
@@ -203,6 +223,7 @@ These files are current, actively referenced, and provide unique value:
 ---
 
 #### 2.5 spike_4_backward_compatibility.py
+
 **Purpose**: Test backward compatibility for validation framework
 **Result**: ✅ Findings incorporated
 **Status**: Lessons applied
@@ -216,6 +237,7 @@ These files are current, actively referenced, and provide unique value:
 ### ⚠️ **DEPRECATE** - Legacy Python Tools (3 files)
 
 #### 2.6 validate_export.py
+
 **Purpose**: CSV validation (v2.0.0 legacy)
 **Status**: ⚠️ SUPERSEDED by `validate_indicator.py`
 **Size**: 8.1K
@@ -246,6 +268,7 @@ This file is kept for backward compatibility only.
 ---
 
 #### 2.7 test_mt5_connection.py
+
 **Purpose**: Basic MT5 connection test
 **Status**: ⚠️ UTILITY - Rarely used
 **Size**: 3.0K
@@ -258,6 +281,7 @@ This file is kept for backward compatibility only.
 ---
 
 #### 2.8 test_xauusd_info.py
+
 **Purpose**: Symbol info testing (specific to XAUUSD)
 **Status**: ⚠️ EXAMPLE - Specific use case
 **Size**: 2.9K
@@ -272,12 +296,14 @@ This file is kept for backward compatibility only.
 ### ✅ **KEEP** - Production Tools (5 files)
 
 **Core Tools**:
+
 - `export_aligned.py` - v3.0.0 Wine Python export (production)
 - `validate_indicator.py` - Universal validation framework (production)
 - `generate_mt5_config.py` - Config generation (utility)
 - `run_validation.py` - Batch validation (automation)
 
 **Indicator Library**:
+
 - `indicators/laguerre_rsi.py` - First validated indicator (template)
 
 ---
@@ -286,8 +312,10 @@ This file is kept for backward compatibility only.
 
 ### 🗑️ **ARCHIVE** - Completed Plans (8 files)
 
-#### 3.1 BUFFER_FIX_*.md (3 files)
+#### 3.1 BUFFER*FIX*\*.md (3 files)
+
 **Files**:
+
 - `BUFFER_FIX_COMPLETE.md` (Oct 16, 23:37) - ✅ COMPLETE
 - `BUFFER_FIX_STATUS.md` (Oct 16, 23:28) - ✅ COMPLETE
 - `BUFFER_ISSUE_ANALYSIS.md` (Oct 16, 23:10) - ✅ COMPLETE
@@ -298,6 +326,7 @@ This file is kept for backward compatibility only.
 **Recommendation**: **CONSOLIDATE & ARCHIVE**
 
 Create single document `docs/archive/BUFFER_FIX_PROJECT.md` with:
+
 - Summary of issue
 - Solution implemented
 - Lessons learned
@@ -310,6 +339,7 @@ Then delete originals.
 ---
 
 #### 3.2 LAGUERRE_RSI_VALIDATION_PLAN.md
+
 **File**: `docs/plans/LAGUERRE_RSI_VALIDATION_PLAN.md`
 **Status**: ✅ COMPLETE - Validation achieved (1.000000 correlation)
 **Size**: 21KB
@@ -322,6 +352,7 @@ Then delete originals.
 ---
 
 #### 3.3 UNIVERSAL_VALIDATION_PLAN.md
+
 **File**: `docs/plans/UNIVERSAL_VALIDATION_PLAN.md`
 **Status**: ✅ COMPLETE - `validate_indicator.py` implemented
 **Size**: 8.1KB
@@ -334,6 +365,7 @@ Then delete originals.
 ---
 
 #### 3.4 MT5_IDIOMATIC_REFACTORING.md
+
 **File**: `docs/plans/MT5_IDIOMATIC_REFACTORING.md`
 **Status**: ✅ COMPLETE - v2.0.0 structure implemented
 **Size**: 11KB
@@ -346,6 +378,7 @@ Then delete originals.
 ---
 
 #### 3.5 WORKSPACE_REFACTORING_PLAN.md
+
 **File**: `docs/plans/WORKSPACE_REFACTORING_PLAN.md`
 **Status**: ✅ COMPLETE - Workspace reorganized
 **Size**: 12KB
@@ -358,6 +391,7 @@ Then delete originals.
 ---
 
 #### 3.6 CC_REFACTORING_PLAN.md
+
 **File**: `docs/plans/CC_REFACTORING_PLAN.md`
 **Status**: ✅ COMPLETE - cc indicator refactored
 **Size**: 6.3KB
@@ -368,6 +402,7 @@ Then delete originals.
 ---
 
 #### 3.7 exporter_plan.md
+
 **File**: `docs/plans/exporter_plan.md`
 **Status**: ⚠️ VAGUE - No clear connection to current code
 **Size**: 2.5KB
@@ -380,6 +415,7 @@ Then delete originals.
 ---
 
 #### 3.8 MIGRATION_PLAN.md
+
 **File**: `docs/plans/MIGRATION_PLAN.md`
 **Status**: ❓ UNKNOWN - Need to check content
 **Size**: Unknown
@@ -391,6 +427,7 @@ Then delete originals.
 ### ✅ **KEEP** - Active Plans (1 file)
 
 #### 3.9 HEADLESS_EXECUTION_PLAN.md
+
 **File**: `docs/plans/HEADLESS_EXECUTION_PLAN.md`
 **Status**: ✅ REFERENCE - v3.0.0 implementation plan
 **Size**: 19KB
@@ -409,6 +446,7 @@ Then delete originals.
 **Problem**: Archive contains mixed Laguerre RSI and cc indicator files without clear organization.
 
 **Current Structure**:
+
 ```
 archive/
 ├── indicators/
@@ -468,6 +506,7 @@ archive/
 **Recommendation**: ✅ **ACCEPTABLE**
 
 **Cleanup Policy** (enforce going forward):
+
 - Keep only most recent 5000-bar export per symbol
 - Delete exports older than 7 days
 - .gitignore all .csv files (already done)
@@ -509,7 +548,7 @@ archive/
 
 ### 🟢 **LOW PRIORITY** - Optional Cleanup
 
-6. **Consolidate BUFFER_FIX_*.md** (3 files → 1 file)
+6. **Consolidate BUFFER*FIX*\*.md** (3 files → 1 file)
    - Nice-to-have consolidation
    - **Impact**: Slight reduction in file count
 
@@ -523,29 +562,31 @@ archive/
 
 ### File Count Reduction
 
-| Category | Before | After | Reduction |
-|----------|--------|-------|-----------|
-| docs/guides/ | 18 | 13 | -5 files (-28%) |
-| docs/plans/ | 11 | 1 | -10 files (-91%) |
-| users/crossover/*.py | 12 | 7 | -5 files (-42%) |
-| **TOTAL** | **41** | **21** | **-20 files (-49%)** |
+| Category              | Before | After  | Reduction            |
+| --------------------- | ------ | ------ | -------------------- |
+| docs/guides/          | 18     | 13     | -5 files (-28%)      |
+| docs/plans/           | 11     | 1      | -10 files (-91%)     |
+| users/crossover/\*.py | 12     | 7      | -5 files (-42%)      |
+| **TOTAL**             | **41** | **21** | **-20 files (-49%)** |
 
 ### Size Impact
 
-| Category | Before | After | Reduction |
-|----------|--------|-------|-----------|
-| Documentation | ~220KB | ~140KB | -80KB (-36%) |
-| Python scripts | ~110KB | ~55KB | -55KB (-50%) |
-| **TOTAL** | **~330KB** | **~195KB** | **-135KB (-41%)** |
+| Category       | Before     | After      | Reduction         |
+| -------------- | ---------- | ---------- | ----------------- |
+| Documentation  | ~220KB     | ~140KB     | -80KB (-36%)      |
+| Python scripts | ~110KB     | ~55KB      | -55KB (-50%)      |
+| **TOTAL**      | **~330KB** | **~195KB** | **-135KB (-41%)** |
 
 ### Navigation Impact
 
 **Before Pruning**:
+
 - New developer sees 18 guides → Unsure which to read
 - 12 Python scripts → Confusion about which to use
 - 11 plan documents → Are these active or complete?
 
 **After Pruning**:
+
 - New developer sees **1 master guide** (`MQL5_TO_PYTHON_MIGRATION_GUIDE.md`)
 - 7 production Python tools → Clear purpose
 - 1 active plan → Clear what's in progress
@@ -620,7 +661,9 @@ cd "$BOTTLE/users/crossover"
 
 ```markdown
 # Remove archived guides from Core Guides section
+
 # Update Single Source of Truth table
+
 # Note archived locations for reference
 ```
 
@@ -669,11 +712,13 @@ Result: -20 files (-49%), clearer navigation, 60% faster onboarding estimate"
 ## Success Metrics
 
 ### Before Pruning
+
 - **Navigation confusion**: User must read 18 guides to find correct workflow
 - **Active vs obsolete**: Unclear which tools/docs are current
 - **Archive organization**: Mixed indicators, no experiments folder
 
 ### After Pruning
+
 - ✅ **Clear entry point**: `MQL5_TO_PYTHON_MIGRATION_GUIDE.md` (master workflow)
 - ✅ **Active vs obsolete**: Clear separation (active in docs/, archive in archive/)
 - ✅ **Organized history**: Experiments, plans, docs properly archived
@@ -687,6 +732,7 @@ Result: -20 files (-49%), clearer navigation, 60% faster onboarding estimate"
 ### Files to Archive (20 total)
 
 **Documentation** (9):
+
 1. `docs/guides/QUICKSTART.md` → `archive/docs/QUICKSTART.v2.0.0.md`
 2. `docs/guides/AI_AGENT_WORKFLOW.md` → `archive/docs/AI_AGENT_WORKFLOW.v2.0.0.md`
 3. `docs/guides/MQL5_CLI_COMPILATION_INVESTIGATION.md` → `archive/docs/`
@@ -700,12 +746,7 @@ Result: -20 files (-49%), clearer navigation, 60% faster onboarding estimate"
 11. `docs/plans/WORKSPACE_REFACTORING_PLAN.md` → `archive/plans/`
 12. `docs/plans/CC_REFACTORING_PLAN.md` → `archive/plans/`
 
-**Python Scripts** (5):
-13. `users/crossover/spike_1_mt5_indicator_access.py` → `archive/experiments/`
-14. `users/crossover/spike_1_mt5_indicator_access_ascii.py` → `archive/experiments/`
-15. `users/crossover/spike_2_registry_pattern.py` → `archive/experiments/`
-16. `users/crossover/spike_3_duckdb_performance.py` → `archive/experiments/`
-17. `users/crossover/spike_4_backward_compatibility.py` → `archive/experiments/`
+**Python Scripts** (5): 13. `users/crossover/spike_1_mt5_indicator_access.py` → `archive/experiments/` 14. `users/crossover/spike_1_mt5_indicator_access_ascii.py` → `archive/experiments/` 15. `users/crossover/spike_2_registry_pattern.py` → `archive/experiments/` 16. `users/crossover/spike_3_duckdb_performance.py` → `archive/experiments/` 17. `users/crossover/spike_4_backward_compatibility.py` → `archive/experiments/`
 
 ### Files to Delete (2 total)
 

@@ -20,12 +20,14 @@
    - No startup.ini dependency - direct API calls
 
 2. **Critical Environment Variable: `CX_BOTTLE`**
+
    ```bash
    CX_BOTTLE="MetaTrader 5" WINEPREFIX="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5" \
      wine "C:\\Program Files\\Python312\\python.exe" \
      "C:\\users\\crossover\\export_aligned.py" \
      --symbol USDJPY --period M1 --bars 5000
    ```
+
    - Without `CX_BOTTLE`, wine wrapper looks for 'default' bottle and fails
    - `WINEPREFIX` alone is insufficient for CrossOver's Perl wine wrapper
 
@@ -35,6 +37,7 @@
    - This matches Wilder's smoothing method used in standard RSI calculation
 
 **Validation Results**:
+
 - ✅ **Data Integrity**: 100% (5000 bars, no gaps/corruption)
 - ✅ **RSI Correlation**: 0.999920 (exceeds 0.999 threshold)
 - ✅ **Mean Absolute Error**: 0.010013 (well below 0.1 threshold)
@@ -42,10 +45,12 @@
 - ✅ **Last 10 Bars**: Perfect alignment (0.0000 difference)
 
 **Files**:
+
 - Export: `/Users/terryli/eon/mql5-crossover/exports/20251013_corrected_Export_USDJPY_PERIOD_M1.csv`
 - Script: `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/export_aligned.py`
 
 **Configuration**:
+
 - Symbol: USDJPY (NEVER opened in MT5 GUI - true cold start)
 - Timeframe: M1
 - Bars: 5000
@@ -77,6 +82,7 @@
 **Headless execution works ONLY for symbols/timeframes previously opened in GUI**
 
 **Test Results**:
+
 - EURUSD M1 (previously executed manually at 15:03): ✅ SUCCESS
 - XAUUSD H1 (never opened in GUI): ❌ FAILED (script never executed)
 
@@ -89,11 +95,13 @@
 **Initial Resolution Date**: 2025-10-13
 
 **Root Cause Identified**:
+
 - **Error in MT5 logs**: `cannot load config "C:\Program Files\MetaTrader 5\config\startup_20251013_145717.ini"" at start`
 - **Double quotes** in path due to shell quoting + absolute path with spaces
 - MT5 config parser received: `"C:\Program Files\..."` with extra quotes
 
 **Fix Applied** (mq5run:114):
+
 ```bash
 # BEFORE (FAILED):
 CONFIG_WIN_PATH="C:\\Program Files\\MetaTrader 5\\config\\startup_${TIMESTAMP}.ini"
@@ -107,6 +115,7 @@ CONFIG_WIN_PATH="config\\startup_${TIMESTAMP}.ini"
 **Key Insight**: Use relative path from MT5 directory - no spaces = no quoting issues
 
 **Validation Results**:
+
 - ✅ MT5 launched successfully
 - ✅ Script executed automatically
 - ✅ 2 CSV files generated (Export_EURUSD_PERIOD_CURRENT.csv, Export_EURUSD_PERIOD_M1.csv)
@@ -117,6 +126,7 @@ CONFIG_WIN_PATH="config\\startup_${TIMESTAMP}.ini"
 ### Diagnostic Process Used
 
 **Phase 1: Log Analysis** (5 min - SUCCESSFUL):
+
 1. Located MT5 logs at: `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/logs/20251013.log`
 2. Searched for keywords: "config", "startup", "error"
 3. Found exact error message with double quotes
@@ -125,6 +135,7 @@ CONFIG_WIN_PATH="config\\startup_${TIMESTAMP}.ini"
 6. Validated fix with test execution
 
 **Phases 2-3 Not Required**:
+
 - Web research for additional patterns: SKIPPED (Phase 1 sufficient)
 - Python API alternative approach: SKIPPED (startup.ini working as designed)
 
@@ -162,22 +173,26 @@ python python/validate_export.py exports/$(ls -t exports/*.csv | head -1)
 ## Service Level Objectives: Conditionally Met
 
 ### Availability
+
 - **Target**: 95% success rate
 - **Actual**: 100% for initialized symbols, 0% for cold start
 - **Measurement**: Test executions generated CSV only for pre-configured symbols
 - **Limitation**: Requires manual GUI initialization for each symbol/timeframe
 
 ### Correctness
+
 - **Target**: 100% data integrity, correlation > 0.999
 - **Actual**: 100% integrity, 0.999902 correlation
 - **Measurement**: validate_export.py all checks passed
 
 ### Observability
+
 - **Target**: All attempts logged
 - **Actual**: Full logs with exit codes, errors captured
 - **Measurement**: MT5 logs + mq5run stderr/stdout
 
 ### Maintainability
+
 - **Target**: Single entry point, no manual config editing
 - **Actual**: `./mq5run` single command, auto-generates config
 - **Measurement**: User only needs to call mq5run with CLI args

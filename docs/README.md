@@ -5,9 +5,11 @@ Complete documentation for the MT5 CrossOver development workspace.
 ## 📚 Documentation Structure
 
 ### [`guides/`](guides/)
+
 Step-by-step workflows, technical references, and how-to documentation.
 
 **Essential Guides**:
+
 - Quick start and validation
 - Wine Python execution (v3.0.0 production)
 - MT5 file locations and indicator translation
@@ -16,23 +18,29 @@ Step-by-step workflows, technical references, and how-to documentation.
 - CLI compilation workflow
 
 ### [`plans/`](plans/)
+
 Implementation plans, architectural decisions, and migration strategies.
 
 **Active Plans**:
+
 - Migration plan (mql5-crossover → drive_c/)
 - Headless execution plan (v3.0.0 complete)
 
 ### [`reports/`](reports/)
+
 Validation results, status reports, and success metrics.
 
 **Current Status**:
+
 - Validation status and SLO metrics
 - Success reports (correlation results)
 
 ### [`archive/`](archive/)
+
 Historical documents, deprecated approaches, and legacy research.
 
 **Archived**:
+
 - v2.0.0 headless execution plan (startup.ini approach)
 - Historical MT5 community research findings
 
@@ -53,6 +61,7 @@ Historical documents, deprecated approaches, and legacy research.
 ---
 
 **Note**: When creating new documentation, place it in the appropriate subdirectory:
+
 - Workflows and how-tos → `guides/`
 - Planning and architecture → `plans/`
 - Results and metrics → `reports/`

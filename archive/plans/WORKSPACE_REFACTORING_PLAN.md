@@ -33,6 +33,7 @@
 **Size**: 592MB (mostly Windows user data in AppData/)
 
 **Essential Files**:
+
 ```
 users/crossover/
 ├── export_aligned.py              # Wine Python export script (v3.0.0)
@@ -53,6 +54,7 @@ users/crossover/
 ### 2. `python/` ⚠️ NEARLY EMPTY
 
 **Contents**:
+
 ```
 python/
 ├── .gitkeep
@@ -60,11 +62,13 @@ python/
 ```
 
 **Issues**:
+
 - ❌ Only has 1 file (validate_export.py)
 - ❌ Python indicators are in `users/crossover/indicators/` instead
 - ❌ Creates expectation of Python workspace but doesn't deliver
 
 **Refactoring Options**:
+
 1. **CONSOLIDATE**: Move `validate_export.py` → `users/crossover/`
 2. **ELIMINATE**: Delete `python/` directory entirely
 3. **EXPAND**: Move all Python code from `users/crossover/` → `python/`
@@ -76,6 +80,7 @@ python/
 ### 3. `scripts/` ⚠️ LEGACY v2.0.0
 
 **Contents**:
+
 ```
 scripts/
 ├── .gitkeep
@@ -84,15 +89,18 @@ scripts/
 ```
 
 **Issues**:
+
 - ⚠️ `mq5run` is v2.0.0 legacy (startup.ini approach - DEPRECATED)
 - ⚠️ Not needed for v3.0.0 Wine Python workflow
 
 **Status Check**: From project memory:
+
 > v2.0.0 (startup.ini) - LEGACY ⚠️
 > **Limitation**: requires manual GUI initialization per symbol/timeframe
 > **Recommendation**: Migrate to v3.0.0 for production use
 
 **Refactoring Options**:
+
 1. **ARCHIVE**: Move to `archive/scripts/v2.0.0/`
 2. **DELETE**: Remove entirely (v3.0.0 doesn't need these)
 3. **KEEP**: Maintain for backwards compatibility
@@ -104,6 +112,7 @@ scripts/
 ### 4. `mt5work/` ⚠️ STAGING/DUPLICATE AREA
 
 **Contents**:
+
 ```
 mt5work/
 ├── auto_export.ini                # 17KB config
@@ -123,11 +132,13 @@ mt5work/
 ```
 
 **Issues**:
+
 - ❌ MQL5 source files (.mq5) no longer exist in `Program Files/MetaTrader 5/MQL5/Scripts/`
 - ❌ This appears to be the ONLY location with source files
 - ⚠️ v3.0.0 uses Wine Python directly - MQL5 scripts may not be needed anymore
 
 **Critical Question**: Are these MQL5 source files still needed?
+
 - If **YES** (need to modify/recompile): Keep and organize properly
 - If **NO** (v3.0.0 uses Python only): Archive or delete
 
@@ -138,6 +149,7 @@ mt5work/
 ### 5. `docs/` ✅ WELL ORGANIZED
 
 **Contents**:
+
 ```
 docs/
 ├── README.md                      # Index
@@ -156,6 +168,7 @@ docs/
 ### 6. `archive/` ✅ PROPER ARCHIVAL
 
 **Contents**:
+
 ```
 archive/
 └── indicators/
@@ -176,6 +189,7 @@ archive/
 ### 7. `.claude/` ✅ LOCAL CONFIG
 
 **Contents**:
+
 ```
 .claude/
 └── settings.local.json            # Permissions config
@@ -190,6 +204,7 @@ archive/
 ### Priority 1: Consolidate Python Workspace
 
 **Problem**: Python code split between two locations
+
 - `python/validate_export.py`
 - `users/crossover/*.py` + `users/crossover/indicators/`
 
@@ -206,6 +221,7 @@ rm -rf python/
 ```
 
 **Benefits**:
+
 - Single source of truth for Python code
 - Matches v3.0.0 architecture (Wine Python in users/crossover/)
 - Cleaner workspace structure
@@ -231,6 +247,7 @@ rm -rf scripts/
 ```
 
 **Benefits**:
+
 - Removes confusion about which scripts to use
 - Preserves history for reference
 - Cleaner workspace
@@ -242,6 +259,7 @@ rm -rf scripts/
 **Problem**: MQL5 source files exist only in mt5work/, unclear if still needed
 
 **Questions to Answer**:
+
 1. Are these MQL5 export scripts still used? (v3.0.0 uses Wine Python directly)
 2. Should source files be in `Program Files/MetaTrader 5/MQL5/Scripts/`?
 3. Is mt5work/ a temporary staging area or permanent workspace?
@@ -249,12 +267,14 @@ rm -rf scripts/
 **Options**:
 
 **Option A**: If MQL5 scripts NOT needed (v3.0.0 Python-only)
+
 ```bash
 # Archive all MQL5 source files
 mv mt5work/ archive/mt5work_legacy/
 ```
 
 **Option B**: If MQL5 scripts STILL needed (for compilation)
+
 ```bash
 # Move source files to proper MT5 locations
 cp mt5work/ExportAligned.mq5 "Program Files/MetaTrader 5/MQL5/Scripts/"
@@ -303,6 +323,7 @@ drive_c/
 ```
 
 **Characteristics**:
+
 - ✅ Single Python workspace in `users/crossover/`
 - ✅ No legacy scripts in main workspace
 - ✅ MQL5 sources archived (if not needed)
@@ -338,6 +359,7 @@ drive_c/
 ```
 
 **Characteristics**:
+
 - ✅ Separate workspaces: mt5work/ (MQL5) + users/crossover/ (Python)
 - ✅ MQL5 source files preserved for compilation
 - ⚠️ More complex structure
@@ -407,10 +429,10 @@ Breakdown:
 ## 🎯 Success Criteria
 
 After refactoring:
+
 1. ✅ Single Python workspace in `users/crossover/`
 2. ✅ No duplicate files between directories
 3. ✅ Legacy code clearly separated in `archive/`
 4. ✅ Clean `git status` (no confusion about tracked files)
 5. ✅ v3.0.0 CLI workflow still works (Wine Python export)
 6. ✅ Documentation remains accessible in `docs/`
-

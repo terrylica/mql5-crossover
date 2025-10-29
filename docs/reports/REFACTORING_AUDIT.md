@@ -12,6 +12,7 @@
 **Overall Assessment**: Good modular structure with **significant refactoring opportunities**
 
 **Key Findings**:
+
 - ✅ **Strengths**: Clean module separation, well-documented code, functional organization
 - ⚠️ **Major Gaps**: Missing Python package infrastructure, duplicated MT5 connection logic, no type hints
 - 🔄 **Priority**: Extract common utilities, add package config, consolidate validation logic
@@ -25,6 +26,7 @@
 ### 1.1 Directory Organization: **GOOD** ✅
 
 **Current Structure** (`users/crossover/`):
+
 ```
 users/crossover/
 ├── export_aligned.py           # v3.0.0 Wine Python export
@@ -47,6 +49,7 @@ users/crossover/
 ### 1.2 Archive Organization: **ACCEPTABLE** ⚠️
 
 **Current Structure**:
+
 ```
 archive/
 ├── experiments/                # 5 spike test files
@@ -57,10 +60,12 @@ archive/
 ```
 
 **Issues**:
+
 - Minor cleanup needed: 10 cc indicator files in `laguerre_rsi/development/` (noted in CLAUDE.md)
 - No clear archival policy documented
 
 **Recommendation**:
+
 1. Move misplaced cc files to `archive/indicators/cc/development/`
 2. Create `archive/README.md` documenting archival criteria and structure
 
@@ -73,12 +78,14 @@ archive/
 #### **Critical Issue #1: MT5 Connection Boilerplate (4 occurrences)**
 
 **Location**:
+
 - `export_aligned.py` (lines 94-106)
 - `test_mt5_connection.py` (lines 18-28)
 - `test_xauusd_info.py` (lines 13-16)
 - Implicit in `run_validation.py` (Wine path detection)
 
 **Duplicated Pattern**:
+
 ```python
 # Initialize MT5
 if not mt5.initialize():
@@ -94,6 +101,7 @@ if not mt5.initialize():
 **Impact**: 30+ duplicated lines across 4 files
 
 **Recommendation**: Extract to `utils/mt5_connection.py`:
+
 ```python
 # utils/mt5_connection.py
 import MetaTrader5 as mt5
@@ -128,6 +136,7 @@ def select_symbol(symbol: str) -> None:
 ```
 
 **Usage**:
+
 ```python
 from utils.mt5_connection import mt5_connection, select_symbol
 
@@ -139,10 +148,12 @@ with mt5_connection():
 #### **Critical Issue #2: Timeframe Parsing (2 occurrences)**
 
 **Location**:
+
 - `export_aligned.py` (lines 53-73): `parse_timeframe()`
 - Hardcoded in `run_validation.py` and `generate_mt5_config.py` (choices list)
 
 **Duplicated Logic**:
+
 ```python
 timeframe_map = {
     'M1': mt5.TIMEFRAME_M1,
@@ -154,6 +165,7 @@ timeframe_map = {
 **Impact**: 20 duplicated lines, inconsistent validation across 3 files
 
 **Recommendation**: Extract to `utils/timeframes.py`:
+
 ```python
 # utils/timeframes.py
 import MetaTrader5 as mt5
@@ -187,6 +199,7 @@ def parse_timeframe(period_str: str) -> int:
 #### **Critical Issue #3: RSI Calculation (2 implementations)**
 
 **Location**:
+
 - `export_aligned.py` (lines 19-50): `calculate_rsi()`
 - `validate_export.py` (lines 93-112): `compute_rsi_pandas()`
 
@@ -195,6 +208,7 @@ def parse_timeframe(period_str: str) -> int:
 **Impact**: 30 duplicated lines, maintenance burden (validate_export.py is deprecated but still has active code)
 
 **Recommendation**:
+
 1. Extract to `indicators/rsi.py` (new file)
 2. Use in both `export_aligned.py` and `validate_export.py`
 3. Add to indicators package imports
@@ -202,10 +216,12 @@ def parse_timeframe(period_str: str) -> int:
 #### **Critical Issue #4: Wine Path Detection (2 occurrences)**
 
 **Location**:
+
 - `run_validation.py` (lines 98-136): `get_wine_paths()`
 - Hardcoded in docs/guides (multiple locations)
 
 **Duplicated Pattern**:
+
 ```python
 bottle_root = Path.home() / "Library/Application Support/CrossOver/Bottles/MetaTrader 5"
 wine_exe = Path.home() / "Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
@@ -214,6 +230,7 @@ wine_exe = Path.home() / "Applications/CrossOver.app/Contents/SharedSupport/Cros
 **Impact**: Path detection logic in 1 file, hardcoded in docs/scripts
 
 **Recommendation**: Extract to `utils/wine_env.py`:
+
 ```python
 # utils/wine_env.py
 from pathlib import Path
@@ -278,11 +295,13 @@ def get_exports_dir() -> Path:
 **Pattern**: Module loading functions follow identical structure
 
 **Location**:
+
 - `RSIModule.mqh` (35 lines)
 - `SMAModule.mqh` (35 lines)
 - `LaguerreRSIModule.mqh` (assumed similar)
 
 **Common Pattern**:
+
 ```cpp
 bool XXXModule_Load(symbol, timeframe, bars, period, column, errorMessage) {
     column.header = ...;
@@ -301,6 +320,7 @@ bool XXXModule_Load(symbol, timeframe, bars, period, column, errorMessage) {
 ```
 
 **Assessment**: This duplication is **acceptable** for MQL5:
+
 - Small functions (~30 lines each)
 - Clear naming convention
 - Template pattern would add complexity without benefit
@@ -315,6 +335,7 @@ bool XXXModule_Load(symbol, timeframe, bars, period, column, errorMessage) {
 ### 3.1 Test Scripts: **CONSOLIDATE** 🔄
 
 **Current State**:
+
 - `test_mt5_connection.py` - Basic connection test
 - `test_xauusd_info.py` - Symbol availability test
 
@@ -361,16 +382,19 @@ def main():
 **Status**: `validate_indicator.py` supersedes `validate_export.py`
 
 **Current State**:
+
 - ✅ `validate_indicator.py` - Universal validation (v1.0.0)
 - ⚠️ `validate_export.py` - DEPRECATED with warning banner
 
 **Recommendation**:
+
 1. Keep deprecation warning in `validate_export.py`
 2. Consider moving to `archive/` in next pruning phase (after 3-6 months grace period)
 
 ### 3.3 Export Scripts: **NO CONSOLIDATION NEEDED** ✅
 
 **Current State**:
+
 - `export_aligned.py` - Production export script
 - `generate_mt5_config.py` - Config.ini generator
 - `run_validation.py` - Orchestration workflow
@@ -388,6 +412,7 @@ def main():
 **Current State**: Only `laguerre_rsi.py` has comprehensive type hints
 
 **Files Without Type Hints** (7 files):
+
 1. `export_aligned.py` - 0% coverage
 2. `validate_indicator.py` - 10% coverage (minimal)
 3. `validate_export.py` - 30% coverage
@@ -435,6 +460,7 @@ def export_data(
 ```
 
 **Recommendation**: Add type hints to all files (priority order):
+
 1. `export_aligned.py` (production script)
 2. `validate_indicator.py` (framework)
 3. `run_validation.py` (orchestration)
@@ -446,6 +472,7 @@ def export_data(
 ### 4.2 Docstrings: **GOOD BUT INCONSISTENT** ⚠️
 
 **Assessment**:
+
 - ✅ **Excellent**: `laguerre_rsi.py` - Comprehensive docstrings with Args/Returns/Raises
 - ✅ **Good**: `validate_indicator.py` - Module-level and function docstrings
 - ⚠️ **Incomplete**: `export_aligned.py` - Missing Args/Returns/Raises sections
@@ -478,6 +505,7 @@ def function_name(param1: type, param2: type) -> return_type:
 **Assessment**: Consistent error handling patterns across all files
 
 **Strengths**:
+
 - Custom exception classes (`ValidationError`, `ConfigGenerationError`)
 - Informative error messages with context
 - Proper try/except/finally blocks in critical sections
@@ -486,6 +514,7 @@ def function_name(param1: type, param2: type) -> return_type:
 **Minor Issue**: Some files catch generic `Exception` (too broad)
 
 **Example**:
+
 ```python
 # BEFORE (validate_indicator.py line 350)
 except Exception as e:
@@ -516,6 +545,7 @@ except Exception as e:
 **Assessment**: Code generally follows best practices
 
 **Good Practices Observed**:
+
 - ✅ Vectorized operations (no iterrows())
 - ✅ Proper NaN handling with masks
 - ✅ Appropriate use of `.ewm()` for exponential smoothing
@@ -544,6 +574,7 @@ except Exception as e:
 ### 5.1 Module Pattern: **EXCELLENT** ✅
 
 **Structure**:
+
 ```
 MQL5/Include/DataExport/
 ├── DataExportCore.mqh          # Core data structures
@@ -555,6 +586,7 @@ MQL5/Include/DataExport/
 ```
 
 **Strengths**:
+
 - Clear separation of concerns
 - Consistent naming (`XXXModule_Load`)
 - Header guards (`#ifndef __XXX_MODULE_MQH__`)
@@ -565,6 +597,7 @@ MQL5/Include/DataExport/
 ### 5.2 File-Based Config Pattern: **EXCELLENT** ✅
 
 **Implementation** (`ExportAligned.mq5` lines 23-95):
+
 - Graceful degradation (falls back to input parameters)
 - Clear key=value parsing
 - Comment/empty line handling
@@ -581,6 +614,7 @@ MQL5/Include/DataExport/
 **Current State**: No `setup.py`, `pyproject.toml`, or `requirements.txt`
 
 **Impact**:
+
 - No dependency management
 - No version pinning
 - Manual Wine Python package installation
@@ -642,8 +676,9 @@ scipy>=1.11.0
 duckdb>=0.9.0
 ```
 
-```md
+````md
 # users/crossover/README.md
+
 # MQL5 CrossOver Python Utilities
 
 Python workspace for MetaTrader 5 indicator validation and data export.
@@ -656,6 +691,7 @@ CX_BOTTLE="MetaTrader 5" \
 WINEPREFIX="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5" \
 wine "C:\\Program Files\\Python312\\python.exe" -m pip install -r requirements.txt
 ```
+````
 
 ## Usage
 
@@ -668,7 +704,8 @@ See individual script docstrings for detailed usage.
 - `indicators/` - Python indicator implementations
 - `utils/` - Shared utilities
 - `diagnostics/` - MT5 diagnostic tools
-```
+
+````
 
 **Effort**: 2-3 hours
 
@@ -693,7 +730,7 @@ __all__ = [
     'calculate_rsi',
     'calculate_sma',
 ]
-```
+````
 
 ```python
 # utils/__init__.py
@@ -741,6 +778,7 @@ users/crossover/
 ```
 
 Example test:
+
 ```python
 # tests/test_indicators/test_rsi.py
 import pytest
@@ -801,6 +839,7 @@ exec "$WINE_EXE" "$PYTHON_EXE" "$@"
 ```
 
 **Usage**:
+
 ```bash
 # Instead of:
 CX_BOTTLE="MetaTrader 5" WINEPREFIX="..." wine "C:\\..." export_aligned.py --symbol EURUSD
@@ -818,6 +857,7 @@ wine-python export_aligned.py --symbol EURUSD
 ### Top 5 Refactoring Tasks (Ordered by Impact)
 
 #### **#1 Extract Shared Utilities** 🔴 **HIGH PRIORITY**
+
 - **Files**: Create `utils/` package with 4 modules
 - **Impact**: Eliminate 100+ duplicated lines across 7 files
 - **Effort**: 6-8 hours
@@ -828,46 +868,55 @@ wine-python export_aligned.py --symbol EURUSD
   4. `indicators/rsi.py` - Extract RSI calculation
 
 **Immediate Benefits**:
+
 - 30% code reduction in export_aligned.py
 - Single source of truth for MT5 connection logic
 - Easier testing and maintenance
 
 #### **#2 Add Python Package Infrastructure** 🟠 **MEDIUM PRIORITY**
+
 - **Files**: `pyproject.toml`, `requirements.txt`, `README.md`
 - **Impact**: Professional package structure, dependency management
 - **Effort**: 2-3 hours
 
 **Immediate Benefits**:
+
 - Version-controlled dependencies
 - `pip install -e .` for development
 - Entry point scripts (`mt5-export`, `mt5-validate`)
 
 #### **#3 Add Type Hints to Production Scripts** 🟠 **MEDIUM PRIORITY**
+
 - **Files**: `export_aligned.py`, `validate_indicator.py`, `run_validation.py`
 - **Impact**: Better IDE support, early bug detection
 - **Effort**: 4-6 hours
 
 **Immediate Benefits**:
+
 - MyPy static type checking
 - Better autocomplete in IDEs
 - Self-documenting interfaces
 
 #### **#4 Consolidate Test Scripts** 🟡 **LOW PRIORITY**
+
 - **Files**: Merge `test_mt5_connection.py` + `test_xauusd_info.py` → `diagnostics/mt5_diagnostics.py`
 - **Impact**: Reduce from 2 files to 1, unified diagnostic tool
 - **Effort**: 2-3 hours
 
 **Immediate Benefits**:
+
 - Single diagnostic command
 - Consistent output format
 - Easier maintenance
 
 #### **#5 Create Test Suite** 🟢 **OPTIONAL**
+
 - **Files**: `tests/` directory with pytest infrastructure
 - **Impact**: Automated validation, regression testing
 - **Effort**: 8-12 hours
 
 **Long-term Benefits**:
+
 - Catch regressions early
 - Validate indicator correctness automatically
 - CI/CD integration ready
@@ -881,6 +930,7 @@ wine-python export_aligned.py --symbol EURUSD
 **Issue**: 10 cc indicator files in wrong subdirectory
 
 **Current**:
+
 ```
 archive/indicators/laguerre_rsi/development/
 ├── cc.mq5                           # ❌ Wrong location
@@ -890,6 +940,7 @@ archive/indicators/laguerre_rsi/development/
 ```
 
 **Target**:
+
 ```
 archive/indicators/cc/development/
 ├── cc.mq5
@@ -900,6 +951,7 @@ archive/indicators/cc/development/
 **Effort**: 15 minutes
 
 **Command**:
+
 ```bash
 cd "archive/indicators"
 mkdir -p cc/development
@@ -918,6 +970,7 @@ Preserved historical code, experiments, and deprecated implementations.
 ## Archival Policy
 
 Files are archived (not deleted) when:
+
 1. Superseded by newer implementations
 2. Experimental spikes completed
 3. Plans/docs become outdated (with version markers)
@@ -947,6 +1000,7 @@ Files are archived (not deleted) when:
 ### Code Health Score: **75/100**
 
 **Breakdown**:
+
 - ✅ **Structure** (18/20): Well-organized, clear separation
 - ⚠️ **Code Quality** (14/20): Good docstrings, missing type hints
 - ⚠️ **Duplication** (12/20): Significant shared logic not extracted
@@ -1050,27 +1104,27 @@ Files are archived (not deleted) when:
 
 ### Python Scripts (7 files, 2,405 LOC)
 
-| File | LOC | Type Hints | Docstrings | Issues | Priority |
-|------|-----|------------|------------|--------|----------|
-| `export_aligned.py` | 318 | ❌ 0% | ⚠️ Partial | Duplicated MT5 connection, RSI calc, timeframe parsing | HIGH |
-| `validate_indicator.py` | 359 | ⚠️ 10% | ✅ Good | Minor exception handling | MEDIUM |
-| `validate_export.py` | 276 | ⚠️ 30% | ✅ Good | DEPRECATED (keep with warning) | LOW |
-| `test_mt5_connection.py` | 102 | ❌ 0% | ❌ None | Duplicated MT5 connection | MEDIUM |
-| `test_xauusd_info.py` | 92 | ❌ 0% | ❌ None | Should merge with test_mt5_connection | MEDIUM |
-| `generate_mt5_config.py` | 309 | ⚠️ 50% | ✅ Good | Hardcoded timeframe list | MEDIUM |
-| `run_validation.py` | 427 | ⚠️ 30% | ✅ Good | Duplicated Wine path detection | HIGH |
-| `indicators/laguerre_rsi.py` | 486 | ✅ 100% | ✅ Excellent | None (reference implementation) | N/A |
-| `indicators/simple_sma.py` | 44 | ❌ 0% | ⚠️ Minimal | Need proper docstrings | LOW |
+| File                         | LOC | Type Hints | Docstrings   | Issues                                                 | Priority |
+| ---------------------------- | --- | ---------- | ------------ | ------------------------------------------------------ | -------- |
+| `export_aligned.py`          | 318 | ❌ 0%      | ⚠️ Partial   | Duplicated MT5 connection, RSI calc, timeframe parsing | HIGH     |
+| `validate_indicator.py`      | 359 | ⚠️ 10%     | ✅ Good      | Minor exception handling                               | MEDIUM   |
+| `validate_export.py`         | 276 | ⚠️ 30%     | ✅ Good      | DEPRECATED (keep with warning)                         | LOW      |
+| `test_mt5_connection.py`     | 102 | ❌ 0%      | ❌ None      | Duplicated MT5 connection                              | MEDIUM   |
+| `test_xauusd_info.py`        | 92  | ❌ 0%      | ❌ None      | Should merge with test_mt5_connection                  | MEDIUM   |
+| `generate_mt5_config.py`     | 309 | ⚠️ 50%     | ✅ Good      | Hardcoded timeframe list                               | MEDIUM   |
+| `run_validation.py`          | 427 | ⚠️ 30%     | ✅ Good      | Duplicated Wine path detection                         | HIGH     |
+| `indicators/laguerre_rsi.py` | 486 | ✅ 100%    | ✅ Excellent | None (reference implementation)                        | N/A      |
+| `indicators/simple_sma.py`   | 44  | ❌ 0%      | ⚠️ Minimal   | Need proper docstrings                                 | LOW      |
 
 ### MQL5 Files (5 files, ~500 LOC estimated)
 
-| File | Pattern | Issues | Recommendation |
-|------|---------|--------|----------------|
-| `ExportAligned.mq5` | Main script | File-based config pattern (excellent) | Document pattern |
-| `DataExportCore.mqh` | Core structures | Not reviewed in detail | No action |
-| `RSIModule.mqh` | Module pattern | Minor duplication (acceptable) | No action |
-| `SMAModule.mqh` | Module pattern | Minor duplication (acceptable) | No action |
-| `LaguerreRSIModule.mqh` | Module pattern | Not reviewed | No action |
+| File                    | Pattern         | Issues                                | Recommendation   |
+| ----------------------- | --------------- | ------------------------------------- | ---------------- |
+| `ExportAligned.mq5`     | Main script     | File-based config pattern (excellent) | Document pattern |
+| `DataExportCore.mqh`    | Core structures | Not reviewed in detail                | No action        |
+| `RSIModule.mqh`         | Module pattern  | Minor duplication (acceptable)        | No action        |
+| `SMAModule.mqh`         | Module pattern  | Minor duplication (acceptable)        | No action        |
+| `LaguerreRSIModule.mqh` | Module pattern  | Not reviewed                          | No action        |
 
 ---
 

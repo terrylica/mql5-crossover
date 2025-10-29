@@ -35,6 +35,7 @@ MQL5/Indicators/Custom/
 ### Module Responsibilities
 
 **cc.mq5** (Orchestrator):
+
 - Buffer management (13 buffers)
 - OnInit() - setup and validation
 - OnCalculate() - orchestrate pattern detections
@@ -42,16 +43,19 @@ MQL5/Indicators/Custom/
 - Visualization configuration
 
 **PatternHelpers.mqh** (DONE):
+
 - `CheckSameDirection()` - validate bar direction consistency
 - `CheckConsecutiveContractions()` - body size decreasing
 - `CheckConsecutiveExpansions()` - body size increasing
 
 **BodySizePatterns.mqh** (NEW):
+
 - `SetContractionSignal()` - mark contraction pattern bars
 - `SetExpansionSignal()` - mark expansion pattern bars with dots
 - Requires access to: buffers, input params (via cc.mq5 scope)
 
 **CandlePatterns.mqh** (NEW):
+
 - `CheckInsideBar()` - detect inside bar pattern
 - `SetInsideBarSignal()` - mark inside bar pattern
 - Future: `CheckOutsideBar()`, `CheckEngulfing()`, etc.
@@ -59,21 +63,25 @@ MQL5/Indicators/Custom/
 ## Service Level Objectives
 
 ### Availability: 100%
+
 - All files accessible at expected paths
 - CLI compilation succeeds with 0 errors
 - Compiled .ex5 loads on MT5 chart without crashes
 
 ### Correctness: 100%
+
 - Refactored indicator produces identical signals to v1.10 baseline
 - Inside bar pattern detects correctly per definition
 - No buffer overflows or array index errors
 
 ### Observability: 100%
+
 - Compilation logs show clear error messages if failures occur
 - Git diffs show clean separation of concerns
 - Version numbers track in cc.mq5 header
 
 ### Maintainability: High
+
 - New pattern addition requires ≤50 lines of code
 - Module boundaries clear (function signatures documented)
 - No duplicate logic across files
@@ -85,6 +93,7 @@ MQL5/Indicators/Custom/
 **Status**: COMPLETE (2025-10-14 00:27)
 
 **Completed**:
+
 - ✅ PatternHelpers.mqh extracted (48 lines)
 - ✅ BodySizePatterns.mqh extracted (88 lines)
 - ✅ cc.mq5 reduced to 299 lines (from 417 original)
@@ -92,6 +101,7 @@ MQL5/Indicators/Custom/
 - ✅ Compilation: 0 errors, 0 warnings, 895ms
 
 **File Structure**:
+
 - cc.mq5: 299 lines
 - PatternHelpers.mqh: 48 lines
 - BodySizePatterns.mqh: 88 lines
@@ -100,6 +110,7 @@ MQL5/Indicators/Custom/
 ### Phase 2: Add Inside Bar Pattern
 
 **Steps**:
+
 1. Create CandlePatterns.mqh with `CheckInsideBar()`
 2. Create `SetInsideBarSignal()` function
 3. Allocate 2 new buffers in cc.mq5 (inside bar bullish/bearish dots)
@@ -107,6 +118,7 @@ MQL5/Indicators/Custom/
 5. Add input parameter `InpShowInsideBars = true`
 
 **Definition - Inside Bar**:
+
 - Current bar high ≤ previous bar high
 - Current bar low ≥ previous bar low
 - Direction: bullish if close > open, bearish otherwise
@@ -116,6 +128,7 @@ MQL5/Indicators/Custom/
 ### Phase 3: Validation
 
 **Tests**:
+
 1. Load refactored indicator on EURUSD M1 chart
 2. Compare signals with cc.mq5.backup side-by-side
 3. Verify expansion dots appear at identical bars
@@ -123,6 +136,7 @@ MQL5/Indicators/Custom/
 5. Verify inside bar dots appear at correct bars
 
 **Acceptance Criteria**:
+
 - Visual inspection: 100% signal match for expansion/contraction
 - Inside bar signals appear (new functionality)
 - No errors in Experts log
@@ -140,6 +154,7 @@ MQL5/Indicators/Custom/
 **Issue**: `#include` statements process inline - functions cannot access variables declared later
 **Requirement**: All `#include` directives must appear AFTER global variable/constant declarations
 **Correct Order**:
+
 1. `#property` directives
 2. `#define` constants
 3. `input` parameters
@@ -153,6 +168,7 @@ MQL5/Indicators/Custom/
 
 **Requirement**: Raise and propagate all errors
 **Implementation**:
+
 - No default values on parameter validation failures
 - No silent error suppression
 - OnInit() returns INIT_FAILED if validation fails
@@ -167,10 +183,12 @@ MQL5/Indicators/Custom/
 ## Rollback Strategy
 
 **Files**:
+
 - cc.mq5.backup - original working version
 - Restore command: `cp cc.mq5.backup cc.mq5`
 
 **Validation**:
+
 - Backup compiles: ✅ Verified (0 errors, 18KB .ex5)
 - Compilation time: ~900ms
 

@@ -11,7 +11,9 @@
 ### ✅ What to Move
 
 #### 1. **Documentation (23 files)** → `drive_c/docs/`
+
 All `.md` files from old repo:
+
 - `CLAUDE.md` → `drive_c/CLAUDE.md` (root level, project memory)
 - `README.md` → `drive_c/README.md` (root level, project overview)
 - `docs/` → `drive_c/docs/` (entire directory structure)
@@ -19,23 +21,27 @@ All `.md` files from old repo:
 **Why**: Documentation is the single source of truth - all guides, plans, reports
 
 #### 2. **Python Validation Tool (1 file)** → `drive_c/python/`
+
 - `python/validate_export.py` → `drive_c/python/validate_export.py`
 
 **Why**: Essential tool for validating CSV exports
 
 #### 3. **Shell Scripts (2 files)** → `drive_c/scripts/`
+
 - `scripts/mq5run` → `drive_c/scripts/mq5run` (v2.0.0 legacy wrapper)
 - `scripts/setup-bottle-mapping` → `drive_c/scripts/setup-bottle-mapping`
 
 **Why**: Automation tools, historical reference
 
 #### 4. **MQL5 Export Scripts (2 files)** → Already exists in different form
+
 - `mql5/Scripts/ExportAligned.mq5` - Compare with mt5work/ExportEURUSD.mq5
 - `mql5/Scripts/ExportEURUSD.mq5` - Already exists in mt5work/
 
 **Action**: Review and merge if needed, likely keep drive_c versions
 
 #### 5. **MQL5 Include Files (3 files)** → Review for merging
+
 - `mql5/Include/DataExportCore.mqh`
 - `mql5/Include/ExportAlignedCommon.mqh`
 - `mql5/Include/modules/RSIModule.mqh`
@@ -47,17 +53,20 @@ All `.md` files from old repo:
 ### ❌ What NOT to Move
 
 #### 1. **Config Files**
+
 - `.gitignore` - Already created new one for drive_c/
 - `.gitattributes` - Not needed
 - `reorg-plan.yml` - Historical artifact, can archive
 
 #### 2. **Directories**
+
 - `.venv/` - Python virtual environment, not portable
 - `exports/` - CSV files, too large, generated data
 - `logs/` - Runtime logs, not needed
 - `config/` - MT5 configs, already in drive_c/Program Files/MetaTrader 5/Config/
 
 #### 3. **Sample/Test Files**
+
 - `mql5/Samples/*.mq5` - Test code, not needed
 
 ---
@@ -108,6 +117,7 @@ drive_c/
 ## Execution Steps
 
 1. **Create directories**:
+
    ```bash
    mkdir -p drive_c/docs
    mkdir -p drive_c/python
@@ -115,6 +125,7 @@ drive_c/
    ```
 
 2. **Copy documentation**:
+
    ```bash
    cp -r /Users/terryli/eon/mql5-crossover/docs/* drive_c/docs/
    cp /Users/terryli/eon/mql5-crossover/README.md drive_c/
@@ -122,11 +133,13 @@ drive_c/
    ```
 
 3. **Copy Python tools**:
+
    ```bash
    cp /Users/terryli/eon/mql5-crossover/python/validate_export.py drive_c/python/
    ```
 
 4. **Copy shell scripts**:
+
    ```bash
    cp /Users/terryli/eon/mql5-crossover/scripts/* drive_c/scripts/
    ```
@@ -136,6 +149,7 @@ drive_c/
    - Merge if improvements found
 
 6. **Git commit**:
+
    ```bash
    cd drive_c
    git add .

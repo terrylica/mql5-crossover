@@ -13,6 +13,7 @@
 This is a **mature, well-documented project** with validated workflows and production-ready code. Technical debt is **low** for a project of this complexity, but several strategic improvements would unlock significant value.
 
 **Key Metrics**:
+
 - **Codebase Size**: ~3,200 LOC (2,405 Python, 794 MQL5)
 - **Documentation**: 33 markdown files (comprehensive)
 - **Test Coverage**: ~20% (1 integration test, 0 unit tests)
@@ -22,6 +23,7 @@ This is a **mature, well-documented project** with validated workflows and produ
 **Technical Debt Score**: **7.2/10** (Good - room for improvement)
 
 **Top 5 Priorities**:
+
 1. **Add unit tests for Python indicators** (HIGH VALUE)
 2. **Create batch validation automation** (HIGH VALUE)
 3. **Add integration tests for MQL5 modules** (MEDIUM VALUE)
@@ -39,6 +41,7 @@ This is a **mature, well-documented project** with validated workflows and produ
 **Risk**: High - No regression detection for algorithm changes
 
 **Current State**:
+
 - `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/indicators/laguerre_rsi.py ` has **486 lines**, **14 functions**
 - Zero unit tests exist for:
   - `calculate_true_range()`
@@ -48,11 +51,13 @@ This is a **mature, well-documented project** with validated workflows and produ
 - Only end-to-end validation via `validate_indicator.py` (requires MT5 export)
 
 **Why This Matters**:
+
 - Laguerre RSI is production-validated (1.000000 correlation)
 - Future changes could silently break algorithm without detection
 - 5000-bar warmup requirement makes manual testing slow
 
 **Recommended Fix**:
+
 ```python
 # Create: users/crossover/tests/test_laguerre_rsi.py
 import pytest
@@ -109,6 +114,7 @@ def test_laguerre_filter_initialization():
 ```
 
 **Files to Create**:
+
 - `users/crossover/tests/__init__.py`
 - `users/crossover/tests/test_laguerre_rsi.py`
 - `users/crossover/tests/test_indicators_integration.py`
@@ -125,6 +131,7 @@ def test_laguerre_filter_initialization():
 **Risk**: Medium - Manual testing is tedious and error-prone
 
 **Current State**:
+
 - 5 MQL5 include files in `/Include/DataExport/`:
   - `DataExportCore.mqh`
   - `ExportAlignedCommon.mqh`
@@ -135,11 +142,13 @@ def test_laguerre_filter_initialization():
 - Only manual testing via GUI (drag script to chart)
 
 **Why This Matters**:
+
 - Modular design enables adding 10+ indicators without ExportAligned.mq5 changes
 - No automated verification that new modules work correctly
 - Regression testing is manual and time-consuming
 
 **Recommended Fix**:
+
 ```mql5
 // Create: MQL5/Scripts/Tests/TestRSIModule.mq5
 #include <DataExport/modules/RSIModule.mqh>
@@ -182,6 +191,7 @@ void OnStart() {
 ```
 
 **Files to Create**:
+
 - `MQL5/Scripts/Tests/TestRSIModule.mq5`
 - `MQL5/Scripts/Tests/TestSMAModule.mq5`
 - `MQL5/Scripts/Tests/TestLaguerreRSIModule.mq5`
@@ -198,11 +208,13 @@ void OnStart() {
 **Risk**: Low - Current validation workflow functional
 
 **Current State**:
+
 - `validate_indicator.py` has `store_validation_results()` function (lines 228-274)
 - Database schema referenced but not committed: `validation_schema.sql`
 - No queries/reports to analyze historical validation data
 
 **Evidence**:
+
 ```python
 # Line 233: Schema loading attempted but file missing
 schema_path = Path(db_path).parent / "validation_schema.sql"
@@ -211,11 +223,13 @@ if schema_path.exists() and ...:
 ```
 
 **Why This Matters**:
+
 - Useful for tracking correlation degradation over time
 - Could detect when MQL5 indicator updates break Python validation
 - Historical data enables optimization experiments
 
 **Recommended Fix**:
+
 ```sql
 -- Create: users/crossover/validation_schema.sql
 CREATE TABLE IF NOT EXISTS validation_runs (
@@ -298,18 +312,21 @@ LIMIT 100;
 **ROI**: Very High
 
 **Current Workflow** (Manual):
+
 1. Run `export_aligned.py` for symbol/timeframe
 2. Copy CSV to repo exports folder
 3. Run `validate_indicator.py` on CSV
 4. Repeat for each combination
 
 **Proposed Workflow** (Automated):
+
 ```bash
 # Single command tests all symbol/timeframe/indicator combinations
 python run_batch_validation.py --symbols EURUSD,XAUUSD --timeframes M1,H1 --indicators laguerre_rsi
 ```
 
 **Implementation**:
+
 ```python
 # Create: users/crossover/run_batch_validation.py
 """Batch validation automation for multiple symbol/timeframe/indicator combinations"""
@@ -398,6 +415,7 @@ if __name__ == "__main__":
 ```
 
 **Files to Create**:
+
 - `users/crossover/run_batch_validation.py`
 
 **Quick Win**: Implement basic version (no retries, simple reporting) in 1 hour
@@ -413,6 +431,7 @@ if __name__ == "__main__":
 **Current State**: No automated testing on commit/push
 
 **Proposed Implementation** (GitHub Actions):
+
 ```yaml
 # Create: .github/workflows/validation.yml
 name: Validation Tests
@@ -424,56 +443,58 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
 
-    - name: Install dependencies
-      run: |
-        cd users/crossover
-        pip install pandas numpy scipy duckdb
+      - name: Install dependencies
+        run: |
+          cd users/crossover
+          pip install pandas numpy scipy duckdb
 
-    - name: Run unit tests
-      run: |
-        cd users/crossover
-        pytest tests/ -v
+      - name: Run unit tests
+        run: |
+          cd users/crossover
+          pytest tests/ -v
 
-    - name: Run linter
-      run: |
-        pip install ruff
-        ruff check users/crossover/
+      - name: Run linter
+        run: |
+          pip install ruff
+          ruff check users/crossover/
 
   test-mql5-compilation:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Install Wine
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y wine64
+      - name: Install Wine
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wine64
 
-    - name: Download MetaEditor
-      run: |
-        # Download MetaEditor installer
-        # Install silently
-        # Add to PATH
+      - name: Download MetaEditor
+        run: |
+          # Download MetaEditor installer
+          # Install silently
+          # Add to PATH
 
-    - name: Compile MQL5 scripts
-      run: |
-        wine MetaEditor64.exe /log /compile:"MQL5/Scripts/DataExport/ExportAligned.mq5"
-        # Check for errors in log
+      - name: Compile MQL5 scripts
+        run: |
+          wine MetaEditor64.exe /log /compile:"MQL5/Scripts/DataExport/ExportAligned.mq5"
+          # Check for errors in log
 ```
 
 **Files to Create**:
+
 - `.github/workflows/validation.yml`
 - `.github/workflows/lint.yml`
 
 **Benefits**:
+
 - Automated linting (ruff/black)
 - Python unit tests on every commit
 - MQL5 compilation verification
@@ -490,6 +511,7 @@ jobs:
 **Current State**: Function-based indicator calculation (batch only)
 
 **Limitation**:
+
 ```python
 # Current: Requires full recalculation on every bar
 df = fetch_5000_bars()
@@ -497,6 +519,7 @@ result = calculate_laguerre_rsi_indicator(df)  # Recalculates all 5000 bars
 ```
 
 **Proposed Class-Based API**:
+
 ```python
 # Create: users/crossover/indicators/base.py
 class Indicator:
@@ -590,6 +613,7 @@ for bar in live_bars:
 ```
 
 **Benefits**:
+
 - Real-time indicator updates (no full recalculation)
 - Suitable for live trading strategies
 - Memory efficient (only stores necessary state)
@@ -605,6 +629,7 @@ for bar in live_bars:
 **ROI**: Low
 
 **Current Workflow**:
+
 ```bash
 # Manual 4-step process
 BOTTLE="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5"
@@ -614,6 +639,7 @@ ls -lh "$BOTTLE/drive_c/Indicator.ex5"
 ```
 
 **Proposed Script**:
+
 ```bash
 #!/bin/bash
 # Create: scripts/compile_mq5
@@ -664,6 +690,7 @@ echo "Compiled: $BOTTLE/drive_c/$NAME.ex5"
 ```
 
 **Files to Create**:
+
 - `scripts/compile_mq5`
 
 **Quick Win**: Works for any MQL5 file, 30-second implementation
@@ -678,6 +705,7 @@ echo "Compiled: $BOTTLE/drive_c/$NAME.ex5"
 **Effort**: Low (30 min per indicator)
 
 **Current Implementation**:
+
 ```python
 # Users must fetch extra bars manually
 bars_to_fetch = num_bars + 50  # Magic number - unclear why 50
@@ -688,6 +716,7 @@ df = df.tail(num_bars)  # Trim warmup bars
 ```
 
 **Proposed Implementation**:
+
 ```python
 # Indicator handles warmup internally
 result = calculate_laguerre_rsi_indicator(df, warmup_bars=64)
@@ -706,6 +735,7 @@ result = calculate_laguerre_rsi_indicator(df, warmup_bars=64)
 **Current State**: Mix of `print()` and no logging
 
 **Proposed Implementation**:
+
 ```python
 # Create: users/crossover/utils/logger.py
 import logging
@@ -755,6 +785,7 @@ logger.debug(f"MT5 connection initialized: {mt5.terminal_info()}")
 **Current State**: 33 documentation files (some outdated)
 
 **Proposed Action**: Execute Phase 3-5 from `PRUNING_ASSESSMENT.md`:
+
 - Archive 9 outdated v2.0.0 documentation files
 - Archive 4 spike test files (experiments complete)
 - Add deprecation warnings to 3 legacy tools
@@ -776,6 +807,7 @@ logger.debug(f"MT5 connection initialized: {mt5.terminal_info()}")
 **Current State**: Minimal type hints (only docstrings)
 
 **Proposed Incremental Approach**:
+
 ```python
 # Phase 1: Add type hints to new code (0 hours - policy change)
 # Phase 2: Add type hints to laguerre_rsi.py (2 hours)
@@ -818,6 +850,7 @@ def calculate_laguerre_rsi_indicator(
 **Current State**: Procedural modules with global state
 
 **Proposed Refactoring**:
+
 ```mql5
 // Create: MQL5/Include/DataExport/modules/IndicatorModuleBase.mqh
 class CIndicatorModule {
@@ -902,6 +935,7 @@ if (rsiModule.Load(symbol, timeframe, bars, error)) {
 **Effort**: Low (2 hours)
 
 **Proposed Implementation**:
+
 ```python
 # Create: users/crossover/benchmarks/benchmark_laguerre_rsi.py
 import time
@@ -940,6 +974,7 @@ if __name__ == "__main__":
 ```
 
 **Expected Output**:
+
 ```
 Size   100 bars:    2.34 ms/run
 Size   500 bars:   11.23 ms/run
@@ -960,6 +995,7 @@ Size 10000 bars:  267.89 ms/run
 **Current State**: No `requirements.txt` or `pyproject.toml`
 
 **Proposed Fix**:
+
 ```toml
 # Create: users/crossover/pyproject.toml
 [project]
@@ -1054,18 +1090,18 @@ except Exception as e:
 
 ### Top 10 Improvements (Effort/Impact Matrix)
 
-| Priority | Item | Impact | Effort | ROI | Timeline |
-|----------|------|--------|--------|-----|----------|
-| **1** | Add unit tests for Laguerre RSI | HIGH | Medium | 🟢 Very High | 2-4 hours |
-| **2** | Batch validation automation | HIGH | Low | 🟢 Very High | 1-2 hours |
-| **3** | Complete DuckDB schema | LOW | Low | 🟡 Quick Win | 1 hour |
-| **4** | MQL5 module integration tests | MEDIUM | Medium | 🟢 High | 3-5 hours |
-| **5** | CI/CD pipeline (GitHub Actions) | MEDIUM | Medium | 🟢 High | 3-5 hours |
-| **6** | Dependency version pinning | LOW | Low | 🟡 Quick Win | 15 min |
-| **7** | Compilation automation script | LOW | Low | 🟡 Quick Win | 30 min |
-| **8** | Performance benchmarking | LOW | Low | 🟡 Medium | 2 hours |
-| **9** | Class-based indicator API | MEDIUM | High | 🟡 Medium | 6-10 hours |
-| **10** | Type hints (incremental) | LOW | High | 🟣 Long-term | 8-12 hours |
+| Priority | Item                            | Impact | Effort | ROI          | Timeline   |
+| -------- | ------------------------------- | ------ | ------ | ------------ | ---------- |
+| **1**    | Add unit tests for Laguerre RSI | HIGH   | Medium | 🟢 Very High | 2-4 hours  |
+| **2**    | Batch validation automation     | HIGH   | Low    | 🟢 Very High | 1-2 hours  |
+| **3**    | Complete DuckDB schema          | LOW    | Low    | 🟡 Quick Win | 1 hour     |
+| **4**    | MQL5 module integration tests   | MEDIUM | Medium | 🟢 High      | 3-5 hours  |
+| **5**    | CI/CD pipeline (GitHub Actions) | MEDIUM | Medium | 🟢 High      | 3-5 hours  |
+| **6**    | Dependency version pinning      | LOW    | Low    | 🟡 Quick Win | 15 min     |
+| **7**    | Compilation automation script   | LOW    | Low    | 🟡 Quick Win | 30 min     |
+| **8**    | Performance benchmarking        | LOW    | Low    | 🟡 Medium    | 2 hours    |
+| **9**    | Class-based indicator API       | MEDIUM | High   | 🟡 Medium    | 6-10 hours |
+| **10**   | Type hints (incremental)        | LOW    | High   | 🟣 Long-term | 8-12 hours |
 
 ### Quick Wins (< 2 hours)
 
@@ -1094,6 +1130,7 @@ except Exception as e:
 ### Current State Assessment
 
 **Strengths**:
+
 - ✅ Well-documented (33 markdown files)
 - ✅ Production-validated workflows (1.000000 correlation)
 - ✅ Modular architecture (MQL5 + Python)
@@ -1101,6 +1138,7 @@ except Exception as e:
 - ✅ Good error handling (85% coverage)
 
 **Weaknesses**:
+
 - ❌ No unit tests (0% coverage for indicators)
 - ❌ No CI/CD pipeline
 - ❌ Manual validation workflow (slow)
@@ -1120,17 +1158,20 @@ except Exception as e:
 ### Recommended Next Steps
 
 **Week 1 (Quick Wins)**:
+
 1. Day 1: Add 5 unit tests for Laguerre RSI core functions
 2. Day 2: Implement batch validation automation
 3. Day 3: Complete DuckDB schema + test validation storage
 4. Day 4: Add dependency pinning + compilation script
 
 **Week 2 (Strategic)**:
+
 1. Day 1-2: Expand unit test coverage to 20+ tests
 2. Day 3-4: Implement GitHub Actions CI/CD
 3. Day 5: Add MQL5 module integration tests
 
 **Month 1 (Long-term)**:
+
 - Incrementally add type hints to new code
 - Plan class-based indicator API refactoring
 - Set up performance benchmarking baseline
@@ -1140,6 +1181,7 @@ except Exception as e:
 ## Appendix A: Files Reviewed
 
 ### Python Scripts (8 files, 2,405 LOC)
+
 - `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/export_aligned.py ` (318 lines)
 - `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/validate_indicator.py ` (359 lines)
 - `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/validate_export.py ` (276 lines - DEPRECATED)
@@ -1150,6 +1192,7 @@ except Exception as e:
 - `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/run_validation.py `
 
 ### MQL5 Files (6 files, 794 LOC)
+
 - `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Scripts/DataExport/ExportAligned.mq5 ` (275 lines)
 - `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Include/DataExport/DataExportCore.mqh `
 - `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Include/DataExport/ExportAlignedCommon.mqh `
@@ -1158,6 +1201,7 @@ except Exception as e:
 - `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Include/DataExport/modules/LaguerreRSIModule.mqh `
 
 ### Documentation (33 markdown files)
+
 - Key docs in `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/docs/ `
 - Guides: `MQL5_TO_PYTHON_MIGRATION_GUIDE.md`, `WINE_PYTHON_EXECUTION.md`, etc.
 - Reports: `VALIDATION_STATUS.md`, `PRUNING_ASSESSMENT.md`, `DOCUMENTATION_READINESS_ASSESSMENT.md`

@@ -13,12 +13,14 @@
 **This plan has been ARCHIVED as NOT VIABLE** (2025-10-17)
 
 **Failure Summary**:
+
 - Named sections `[ScriptName]` NOT supported by MT5 (tested, confirmed via research)
 - ScriptParameters directive blocks execution with silent failure (tested)
 - .set preset files have strict requirements, still blocks execution (tested)
 - v2.1.0 approach abandoned after comprehensive testing and research validation
 
 **Working Alternatives**:
+
 - **v3.0.0**: Python MetaTrader5 API (PRODUCTION - for market data export)
 - **v4.0.0**: File-based configuration (IN PROGRESS - for custom indicator support)
 
@@ -38,12 +40,13 @@ MT5 `startup.ini` with `[StartUp]` section fails for cold-start symbols (symbols
 
 Combine one-time GUI setup (dummy chart) with programmatic symbol loading via MQL5 functions (`SymbolSelect()`, `CopyRates()`). Script becomes symbol-agnostic - loads target symbol at runtime regardless of dummy chart's symbol.
 
-**Key Insight**: Chart context requirement is for script *launch*, not for symbol *access*. Once script runs, it can load any symbol programmatically.
+**Key Insight**: Chart context requirement is for script _launch_, not for symbol _access_. Once script runs, it can load any symbol programmatically.
 
 ### Architecture Decision
 
 **Chosen**: Solution A (over Xvfb virtual display)
 **Rationale**:
+
 - Lower complexity (no containers/virtualization)
 - Uses existing CrossOver setup
 - Community-proven pattern (MQL5 moderators endorse)
@@ -55,12 +58,12 @@ Combine one-time GUI setup (dummy chart) with programmatic symbol loading via MQ
 
 ## Service Level Objectives
 
-| Metric | Target | Measurement Method |
-|--------|--------|-------------------|
-| **Availability** | 100% | Script executes for any symbol without prior GUI setup |
-| **Correctness** | ≥ 0.999 correlation | Python validation vs MQL5 export (SMA test case) |
-| **Observability** | 100% | MT5 logs confirm symbol loading, iCustom success, CSV creation |
-| **Maintainability** | ≥ 90% | Single dummy chart survives MT5 updates, no profile accumulation |
+| Metric              | Target              | Measurement Method                                               |
+| ------------------- | ------------------- | ---------------------------------------------------------------- |
+| **Availability**    | 100%                | Script executes for any symbol without prior GUI setup           |
+| **Correctness**     | ≥ 0.999 correlation | Python validation vs MQL5 export (SMA test case)                 |
+| **Observability**   | 100%                | MT5 logs confirm symbol loading, iCustom success, CSV creation   |
+| **Maintainability** | ≥ 90%               | Single dummy chart survives MT5 updates, no profile accumulation |
 
 **Excluded**: Performance/speed (startup time acceptable), security (out of scope)
 
@@ -73,6 +76,7 @@ Combine one-time GUI setup (dummy chart) with programmatic symbol loading via MQ
 **Objective**: Confirm Solution A viability via external research
 
 **Actions**:
+
 1. ✅ External AI research via comprehensive prompt
 2. ✅ PDF report received (10 pages, 44 references)
 3. ✅ Confirmed: No undocumented command-line flags
@@ -91,6 +95,7 @@ Combine one-time GUI setup (dummy chart) with programmatic symbol loading via MQ
 **Original Assumption**: Script uses `ChartSymbol()` and `ChartPeriod()` - needs major refactoring
 
 **Discovery**: ExportAligned.mq5 already implements most of Solution A pattern
+
 - ✅ Has `InpSymbol` and `InpTimeframe` inputs (lines 9-10)
 - ✅ Has `SymbolSelect(symbol, true)` call (line 33)
 - ✅ All downstream calls use `symbol` and `InpTimeframe` variables
@@ -103,6 +108,7 @@ Combine one-time GUI setup (dummy chart) with programmatic symbol loading via MQ
 **File**: `MQL5/Scripts/DataExport/ExportAligned.mq5`
 
 **Planned Changes**:
+
 ```mql5
 // Add BEFORE existing inputs
 input string          InpTargetSymbol       = "EURUSD";
@@ -110,6 +116,7 @@ input ENUM_TIMEFRAMES InpTargetPeriod       = PERIOD_M1;
 ```
 
 **Actual State** (ExportAligned.mq5:9-10):
+
 ```mql5
 input string          InpSymbol             = "EURUSD";
 input ENUM_TIMEFRAMES InpTimeframe          = PERIOD_M1;
@@ -122,6 +129,7 @@ input ENUM_TIMEFRAMES InpTimeframe          = PERIOD_M1;
 **Location**: `OnStart()` function, BEFORE `LoadRates()` call
 
 **Existing Code** (ExportAligned.mq5:33-37):
+
 ```mql5
 if(!SymbolSelect(symbol,true))
   {
@@ -131,6 +139,7 @@ if(!SymbolSelect(symbol,true))
 ```
 
 **Missing Code**: History wait loop (ADDED at lines 39-56):
+
 ```mql5
 // Wait for history download (Solution A pattern - max 5 seconds)
 datetime from=TimeCurrent()-PeriodSeconds(InpTimeframe)*1000;
@@ -157,12 +166,14 @@ PrintFormat("Symbol loaded: %s %s",symbol,EnumToString(InpTimeframe));
 #### Step 1.3: Update LoadRates Call ✅ ALREADY CORRECT
 
 **Actual Code** (ExportAligned.mq5:59):
+
 ```mql5
 string symbol = InpSymbol;  // Line 25
 if(!LoadRates(symbol, InpTimeframe, InpBars, series))
 ```
 
 **Analysis**:
+
 - Uses `symbol` variable (derived from `InpSymbol` input)
 - Uses `InpTimeframe` input directly
 - Pattern already matches Solution A requirements
@@ -172,6 +183,7 @@ if(!LoadRates(symbol, InpTimeframe, InpBars, series))
 #### Step 1.4: Update Module Calls ✅ ALREADY CORRECT
 
 **Actual Code**:
+
 - **RSI** (ExportAligned.mq5:77):
   ```mql5
   if(!RSIModule_Load(symbol,InpTimeframe,series.count,InpRSIPeriod,rsiColumn,rsiError))
@@ -198,6 +210,7 @@ if(!LoadRates(symbol, InpTimeframe, InpBars, series))
 **Manual Steps** (GUI required once):
 
 1. **Launch MT5 GUI**:
+
    ```bash
    open ~/Applications/CrossOver.app
    # Navigate to MetaTrader 5 bottle, launch terminal64.exe
@@ -223,6 +236,7 @@ if(!LoadRates(symbol, InpTimeframe, InpBars, series))
    - Check `config/common.ini` for `ProfileLast=Default`
 
 **Expected Files** (after setup):
+
 ```
 $BOTTLE/drive_c/Program Files/MetaTrader 5/
 ├── config/
@@ -244,6 +258,7 @@ $BOTTLE/drive_c/Program Files/MetaTrader 5/
 **Objective**: Configure script launch without symbol specification
 
 **Current startup.ini** (from Iteration 2 - FAILED):
+
 ```ini
 [StartUp]
 Script=Scripts\\DataExport\\ExportAligned
@@ -253,6 +268,7 @@ ShutdownTerminal=1
 ```
 
 **Target startup.ini** (Solution A):
+
 ```ini
 [Experts]
 Enabled=1
@@ -277,6 +293,7 @@ InpOutputName=Export_XAUUSD_M1_SMA.csv
 ```
 
 **Critical Changes**:
+
 1. **Removed** `Symbol=` and `Period=` → Script launches on dummy chart (EURUSD M1)
 2. **Added** `[Inputs]` section → Pass `InpSymbol=XAUUSD` to script (overrides default)
 3. **Added** `[Experts]` section → Standard MT5 configuration
@@ -286,12 +303,14 @@ InpOutputName=Export_XAUUSD_M1_SMA.csv
 
 **Alternative Approach** (if [Inputs] doesn't work):
 Use preset file: `MQL5/Presets/export_params.set`
+
 ```
 InpTargetSymbol=XAUUSD
 InpTargetPeriod=1
 InpBars=5000
 InpUseSMA=true
 ```
+
 Then in startup.ini: `ScriptParameters=export_params.set`
 
 **SLO Impact**: Observability (clear configuration, no hidden state)
@@ -305,6 +324,7 @@ Then in startup.ini: `ScriptParameters=export_params.set`
 #### Step 4.1: Recompile ExportAligned.mq5
 
 **Command**:
+
 ```bash
 BOTTLE="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5"
 
@@ -320,6 +340,7 @@ cp "$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Scripts/DataExport/ExportAli
 ```
 
 **Verification**:
+
 ```bash
 # Check compilation log
 python3 << 'EOF'
@@ -344,6 +365,7 @@ cp "$BOTTLE/drive_c/ExportAligned.ex5" \
 **File**: `$BOTTLE/drive_c/Program Files/MetaTrader 5/config/startup_sma_test.ini`
 
 **Content**:
+
 ```ini
 [Experts]
 Enabled=1
@@ -370,6 +392,7 @@ InpOutputName=Export_EURUSD_M1_SMA.csv
 #### Step 4.3: Execute Test Run
 
 **Command**:
+
 ```bash
 CROSSOVER_BIN="$HOME/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/cxstart"
 BOTTLE_NAME="MetaTrader 5"
@@ -386,6 +409,7 @@ timeout 120 "$CROSSOVER_BIN" \
 ```
 
 **Expected Behavior**:
+
 1. MT5 launches
 2. Dummy chart (EURUSD M1) loads
 3. ExportAligned.ex5 starts on dummy chart
@@ -396,6 +420,7 @@ timeout 120 "$CROSSOVER_BIN" \
 8. MT5 shuts down (ShutdownTerminal=1)
 
 **Observability Checkpoints**:
+
 ```bash
 # Check MT5 script logs
 tail -50 "$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Logs/$(date +%Y%m%d).log"
@@ -408,6 +433,7 @@ head -5 "$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Files/Export_EURUSD_M1_
 ```
 
 **Success Criteria**:
+
 - ✅ Log shows "Symbol loaded: EURUSD PERIOD_M1"
 - ✅ Log shows "Export complete: 100 bars"
 - ✅ CSV exists with SMA_14 column
@@ -418,6 +444,7 @@ head -5 "$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Files/Export_EURUSD_M1_
 #### Step 4.4: Cold-Start Test (XAUUSD)
 
 **Update startup_sma_test.ini**:
+
 ```ini
 InpSymbol=XAUUSD
 InpOutputName=Export_XAUUSD_M1_SMA.csv
@@ -426,6 +453,7 @@ InpOutputName=Export_XAUUSD_M1_SMA.csv
 **Execute**: Same command as Step 4.3
 
 **Expected Behavior**:
+
 1. Script calls `SymbolSelect("XAUUSD", true)` → adds to Market Watch
 2. Script waits for history download (up to 5 seconds)
 3. Log shows progress: "Waiting for XAUUSD PERIOD_M1 history... (0/50)", "(10/50)", etc.
@@ -433,6 +461,7 @@ InpOutputName=Export_XAUUSD_M1_SMA.csv
 5. CSV exported successfully
 
 **Success Criteria**:
+
 - ✅ Symbol never opened in GUI before
 - ✅ Script successfully loads symbol and history
 - ✅ CSV created with XAUUSD data
@@ -449,6 +478,7 @@ InpOutputName=Export_XAUUSD_M1_SMA.csv
 #### Phase 4.1: Recompile ✅ COMPLETE
 
 **Actions**:
+
 1. Removed `RefreshRates()` MQL4 function (line 54) - compilation blocker in MQL5
 2. CLI compilation succeeded: 0 errors, 0 warnings, 907ms
 3. ExportAligned.ex5 deployed to Scripts/DataExport/
@@ -458,16 +488,19 @@ InpOutputName=Export_XAUUSD_M1_SMA.csv
 #### Phase 4.2: EURUSD Baseline Test ✅ PARTIAL SUCCESS
 
 **Config**: `C:\users\crossover\Config\startup_sma_test.ini`
+
 - Correct location (NOT Program Files/MetaTrader 5/Config/)
 - Script path: `DataExport\ExportAligned` (MT5 adds "Scripts\" prefix automatically)
 
 **Result**:
+
 - ✅ Script executed successfully
 - ✅ CSV created: `Export_EURUSD_PERIOD_M1.csv` (308KB, 5000 bars)
 - ✅ History wait loop worked (0ms wait - symbol already loaded)
 - ❌ [Inputs] section NOT applied - script used defaults
 
 **Log Evidence** (MQL5/Logs/20251017.log):
+
 ```
 ExportAligned (EURUSD,H1) Symbol selected: EURUSD
 ExportAligned (EURUSD,H1) History available for EURUSD PERIOD_M1 (waited 0 ms)
@@ -475,6 +508,7 @@ ExportAligned (EURUSD,H1) Export complete: 5000 bars for EURUSD PERIOD_M1 -> Exp
 ```
 
 **[Inputs] Issue**:
+
 - Expected: SMA enabled, 100 bars, `Export_EURUSD_M1_SMA.csv`
 - Actual: RSI enabled (default), 5000 bars (default), `Export_EURUSD_PERIOD_M1.csv`
 - Conclusion: [Inputs] section format incorrect or unsupported
@@ -484,6 +518,7 @@ ExportAligned (EURUSD,H1) Export complete: 5000 bars for EURUSD PERIOD_M1 -> Exp
 **Config Update**: Changed `InpSymbol=XAUUSD` and `InpOutputName=Export_XAUUSD_M1_SMA.csv`
 
 **Result**:
+
 - ✅ Script executed successfully
 - ✅ Used EURUSD (default from InpSymbol="EURUSD" hardcoded in script)
 - ❌ [Inputs] parameters NOT applied
@@ -516,12 +551,14 @@ ExportAligned (EURUSD,H1) Export complete: 5000 bars for EURUSD PERIOD_M1 -> Exp
 **Objective**: Verify MQL5 SMA values match Python implementation (≥ 0.999 correlation)
 
 **Prerequisites**:
+
 - ✅ `Export_EURUSD_M1_SMA.csv` exists from Phase 4
 - ✅ `users/crossover/indicators/simple_sma.py` exists from Iteration 2.1
 
 **Steps**:
 
 1. **Copy CSV to accessible location**:
+
    ```bash
    BOTTLE="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5"
    cp "$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Files/Export_EURUSD_M1_SMA.csv" \
@@ -529,6 +566,7 @@ ExportAligned (EURUSD,H1) Export complete: 5000 bars for EURUSD PERIOD_M1 -> Exp
    ```
 
 2. **Run validation** (if validate_indicator.py supports SMA):
+
    ```bash
    cd "$BOTTLE/drive_c/users/crossover"
    python validate_indicator.py \
@@ -538,6 +576,7 @@ ExportAligned (EURUSD,H1) Export complete: 5000 bars for EURUSD PERIOD_M1 -> Exp
    ```
 
 3. **Alternative** (manual validation):
+
    ```python
    import pandas as pd
    from indicators.simple_sma import calculate_sma
@@ -563,6 +602,7 @@ ExportAligned (EURUSD,H1) Export complete: 5000 bars for EURUSD PERIOD_M1 -> Exp
    ```
 
 **Success Criteria**:
+
 - ✅ Correlation ≥ 0.999
 - ✅ No NaN mismatches (both have same warmup period)
 - ✅ Last 10 bars match exactly (< 0.0001 difference)
@@ -604,6 +644,7 @@ ExportAligned (EURUSD,H1) Export complete: 5000 bars for EURUSD PERIOD_M1 -> Exp
    - Troubleshooting guide
 
 **Consolidation Principles**:
+
 - Single source of truth per topic
 - Version tracking (SemVer)
 - No promotional language
@@ -619,21 +660,25 @@ ExportAligned (EURUSD,H1) Export complete: 5000 bars for EURUSD PERIOD_M1 -> Exp
 ### Go/No-Go Decision Points
 
 **After Phase 1** (Code changes):
+
 - ✅ Code review: `SymbolSelect()` exists (already implemented at line 33)
 - ✅ Code review: History wait loop added (lines 39-56)
 - ✅ Code review: All calls use `symbol`/`InpTimeframe` variables (already correct)
 
 **After Phase 4** (Execution test):
+
 - ✅ EURUSD test passes (baseline)
 - ✅ XAUUSD test passes (cold-start validation)
 - ✅ No errors in MT5 logs
 - ✅ CSV files created with expected columns
 
 **After Phase 5** (Validation):
+
 - ✅ SMA correlation ≥ 0.999
 - ✅ Python implementation matches MQL5 behavior
 
 **Overall Success**:
+
 - ✅ All SLOs met (100% availability, ≥ 0.999 correctness, 100% observability, ≥ 90% maintainability)
 - ✅ Documentation updated and consolidated
 - ✅ Iteration 2 unblocked
@@ -645,16 +690,19 @@ ExportAligned (EURUSD,H1) Export complete: 5000 bars for EURUSD PERIOD_M1 -> Exp
 If Solution A fails to meet SLOs:
 
 **Option 1**: Accept one-time GUI initialization per symbol (v2.0.0 limitation)
+
 - Manually open EURUSD M1 chart once
 - Run ExportAligned via GUI to generate CSV
 - Document as acceptable workflow limitation
 
 **Option 2**: Pivot to v3.0.0 Python API approach (current production method)
+
 - Continue Python indicator reimplementation
 - Accept inability to access MQL5 indicator buffers
 - Document SMAModule.mqh as compilation success only
 
 **Option 3**: Implement Xvfb virtual display (Solution B from research)
+
 - High complexity, last resort
 - Requires Docker/container setup
 - Use only if Solution A fundamentally broken
@@ -666,6 +714,7 @@ If Solution A fails to meet SLOs:
 ## References
 
 ### External Research
+
 - **PDF Report**: `/Users/terryli/Downloads/MetaTrader 5 Headless MQL5 Script Execution.pdf`
   - 10 pages, 44 citations
   - MQL5 moderator quotes (Fernando Carreiro, Miguel Angel Vico)
@@ -673,12 +722,14 @@ If Solution A fails to meet SLOs:
   - SymbolSelect() documentation (MQL4 reference applies to MQL5)
 
 ### Internal Documentation
+
 - **Reality Check Matrix**: `docs/reports/REALITY_CHECK_MATRIX.md`
 - **Minimal Workflow**: `docs/guides/MQL5_TO_PYTHON_MINIMAL.md`
 - **Validation Status**: `docs/reports/VALIDATION_STATUS.md` (v2.0.0 limitations)
 - **Laguerre RSI Validation**: `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md` (correlation methodology)
 
 ### Code Files
+
 - **ExportAligned.mq5**: `MQL5/Scripts/DataExport/ExportAligned.mq5` (to be modified)
 - **SMAModule.mqh**: `MQL5/Include/DataExport/modules/SMAModule.mqh` (compiled, ready)
 - **SimpleSMA_Test**: `MQL5/Indicators/Custom/PythonInterop/SimpleSMA_Test.mq5` (compiled)
@@ -688,11 +739,11 @@ If Solution A fails to meet SLOs:
 
 ## Version History
 
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0.0 | 2025-10-17 | Initial plan based on external research Solution A | Claude |
-| 1.1.0 | 2025-10-17 | Phase 1 rectification - ExportAligned.mq5 already had Solution A pattern (only history wait loop missing) | Claude |
-| 1.2.0 | 2025-10-17 | Phase 4 test results - BLOCKED by [Inputs] parameter passing issue. RefreshRates() removed (MQL4-only). Config location and script path discoveries. | Claude |
+| Version | Date       | Changes                                                                                                                                              | Author |
+| ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1.0.0   | 2025-10-17 | Initial plan based on external research Solution A                                                                                                   | Claude |
+| 1.1.0   | 2025-10-17 | Phase 1 rectification - ExportAligned.mq5 already had Solution A pattern (only history wait loop missing)                                            | Claude |
+| 1.2.0   | 2025-10-17 | Phase 4 test results - BLOCKED by [Inputs] parameter passing issue. RefreshRates() removed (MQL4-only). Config location and script path discoveries. | Claude |
 
 ---
 

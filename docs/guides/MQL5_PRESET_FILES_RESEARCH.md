@@ -11,6 +11,7 @@
 **Key Finding**: MQL5 .set preset files CAN be used with scripts via startup.ini's `ScriptParameters` directive. This is a viable alternative to the non-functional [Inputs] section.
 
 **Critical Requirements**:
+
 1. .set files must use **UCS-2 LE with BOM** encoding (Unicode)
 2. Files must be located in `MQL5\Presets\` directory
 3. Use `ScriptParameters=filename.set` in startup.ini (NOT `LoadPreset=`)
@@ -22,6 +23,7 @@
 ## 1. .SET File Format Specification
 
 ### File Encoding
+
 - **Required**: UCS-2 LE with BOM (Unicode)
 - **NOT Compatible**: UTF-8, ANSI, or other encodings will fail silently
 - **Verification**: Can be opened with Notepad, but encoding must be preserved
@@ -92,11 +94,11 @@ ShutdownTerminal=1
 
 ### Key Parameters
 
-| Parameter | Purpose | Notes |
-|-----------|---------|-------|
-| `Script` | Script path relative to `MQL5\Scripts\` | Use `\` not `/` for subdirectories |
-| `ScriptParameters` | Name of .set file in `MQL5\Presets\` | File extension `.set` is required |
-| `ShutdownTerminal` | Auto-shutdown after completion | `1` = enabled, optional but useful for automation |
+| Parameter          | Purpose                                 | Notes                                             |
+| ------------------ | --------------------------------------- | ------------------------------------------------- |
+| `Script`           | Script path relative to `MQL5\Scripts\` | Use `\` not `/` for subdirectories                |
+| `ScriptParameters` | Name of .set file in `MQL5\Presets\`    | File extension `.set` is required                 |
+| `ShutdownTerminal` | Auto-shutdown after completion          | `1` = enabled, optional but useful for automation |
 
 ### NOT Used
 
@@ -165,6 +167,7 @@ input bool     InpIncludeLaguerreRSI = false;  // Include Laguerre RSI
 ### Variable Name Matching
 
 **Critical**: Parameter names in .set file **MUST** exactly match input variable names:
+
 - .set file: `InpSymbol=EURUSD`
 - Script: `input string InpSymbol = "EURUSD";`
 - Matching is **case-sensitive** and by **exact name**
@@ -296,16 +299,16 @@ ls -lh "$BOTTLE/drive_c/users/crossover/exports/"
 
 ## 7. Comparison: [Inputs] vs ScriptParameters
 
-| Feature | [Inputs] Section | ScriptParameters (.set) |
-|---------|------------------|-------------------------|
-| **Status** | ❌ Broken (confirmed non-functional) | ✅ Working (confirmed functional) |
-| **Syntax** | `ParameterName=value` in startup.ini | Separate .set file |
-| **Location** | startup.ini | MQL5\Presets\filename.set |
-| **Encoding** | Any (startup.ini is ANSI/UTF-8) | UCS-2 LE BOM (strict requirement) |
-| **Reusability** | Single-use per startup.ini | Multiple .set files for different configs |
-| **GUI Creation** | Manual editing only | Save from MT5 parameter dialog |
-| **Error Detection** | Silent failure | Silent failure (same behavior) |
-| **Recommended** | ❌ DO NOT USE | ✅ USE THIS METHOD |
+| Feature             | [Inputs] Section                     | ScriptParameters (.set)                   |
+| ------------------- | ------------------------------------ | ----------------------------------------- |
+| **Status**          | ❌ Broken (confirmed non-functional) | ✅ Working (confirmed functional)         |
+| **Syntax**          | `ParameterName=value` in startup.ini | Separate .set file                        |
+| **Location**        | startup.ini                          | MQL5\Presets\filename.set                 |
+| **Encoding**        | Any (startup.ini is ANSI/UTF-8)      | UCS-2 LE BOM (strict requirement)         |
+| **Reusability**     | Single-use per startup.ini           | Multiple .set files for different configs |
+| **GUI Creation**    | Manual editing only                  | Save from MT5 parameter dialog            |
+| **Error Detection** | Silent failure                       | Silent failure (same behavior)            |
+| **Recommended**     | ❌ DO NOT USE                        | ✅ USE THIS METHOD                        |
 
 ---
 
@@ -358,6 +361,7 @@ cp "$BOTTLE/drive_c/users/crossover/exports/"*.csv ./exports/
 ```
 
 **Usage**:
+
 ```bash
 ./run_export.sh ExportAligned_EURUSD_M1.set
 ./run_export.sh ExportAligned_XAUUSD_H1.set
@@ -370,12 +374,14 @@ cp "$BOTTLE/drive_c/users/crossover/exports/"*.csv ./exports/
 ### Problem: Preset file not loading
 
 **Check**:
+
 1. File encoding: `file ExportAligned.set` (should be "Little-endian UTF-16")
 2. File location: Must be in `MQL5\Presets\` root
 3. Filename in startup.ini matches exactly (case-sensitive)
 4. Script has `#property script_show_inputs` directive
 
 **Fix**:
+
 ```bash
 # Re-encode file to UCS-2 LE BOM
 iconv -f UTF-8 -t UCS-2LE input.set |
@@ -387,6 +393,7 @@ iconv -f UTF-8 -t UCS-2LE input.set |
 **Cause**: Parameter name mismatch or missing BOM
 
 **Check**:
+
 ```bash
 # View .set file content (preserving encoding)
 iconv -f UCS-2LE -t UTF-8 ExportAligned.set
@@ -397,6 +404,7 @@ iconv -f UCS-2LE -t UTF-8 ExportAligned.set
 ### Problem: Script not executing
 
 **Check**:
+
 1. Script path in startup.ini: `DataExport\ExportAligned` (relative to `MQL5\Scripts\`)
 2. .ex5 file exists: `ls MQL5/Scripts/DataExport/ExportAligned.ex5`
 3. MT5 logged in and connected
@@ -440,6 +448,7 @@ iconv -f UCS-2LE -t UTF-8 ExportAligned.set
 **Verdict**: ✅ **MQL5 .set preset files are a viable and RECOMMENDED method for passing parameters to scripts via startup.ini**
 
 **Advantages over [Inputs] section**:
+
 - ✅ Confirmed working (vs broken [Inputs])
 - ✅ Reusable configurations
 - ✅ GUI-generated (ensures correct format)
@@ -447,17 +456,20 @@ iconv -f UCS-2LE -t UTF-8 ExportAligned.set
 - ✅ Version controllable
 
 **Advantages over v3.0.0 Python API**:
+
 - ✅ Uses native MQL5 script (no Python translation needed)
 - ✅ Proven MQL5 indicator calculations (exact MT5 values)
 - ❌ Requires MT5 GUI for preset creation (one-time)
 - ❌ More complex setup than pure Python
 
 **Recommended Use Cases**:
+
 - When exact MQL5 indicator values needed (no Python translation errors)
 - When multiple export configurations required (preset library)
 - When GUI-based configuration acceptable (not fully automated)
 
 **When to use v3.0.0 Python API instead**:
+
 - When preset creation GUI not available
 - When 100% headless required (no MT5 dependencies)
 - When dynamic parameters (not pre-configured presets)
@@ -467,15 +479,18 @@ iconv -f UCS-2LE -t UTF-8 ExportAligned.set
 ## References
 
 ### MQL5 Documentation
+
 - Platform Start: https://www.metatrader5.com/en/terminal/help/start_advanced/start
 - Configuration at Startup: https://www.metatrader4.com/en/trading-platform/help/service/start_conf_file
 
 ### Community Resources
+
 - MQL5 Forum - ScriptParameters: https://www.mql5.com/en/forum/265448
 - MQL5 Forum - .set Files: https://www.mql5.com/en/forum/335934
 - MQL5 Articles - File Handling: https://www.mql5.com/en/articles/2720
 
 ### Project Documentation
+
 - WINE_PYTHON_EXECUTION.md - v3.0.0 Python API approach
 - HEADLESS_EXECUTION_PLAN.md - Startup.ini investigation
 - EXTERNAL_RESEARCH_BREAKTHROUGHS.md - StartUp section discovery

@@ -47,11 +47,13 @@ This creates a **recursive dependency** where each bar's calculation depends on 
 ### State Pollution
 
 When `inpCustomMinutes=0`:
+
 1. Indicator runs **normal timeframe** path (line 242-309)
 2. Calls `iLaGuerreRsi(prices[i], ..., i, rates_total, 0)` with instance=0
 3. Populates `laguerreWork[0..rates_total]` with filter state
 
 When `inpCustomMinutes=1` on M1 chart:
+
 1. Indicator runs **custom timeframe** path (line 318-455)
 2. Builds custom bars (which are nearly identical to M1 bars)
 3. Calls `iLaGuerreRsi(customPrices[i], ..., i, customBarCount, 0)` with instance=0
@@ -70,6 +72,7 @@ MQL5 provides an `instance` parameter specifically for this purpose! The code st
 ### Changes Made
 
 **1. Increase instance count** (line 13):
+
 ```mql5
 // OLD
 #define _lagRsiInstances 1
@@ -79,6 +82,7 @@ MQL5 provides an `instance` parameter specifically for this purpose! The code st
 ```
 
 **2. Use instance 1 for custom timeframe** (line 448):
+
 ```mql5
 // OLD
 customResults[i] = iLaGuerreRsi(customPrices[i], inpAtrPeriod * (_coeff + 0.75), i, customBarCount);
@@ -92,6 +96,7 @@ Normal timeframe continues to use instance 0 (default parameter).
 ### How It Works Now
 
 The `laguerreWork` array structure:
+
 ```mql5
 struct sLaguerreWorkStruct
 {
@@ -127,6 +132,7 @@ The actual issue was **state pollution in a shared global array**.
 **Indicator 2**: `inpCustomMinutes=1` (explicit M1, uses instance 1)
 
 **Expected Result**: Both indicators should now produce **identical values** because:
+
 1. They process the same underlying M1 data
 2. They use the same smoothing parameters
 3. They maintain separate, non-interfering filter states
@@ -155,6 +161,7 @@ Stage 3: L3 = L2[i-1] + γ(L3[i-1] - L2)
 ```
 
 Where:
+
 - `γ` (gamma) = filter coefficient derived from period
 - `[i-1]` denotes previous bar value
 - Each stage feeds into the next
@@ -166,6 +173,7 @@ This creates a **chain of dependencies** where the entire calculation sequence m
 Consider two calculation sequences:
 
 **Normal Timeframe (M1 chart, 100 bars)**:
+
 ```
 Bar 0:  L0[0] = price[0]
 Bar 1:  L0[1] = price[1] + γ(L0[0] - price[1])
@@ -175,6 +183,7 @@ Bar 99: L0[99] = price[99] + γ(L0[98] - price[99])
 ```
 
 **Custom Timeframe (M1 custom, 98 bars)** - runs AFTER normal:
+
 ```
 Bar 0:  L0[0] = customPrice[0]  // OVERWRITES normal's L0[0]!
 Bar 1:  L0[1] = customPrice[1] + γ(L0[0] - customPrice[1])  // Uses WRONG L0[0]!
@@ -188,12 +197,14 @@ The custom calculation starts with **corrupted state** from the normal calculati
 With separate instances:
 
 **Normal Timeframe**:
+
 ```
 Bar 0:  laguerreWork[0].data[0].values[0] = price[0]
 Bar 1:  laguerreWork[1].data[0].values[0] = price[1] + γ(laguerreWork[0].data[0].values[0] - price[1])
 ```
 
 **Custom Timeframe**:
+
 ```
 Bar 0:  laguerreWork[0].data[1].values[0] = customPrice[0]  // Different instance!
 Bar 1:  laguerreWork[1].data[1].values[0] = customPrice[1] + γ(laguerreWork[0].data[1].values[0] - customPrice[1])
@@ -217,6 +228,7 @@ Now each calculation maintains its own independent filter state.
 ## Related Bugs Fixed
 
 This single fix resolves all observed discrepancies:
+
 1. ✅ Different values for `inpCustomMinutes=0` vs `inpCustomMinutes=1` on M1 chart
 2. ✅ Array indexing issues (fixed separately in previous iteration)
 3. ✅ Price smoothing not respecting `inpRsiMaType` parameter (fixed separately)
@@ -226,11 +238,13 @@ This single fix resolves all observed discrepancies:
 ## Performance Impact
 
 **Memory increase**: Negligible
+
 - Old: `sizeof(sLaguerreWorkStruct) * bars`
 - New: `sizeof(sLaguerreWorkStruct) * bars` (struct size increased but array size same)
 - Each struct now has 2 instances instead of 1: `4 doubles * 2 instances = 64 bytes per bar`
 
 **CPU impact**: None
+
 - Same number of calculations
 - No additional loops
 - Just using different memory locations

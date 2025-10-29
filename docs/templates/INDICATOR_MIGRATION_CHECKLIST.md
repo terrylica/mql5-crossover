@@ -9,12 +9,14 @@
 ## Pre-Flight Checklist
 
 **Before Starting**:
+
 - [ ] Read `LESSONS_LEARNED_PLAYBOOK.md` Critical Gotchas (sections 1-8)
 - [ ] MT5 terminal running and logged in
 - [ ] Wine Python environment verified: `wine python.exe --version`
 - [ ] Working directory: `cd "$BOTTLE/drive_c"`
 
 **Environment Variables**:
+
 ```bash
 export BOTTLE="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5"
 export CX="$HOME/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
@@ -25,6 +27,7 @@ export CX="$HOME/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin
 ## Phase 1: Locate & Analyze MQL5 Indicator (30-60 min → 10-15 min)
 
 ### Find Indicator
+
 ```bash
 find "$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Indicators" -name "*INDICATOR_NAME*"
 ```
@@ -32,6 +35,7 @@ find "$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Indicators" -name "*INDICA
 **Output**: `/path/to/indicator.mq5`
 
 ### Read Source Code
+
 ```python
 # analyze_indicator.py (run this)
 from pathlib import Path
@@ -63,6 +67,7 @@ for inc in includes:
 ```
 
 ### Document Algorithm
+
 - [ ] Create `docs/guides/INDICATOR_NAME_ANALYSIS.md`
 - [ ] Document calculation steps (numbered sequence)
 - [ ] Identify dependencies (libraries, external indicators)
@@ -76,12 +81,14 @@ for inc in includes:
 ## Phase 2: Modify MQL5 to Expose Buffers (15-30 min → 5-10 min)
 
 ### Copy to PythonInterop Folder
+
 ```bash
 cp "ORIGINAL_PATH/indicator.mq5" \
    "$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Indicators/Custom/PythonInterop/INDICATOR_NAME_Export.mq5"
 ```
 
 ### Expose Internal Buffers
+
 ```mql5
 // BEFORE:
 #property indicator_buffers 2
@@ -110,6 +117,7 @@ cp "ORIGINAL_PATH/indicator.mq5" \
 ## Phase 3: CLI Compile (10-20 min → 2-5 min)
 
 ### Compilation Steps
+
 ```bash
 # Step 1: Copy to simple path (CRITICAL - spaces in paths FAIL)
 cp "INDICATOR_NAME_Export.mq5" "$BOTTLE/drive_c/Indicator.mq5"
@@ -137,12 +145,14 @@ cp "$BOTTLE/drive_c/Indicator.ex5" \
 ```
 
 ### Verification Checklist
+
 - [ ] Exit code 0
 - [ ] metaeditor.log shows "0 errors, 0 warnings"
 - [ ] .ex5 file exists (~25KB typical)
 - [ ] File timestamp is recent
 
 **Common Failures**:
+
 - Exit code 0 but no .ex5 → Path has spaces (use copy-compile-move)
 - 100+ errors with /inc → Remove /inc flag (it overrides defaults)
 - "invalid syntax" → Check encoding (UTF-8 or UTF-16LE both work)
@@ -154,6 +164,7 @@ cp "$BOTTLE/drive_c/Indicator.ex5" \
 ## Phase 4: Fetch Historical Data (5-10 min → 2-3 min)
 
 ### Export 5000+ Bars via Wine Python MT5 API
+
 ```bash
 CX_BOTTLE="MetaTrader 5" \
 WINEPREFIX="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5" \
@@ -163,12 +174,14 @@ wine "C:\\Program Files\\Python312\\python.exe" \
 ```
 
 **Why 5000 bars?**
+
 - ATR: 32-bar lookback required
 - Adaptive periods: 64-bar warmup required
 - Safety margin: 10x minimum requirement
 - **This is THE #1 cause of 0.95 correlation failures**
 
 ### Verify CSV Export
+
 ```bash
 ls -lh "$BOTTLE/drive_c/users/crossover/exports/Export_EURUSD_PERIOD_M1.csv"
 # Expected: ~305KB for 5000 M1 bars
@@ -185,6 +198,7 @@ cp "$BOTTLE/drive_c/users/crossover/exports/Export_EURUSD_PERIOD_M1.csv" \
 ### Export Indicator Values (100-bar snapshot)
 
 **Manual Step** (requires GUI):
+
 1. Open MT5
 2. Open EURUSD M1 chart
 3. Navigator → Indicators → Custom → PythonInterop → INDICATOR_NAME_Export
@@ -193,6 +207,7 @@ cp "$BOTTLE/drive_c/users/crossover/exports/Export_EURUSD_PERIOD_M1.csv" \
 6. File → Export → Save as CSV
 
 **Deliverable**:
+
 - `EURUSD_M1_5000bars.csv` (market data)
 - `Export_INDICATOR_NAME.csv` (100 bars with indicator values)
 
@@ -201,11 +216,13 @@ cp "$BOTTLE/drive_c/users/crossover/exports/Export_EURUSD_PERIOD_M1.csv" \
 ## Phase 5: Implement Python Indicator (1-2 hours → 30-60 min)
 
 ### Create Python Module
+
 ```bash
 touch users/crossover/indicators/indicator_name.py
 ```
 
 ### Implementation Template
+
 ```python
 """
 Indicator Name - Python Implementation
@@ -292,6 +309,7 @@ def calculate_indicator_name(
 ### Critical Implementation Patterns
 
 **Pattern 1: Expanding Windows** (MOST COMMON MISTAKE)
+
 ```python
 # ❌ WRONG: pandas.rolling().mean() returns NaN until full window
 atr = tr.rolling(window=period).mean()
@@ -303,6 +321,7 @@ for i in range(len(tr)):
 ```
 
 **Pattern 2: First Bar Initialization**
+
 ```python
 # First bar special case
 if i == 0:
@@ -311,6 +330,7 @@ if i == 0:
 ```
 
 **Pattern 3: Recursive Calculations**
+
 ```python
 # Laguerre filter (uses previous bar values)
 L0[i] = price[i] + gamma * (L0[i-1] - price[i])
@@ -324,6 +344,7 @@ L1[i] = L0[i-1]  + gamma * (L1[i-1] - L0[i-1])
 ## Phase 6: Two-Stage Validation (15-30 min → 5-10 min)
 
 ### Calculate on Full Dataset
+
 ```python
 import pandas as pd
 from indicators.indicator_name import calculate_indicator_name
@@ -347,6 +368,7 @@ result_last100.to_csv("exports/Python_INDICATOR_NAME_last100.csv", index=False)
 ```
 
 ### Run Validation Script
+
 ```bash
 cd users/crossover
 
@@ -358,6 +380,7 @@ python validate_indicator.py \
 ```
 
 ### Expected Output (SUCCESS)
+
 ```
 [PASS] Buffer1
   Correlation: 1.000000 (threshold: 0.999)
@@ -374,16 +397,19 @@ All buffers meet correlation threshold >= 0.999
 ### Debugging Failed Validation
 
 **If Correlation ~0.95**:
+
 - [ ] Check: Did you calculate on full 5000 bars? (not just 100)
 - [ ] Check: Did you compare last 100 bars only?
 - [ ] Check: Are you using manual loops (not `rolling().mean()`)?
 
 **If NaN Values**:
+
 - [ ] Check: First bar initialization logic
 - [ ] Check: Expanding window uses `sum() / period` (not `.mean()`)
 - [ ] Print: `result['buffer1'].isna().sum()` to count NaN
 
 **If Small Differences**:
+
 - [ ] Check: `.iloc` vs `[]` indexing (use `.iloc`)
 - [ ] Check: Floating-point precision (acceptable if MAE < 0.001)
 - [ ] Compare: First 10 and last 10 bars manually
@@ -395,11 +421,13 @@ All buffers meet correlation threshold >= 0.999
 ## Phase 7: Documentation (20-30 min → 10-15 min)
 
 ### Create Validation Success Report
+
 ```bash
 touch docs/reports/INDICATOR_NAME_VALIDATION_SUCCESS.md
 ```
 
 **Template**:
+
 ```markdown
 # Indicator Name Python Implementation - Validation Success
 
@@ -409,10 +437,10 @@ touch docs/reports/INDICATOR_NAME_VALIDATION_SUCCESS.md
 
 ## Validation Results
 
-| Buffer | Correlation | MAE | Result |
-|--------|-------------|-----|--------|
-| Buffer1 | 1.000000 | 0.000000 | ✅ PASS |
-| Buffer2 | 0.999987 | 0.000001 | ✅ PASS |
+| Buffer  | Correlation | MAE      | Result  |
+| ------- | ----------- | -------- | ------- |
+| Buffer1 | 1.000000    | 0.000000 | ✅ PASS |
+| Buffer2 | 0.999987    | 0.000001 | ✅ PASS |
 
 ## Implementation Details
 
@@ -446,17 +474,20 @@ touch docs/reports/INDICATOR_NAME_VALIDATION_SUCCESS.md
 ### Update CLAUDE.md
 
 Add to "Single Source of Truth" table:
+
 ```markdown
 | Indicator Name Algorithm | `docs/guides/INDICATOR_NAME_ANALYSIS.md` |
 | Indicator Name Validation | `docs/reports/INDICATOR_NAME_VALIDATION_SUCCESS.md` |
 ```
 
 Add to "Python Indicators" section:
+
 ```markdown
 - **Python Indicators**: Laguerre RSI v1.0.0, INDICATOR_NAME v1.0.0 (validated, production-ready)
 ```
 
 ### Git Commit
+
 ```bash
 git add .
 git commit -m "feat: Add INDICATOR_NAME Python implementation with validation
@@ -489,16 +520,16 @@ Correlation: All buffers ≥0.999"
 
 ## Time Tracking
 
-| Phase | Expected | Actual | Notes |
-|-------|----------|--------|-------|
-| 1. Locate & Analyze | 30-60 min | ___ | |
-| 2. Modify MQL5 | 15-30 min | ___ | |
-| 3. CLI Compile | 10-20 min | ___ | |
-| 4. Fetch Data | 5-10 min | ___ | |
-| 5. Python Implementation | 1-2 hours | ___ | |
-| 6. Validation | 15-30 min | ___ | |
-| 7. Documentation | 20-30 min | ___ | |
-| **TOTAL** | **2-4 hours** | **___** | |
+| Phase                    | Expected      | Actual     | Notes |
+| ------------------------ | ------------- | ---------- | ----- |
+| 1. Locate & Analyze      | 30-60 min     | \_\_\_     |       |
+| 2. Modify MQL5           | 15-30 min     | \_\_\_     |       |
+| 3. CLI Compile           | 10-20 min     | \_\_\_     |       |
+| 4. Fetch Data            | 5-10 min      | \_\_\_     |       |
+| 5. Python Implementation | 1-2 hours     | \_\_\_     |       |
+| 6. Validation            | 15-30 min     | \_\_\_     |       |
+| 7. Documentation         | 20-30 min     | \_\_\_     |       |
+| **TOTAL**                | **2-4 hours** | **\_\_\_** |       |
 
 ---
 

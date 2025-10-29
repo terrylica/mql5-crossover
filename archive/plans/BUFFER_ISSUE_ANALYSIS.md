@@ -17,12 +17,14 @@ Automated script execution workflow is **WORKING** (terminal64.exe /config:confi
 ### Current State
 
 **What Works**:
+
 - ✅ Config generation (generate_mt5_config.py)
 - ✅ Terminal automation (ShutdownTerminal=1)
 - ✅ CSV file creation (100 bars exported)
 - ✅ Export log confirmation ("Export complete: 100 bars for EURUSD PERIOD_M1")
 
 **What's Broken**:
+
 - ❌ **Laguerre_RSI column is empty** in CSV output
 - ⚠️ Adaptive_Period shows values (56.00) despite code saying it should be zeros
 - ⚠️ ATR column shows values (0.00006) despite code saying it should be zeros
@@ -30,6 +32,7 @@ Automated script execution workflow is **WORKING** (terminal64.exe /config:confi
 ### Root Cause
 
 **Indicator Structure** (`ATR_Adaptive_Laguerre_RSI.mq5`):
+
 ```mql5
 #property indicator_buffers 3
 #property indicator_plots   1
@@ -40,6 +43,7 @@ SetIndexBuffer(2, prices, INDICATOR_CALCULATIONS);   // Buffer 2: Price data (in
 ```
 
 **Module Expectations** (`LaguerreRSIModule.mqh`):
+
 ```mql5
 CopyBuffer(handle, 0, 0, bars, laguerreColumn.values);        // Expected: Laguerre RSI
 CopyBuffer(handle, 1, 0, bars, signalColumn.values);          // Expected: Signal
@@ -47,6 +51,7 @@ CopyBuffer(handle, 1, 0, bars, signalColumn.values);          // Expected: Signa
 ```
 
 **Mismatch**:
+
 - Buffer 0: Contains Laguerre RSI values ✓
 - Buffer 1: Contains COLOR_INDEX (classification signal) ✓
 - Buffer 2: Contains INDICATOR_CALCULATIONS (internal prices) - **NOT accessible as expected**
@@ -99,22 +104,26 @@ CopyBuffer(handle, 1, 0, bars, signalColumn.values);          // Expected: Signa
 ## Solution Approaches (Ranked by Feasibility)
 
 ### Approach 1: Investigate Mystery Values (IMMEDIATE - DEBUG)
+
 **Status**: Recommended First Step
 **Effort**: Low
 **Risk**: None
 
 **Action**:
+
 1. Check if there's a different version of ATR_Adaptive_Laguerre_RSI.mq5 with more buffers
 2. Verify which indicator file is actually being loaded by the script
 3. Add debug logging to LaguerreRSIModule to print CopyBuffer results
 4. Check if values are coming from a cached .ex5 file vs source .mq5
 
 **Reason**: CSV shows real values for Adaptive_Period and ATR, contradicting code that initializes to zeros. This suggests:
+
 - Wrong indicator file being used
 - Cached compilation
 - Different indicator version with more buffers
 
 **Diagnostic Steps**:
+
 ```mql5
 // Add to LaguerreRSIModule.mqh after each CopyBuffer:
 PrintFormat("Buffer %d copied: %d bars, first value: %.5f",
@@ -124,12 +133,15 @@ PrintFormat("Buffer %d copied: %d bars, first value: %.5f",
 ---
 
 ### Approach 2: Modify Indicator to Expose All Buffers (MEDIUM - PREFERRED)
+
 **Status**: Best Long-Term Solution
 **Effort**: Medium
 **Risk**: Low (changes isolated to indicator)
 
 **Action**:
+
 1. Modify `ATR_Adaptive_Laguerre_RSI.mq5`:
+
    ```mql5
    #property indicator_buffers 5  // Increase from 3 to 5
    #property indicator_plots   1
@@ -155,12 +167,14 @@ PrintFormat("Buffer %d copied: %d bars, first value: %.5f",
    ```
 
 **Pros**:
+
 - Clean, self-contained solution
 - All values calculated once by indicator
 - Future exports can access all buffers
 - INDICATOR_CALCULATIONS type keeps buffers hidden from chart
 
 **Cons**:
+
 - Requires modifying existing indicator
 - Need to identify where adaptive_period and atr_value are calculated in indicator
 - Must recompile and test indicator
@@ -170,13 +184,16 @@ PrintFormat("Buffer %d copied: %d bars, first value: %.5f",
 ---
 
 ### Approach 3: Calculate in Export Script (QUICK - PRAGMATIC)
+
 **Status**: Fastest Implementation
 **Effort**: Low
 **Risk**: Medium (duplicate calculation logic)
 
 **Action**:
+
 1. Keep existing indicator unchanged
 2. Modify `LaguerreRSIModule.mqh` to calculate missing values:
+
    ```mql5
    // Get ATR using built-in iATR
    int atrHandle = iATR(symbol, timeframe, atrPeriod);
@@ -195,11 +212,13 @@ PrintFormat("Buffer %d copied: %d bars, first value: %.5f",
 3. Implement `CalculateAdaptivePeriod()` based on indicator algorithm
 
 **Pros**:
+
 - No indicator modification required
 - Fast implementation
 - Leverages built-in iATR function
 
 **Cons**:
+
 - **Duplicate logic** (violates DRY principle)
 - Must reverse-engineer adaptive period formula from indicator
 - Potential for calculation discrepancies
@@ -210,12 +229,15 @@ PrintFormat("Buffer %d copied: %d bars, first value: %.5f",
 ---
 
 ### Approach 4: Create Wrapper Indicator (COMPLEX - OVERKILL)
+
 **Status**: Not Recommended
 **Effort**: High
 **Risk**: Medium
 
 **Action**:
+
 1. Create new indicator `LaguerreRSI_Export.mq5`:
+
    ```mql5
    #property indicator_buffers 5
 
@@ -247,11 +269,13 @@ PrintFormat("Buffer %d copied: %d bars, first value: %.5f",
 2. Update `LaguerreRSIModule.mqh` to use wrapper indicator
 
 **Pros**:
+
 - Original indicator unchanged
 - Clean separation of concerns
 - All values exposed as INDICATOR_DATA
 
 **Cons**:
+
 - **Overkill** for simple export use case
 - Additional indicator to maintain
 - Performance overhead (indicator calling indicator)
@@ -262,13 +286,16 @@ PrintFormat("Buffer %d copied: %d bars, first value: %.5f",
 ---
 
 ### Approach 5: Python-Only Calculation (FALLBACK)
+
 **Status**: Emergency Fallback Only
 **Effort**: High
 **Risk**: High
 
 **Action**:
+
 1. Export only OHLC data from MT5
 2. Implement entire Laguerre RSI algorithm in Python:
+
    ```python
    def calculate_laguerre_rsi_full(df, atr_period=32, smooth_period=5, smooth_method='ema'):
        # Calculate ATR
@@ -290,11 +317,13 @@ PrintFormat("Buffer %d copied: %d bars, first value: %.5f",
 3. Validate Python implementation against MQL5 (correlation ≥ 0.999)
 
 **Pros**:
+
 - No MQL5 modifications required
 - Full control over calculation in Python
 - Easier to debug and modify
 
 **Cons**:
+
 - **Defeats purpose** of validation (comparing Python to itself)
 - No guarantee of matching MQL5 implementation
 - High effort to reverse-engineer algorithm
@@ -307,6 +336,7 @@ PrintFormat("Buffer %d copied: %d bars, first value: %.5f",
 ## Recommended Solution Path
 
 ### Phase 1: Immediate Debug (TODAY)
+
 1. ✅ **Verify indicator version**
    - Check which ATR_Adaptive_Laguerre_RSI file is being loaded
    - Compare .mq5 source vs .ex5 compilation date
@@ -322,9 +352,11 @@ PrintFormat("Buffer %d copied: %d bars, first value: %.5f",
    - Verify buffer structure matches expectations
 
 ### Phase 2: Fix Implementation (NEXT)
+
 **Primary Strategy**: **Approach 2 (Modify Indicator)**
 
 Reasons:
+
 - Clean, maintainable solution
 - Single source of truth
 - Aligns with SLO: Maintainability 100%
@@ -333,6 +365,7 @@ Reasons:
 **Fallback Strategy**: **Approach 3 (Calculate in Script)** if indicator modification proves difficult
 
 ### Phase 3: Validation (AFTER FIX)
+
 1. Export CSV with all buffers populated
 2. Run `validate_indicator.py`
 3. Verify correlation ≥ 0.999 for all buffers
@@ -342,14 +375,14 @@ Reasons:
 
 ## Decision Criteria
 
-| Criteria | Approach 1 | Approach 2 | Approach 3 | Approach 4 | Approach 5 |
-|----------|-----------|-----------|-----------|-----------|-----------|
-| **Effort** | Low | Medium | Low | High | High |
-| **Risk** | None | Low | Medium | Medium | High |
-| **Maintainability** | N/A | ✅ 100% | ⚠️ 70% | ⚠️ 60% | ❌ 0% |
-| **Correctness** | N/A | ✅ 100% | ⚠️ 90% | ✅ 100% | ❌ Unknown |
-| **SLO Alignment** | N/A | ✅ High | ⚠️ Medium | ⚠️ Low | ❌ None |
-| **Recommendation** | **DO FIRST** | **PRIMARY** | **FALLBACK** | Not Recommended | Emergency Only |
+| Criteria            | Approach 1   | Approach 2  | Approach 3   | Approach 4      | Approach 5     |
+| ------------------- | ------------ | ----------- | ------------ | --------------- | -------------- |
+| **Effort**          | Low          | Medium      | Low          | High            | High           |
+| **Risk**            | None         | Low         | Medium       | Medium          | High           |
+| **Maintainability** | N/A          | ✅ 100%     | ⚠️ 70%       | ⚠️ 60%          | ❌ 0%          |
+| **Correctness**     | N/A          | ✅ 100%     | ⚠️ 90%       | ✅ 100%         | ❌ Unknown     |
+| **SLO Alignment**   | N/A          | ✅ High     | ⚠️ Medium    | ⚠️ Low          | ❌ None        |
+| **Recommendation**  | **DO FIRST** | **PRIMARY** | **FALLBACK** | Not Recommended | Emergency Only |
 
 ---
 
@@ -413,6 +446,6 @@ Reasons:
 
 ## Version History
 
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0.0 | 2025-10-16 | Initial analysis based on web research and empirical testing | AI Agent |
+| Version | Date       | Changes                                                      | Author   |
+| ------- | ---------- | ------------------------------------------------------------ | -------- |
+| 1.0.0   | 2025-10-16 | Initial analysis based on web research and empirical testing | AI Agent |

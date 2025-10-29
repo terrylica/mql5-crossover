@@ -6,16 +6,19 @@
 ## Critical Path Definitions
 
 ### CrossOver Bottle Root
+
 ```bash
 BOTTLE_ROOT="/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5"
 ```
 
 ### MT5 Installation Root
+
 ```bash
 MT5_ROOT="$BOTTLE_ROOT/drive_c/Program Files/MetaTrader 5"
 ```
 
 ### MQL5 Source Tree
+
 ```bash
 MQL5_ROOT="$MT5_ROOT/MQL5"
 ```
@@ -23,6 +26,7 @@ MQL5_ROOT="$MT5_ROOT/MQL5"
 ## Complete MT5 Directory Structure
 
 ### Executables
+
 ```bash
 # MetaEditor (compile MQL5 code)
 $MT5_ROOT/MetaEditor64.exe
@@ -37,6 +41,7 @@ $MT5_ROOT/metatester64.exe
 ### MQL5 Source Directories
 
 #### Indicators
+
 ```bash
 # Custom indicators (user-created/downloaded)
 $MQL5_ROOT/Indicators/Custom/
@@ -56,6 +61,7 @@ $MQL5_ROOT/Indicators/Free Indicators/
 ```
 
 **Full path examples**:
+
 ```bash
 # Target indicator for translation
 /Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Indicators/Custom/ATR adaptive smoothed Laguerre RSI 2 (extended).mq5
@@ -67,6 +73,7 @@ $MQL5_ROOT/Indicators/Free Indicators/
 ```
 
 #### Scripts
+
 ```bash
 # User scripts
 $MQL5_ROOT/Scripts/
@@ -79,6 +86,7 @@ $MQL5_ROOT/Scripts/UnitTests/
 ```
 
 #### Include Files (Libraries)
+
 ```bash
 # Standard library headers
 $MQL5_ROOT/Include/
@@ -92,18 +100,21 @@ $MQL5_ROOT/Include/Trade/Trade.mqh
 ```
 
 #### Expert Advisors (EAs)
+
 ```bash
 # Expert advisors
 $MQL5_ROOT/Experts/
 ```
 
 #### Files (Data/Output)
+
 ```bash
 # Script output, user files
 $MQL5_ROOT/Files/
 ```
 
 #### Logs
+
 ```bash
 # MQL5 script execution logs
 $MQL5_ROOT/Logs/
@@ -142,6 +153,7 @@ $BOTTLE_ROOT/drive_c/users/crossover/exports/
 **Objective**: Find the MQL5 indicator file to translate.
 
 **Search Commands**:
+
 ```bash
 # Search by name
 find "$BOTTLE_ROOT/drive_c/Program Files/MetaTrader 5/MQL5/Indicators" -name "*ATR*Laguerre*" -o -name "*Laguerre*RSI*"
@@ -154,6 +166,7 @@ find "$BOTTLE_ROOT/drive_c/Program Files/MetaTrader 5/MQL5/Include" -name "*.mqh
 ```
 
 **Expected Output**:
+
 ```
 /Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Indicators/Custom/ATR adaptive smoothed Laguerre RSI 2 (extended).mq5
 ```
@@ -163,6 +176,7 @@ find "$BOTTLE_ROOT/drive_c/Program Files/MetaTrader 5/MQL5/Include" -name "*.mqh
 **Objective**: Analyze MQL5 code structure and dependencies.
 
 **Read Indicator File**:
+
 ```bash
 # Check encoding
 file "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Indicators/Custom/ATR adaptive smoothed Laguerre RSI 2 (extended).mq5"
@@ -178,6 +192,7 @@ with open('...mq5', 'r', encoding='utf-16-le') as f:
 ```
 
 **Key Elements to Extract**:
+
 1. **Input parameters**: `input int inpAtrPeriod = 32;`
 2. **Buffer definitions**: `double val[], valc[], prices[];`
 3. **Calculation functions**: `CalculateTrueRange()`, `CalculateATR()`, `CalculateLaguerreRSI()`
@@ -190,17 +205,18 @@ with open('...mq5', 'r', encoding='utf-16-le') as f:
 
 **Mapping Guide**:
 
-| MQL5 Concept | Python Equivalent |
-|--------------|-------------------|
-| `double array[]` | `pd.Series` or `np.array` |
+| MQL5 Concept             | Python Equivalent                           |
+| ------------------------ | ------------------------------------------- |
+| `double array[]`         | `pd.Series` or `np.array`                   |
 | `iMA()` / `iMAOnArray()` | `series.rolling().mean()` or `series.ewm()` |
-| `iATR()` | Custom TR calculation + EMA |
-| `OnInit()` | Function initialization in `__init__()` |
-| `OnCalculate()` | Main processing in `calculate()` method |
-| `CopyBuffer()` | Data frame column access |
-| `ArrayResize()` | `np.resize()` or list operations |
+| `iATR()`                 | Custom TR calculation + EMA                 |
+| `OnInit()`               | Function initialization in `__init__()`     |
+| `OnCalculate()`          | Main processing in `calculate()` method     |
+| `CopyBuffer()`           | Data frame column access                    |
+| `ArrayResize()`          | `np.resize()` or list operations            |
 
 **Example Translation**:
+
 ```python
 # MQL5: True Range calculation
 double tr = MathMax(high, prevClose) - MathMin(low, prevClose);
@@ -214,6 +230,7 @@ tr = np.maximum(high, prev_close) - np.minimum(low, prev_close)
 **Objective**: Create modular Python implementation following `export_aligned.py` pattern.
 
 **Structure**:
+
 ```python
 # File: indicator_laguerre_rsi.py
 import numpy as np
@@ -267,12 +284,14 @@ def calculate_laguerre_rsi(prices: pd.Series, period: int = 32) -> pd.Series:
 **Integration Steps**:
 
 1. **Import module**:
+
 ```python
 # Add at top of export_aligned.py
 from indicator_laguerre_rsi import calculate_laguerre_rsi
 ```
 
 2. **Add CLI argument**:
+
 ```python
 parser.add_argument(
     '--laguerre-period',
@@ -283,6 +302,7 @@ parser.add_argument(
 ```
 
 3. **Calculate indicator**:
+
 ```python
 # In export_data() function after OHLC fetch
 df['laguerre_rsi'] = calculate_laguerre_rsi(
@@ -292,6 +312,7 @@ df['laguerre_rsi'] = calculate_laguerre_rsi(
 ```
 
 4. **Update CSV export**:
+
 ```python
 # Update column selection
 export_df = df[['time', 'open', 'high', 'low', 'close', 'tick_volume', 'rsi', 'laguerre_rsi']].copy()
@@ -307,11 +328,13 @@ export_df.columns = ['Time', 'Open', 'High', 'Low', 'Close', 'Volume', 'RSI', 'L
 1. **Export MT5 indicator data** (manual or via script with indicator values)
 2. **Export Python calculated data** using Wine Python script
 3. **Compare with validator**:
+
 ```bash
 python python/validate_export.py exports/Export_SYMBOL_with_laguerre.csv
 ```
 
 **Validation Criteria**:
+
 - **Correlation**: ≥ 0.999
 - **Mean Absolute Error**: < 0.1
 - **Data Integrity**: 100% (no NaN/inf values)
@@ -344,9 +367,11 @@ python python/validate_export.py exports/Export_SYMBOL_with_laguerre.csv
 ### Weaknesses & Mitigations ⚠️
 
 #### Weakness 1: UTF-16 Encoding in MQL5 Files
+
 **Problem**: MQL5 files may be UTF-16 encoded, causing read issues.
 
 **Mitigation**:
+
 ```bash
 # Check encoding
 file "indicator.mq5"
@@ -360,14 +385,17 @@ with open('indicator.mq5', 'r', encoding='utf-16-le') as f:
 ```
 
 #### Weakness 2: Manual Indicator Extraction
+
 **Problem**: No automated MQL5 → Python translation (requires manual code review).
 
 **Mitigation**:
+
 - Document common patterns (see Mapping Guide above)
 - Build library of translated components (ATR, EMA, RSI, etc.)
 - Create template for new indicators
 
 **Recommended**: Create `python/indicators/` directory with:
+
 ```
 python/indicators/
 ├── __init__.py
@@ -380,9 +408,11 @@ python/indicators/
 ```
 
 #### Weakness 3: No Automated Dependency Resolution
+
 **Problem**: Include files (`#include <...>`) not automatically tracked.
 
 **Mitigation**:
+
 ```bash
 # Extract includes from MQL5 file
 grep "#include" "indicator.mq5"
@@ -394,14 +424,17 @@ find "$MQL5_ROOT/Include" -name "MovingAverages.mqh"
 ```
 
 #### Weakness 4: Complex Indicator State Management
+
 **Problem**: Some indicators maintain state across bars (e.g., Laguerre filter stages).
 
 **Mitigation**:
+
 - Use class-based approach for stateful indicators
 - Initialize buffers properly
 - Test incremental updates vs full recalculation
 
 **Example**:
+
 ```python
 class LaguerreRSI:
     def __init__(self, period=32):
@@ -420,15 +453,18 @@ class LaguerreRSI:
 ```
 
 #### Weakness 5: Performance Differences
+
 **Problem**: MQL5 optimized for tick-by-tick calculation, Python for vectorized batch processing.
 
 **Mitigation**:
+
 - Focus on batch processing (5000+ bars)
 - Use NumPy vectorization
 - Profile slow operations with `timeit`
 - Consider Numba JIT compilation for hot paths
 
 **Benchmark**:
+
 ```python
 import timeit
 
@@ -447,6 +483,7 @@ timeit.timeit(
 **Answer**: **Partially Ready** ✅⚠️
 
 **Ready**:
+
 - ✅ File location discovery (documented)
 - ✅ Wine Python execution (v3.0.0 validated)
 - ✅ Validation pipeline (0.999+ correlation)
@@ -454,6 +491,7 @@ timeit.timeit(
 - ✅ Git tracking (repo structure)
 
 **Needs Improvement**:
+
 - ⚠️ UTF-16 encoding handling (add to workflow)
 - ⚠️ Dependency resolution (manual for now)
 - ⚠️ Indicator library structure (create `python/indicators/`)
@@ -463,6 +501,7 @@ timeit.timeit(
 ### Recommended Next Steps
 
 1. **Create indicator library structure**:
+
 ```bash
 mkdir -p python/indicators
 touch python/indicators/__init__.py

@@ -50,6 +50,7 @@ This workflow enables AI coding agents (Claude Code, GitHub Copilot, OpenAI Code
 - Currently includes RSI module
 
 **Structure**:
+
 ```
 mql5/
 ├── Scripts/
@@ -68,6 +69,7 @@ mql5/
 **Purpose**: Execute MT5 scripts from command line without GUI interaction
 
 **Usage**:
+
 ```bash
 # Basic execution (default: EURUSD M1, RSI)
 ./scripts/mq5run
@@ -80,6 +82,7 @@ mql5/
 ```
 
 **What it does**:
+
 1. Generates startup.ini config with correct MT5 settings
 2. Launches MT5 via CrossOver Wine with `/portable /config:...`
 3. Waits for script completion (with timeout)
@@ -88,6 +91,7 @@ mql5/
 6. Shows preview and validation summary
 
 **Key Features**:
+
 - Auto-cleanup of temporary config files
 - Timeout protection (default 120s)
 - Log extraction on failure
@@ -99,12 +103,14 @@ mql5/
 **Purpose**: Validate MT5 exports and compare with Python implementations
 
 **Usage**:
+
 ```bash
 # Validate exported CSV
 python python/validate_export.py exports/20251013_143000_Export_EURUSD_PERIOD_M1.csv
 ```
 
 **What it checks**:
+
 1. **Data Integrity**:
    - No missing OHLC values
    - High >= Low, High >= Open/Close
@@ -118,6 +124,7 @@ python python/validate_export.py exports/20251013_143000_Export_EURUSD_PERIOD_M1
    - Shows per-bar differences
 
 **Output**:
+
 ```
 === MT5 Export Validator ===
 File: exports/20251013_143000_Export_EURUSD_PERIOD_M1.csv
@@ -148,6 +155,7 @@ Within tolerance: 4986/5000 (99.7%)
 **Purpose**: Tell MT5 what to run on launch
 
 **Format** (based on research findings):
+
 ```ini
 [Experts]
 Enabled=1                    # REQUIRED: Enable algo trading
@@ -172,6 +180,7 @@ ShutdownTerminal=1           # Auto-close after completion
 1. **Open MetaTrader 5** (already running and logged in)
 
 2. **Test script manually**:
+
    ```
    - Press Ctrl+N (Navigator)
    - Under "Scripts", find "ExportAligned"
@@ -181,6 +190,7 @@ ShutdownTerminal=1           # Auto-close after completion
    ```
 
 3. **Check for output**:
+
    ```bash
    ls -lh ~/Library/Application\ Support/CrossOver/Bottles/MetaTrader\ 5/drive_c/Program\ Files/MetaTrader\ 5/MQL5/Files/
    ```
@@ -200,11 +210,13 @@ ShutdownTerminal=1           # Auto-close after completion
 1. **Close MT5** (to avoid conflicts with headless launch)
 
 2. **Run headless**:
+
    ```bash
    ./scripts/mq5run
    ```
 
 3. **Check results**:
+
    ```bash
    ls -lh exports/
    ```
@@ -221,6 +233,7 @@ ShutdownTerminal=1           # Auto-close after completion
 **Goal**: Create Python code that exactly replicates MT5 indicator
 
 1. **Load MT5 reference data**:
+
    ```python
    import pandas as pd
 
@@ -231,6 +244,7 @@ ShutdownTerminal=1           # Auto-close after completion
    ```
 
 2. **Implement indicator in Python**:
+
    ```python
    def compute_rsi(close: pd.Series, period: int = 14) -> pd.Series:
        """RSI using EMA (matches MT5)"""
@@ -250,6 +264,7 @@ ShutdownTerminal=1           # Auto-close after completion
    ```
 
 3. **Compare**:
+
    ```python
    import numpy as np
 
@@ -425,12 +440,14 @@ def compute_my_indicator(data: pd.DataFrame, period: int = 14) -> pd.Series:
 ### Script doesn't run headlessly
 
 **Check**:
+
 1. Is `[Experts] Enabled=1` in config?
 2. Is script name correct (no .ex5)?
 3. Is symbol valid for account?
 4. Check MT5 logs: `~/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/MQL5/Logs/`
 
 **Known Issue - Config Path Quoting** (RESOLVED 2025-10-13):
+
 - **Error**: `cannot load config "C:\Program Files\MetaTrader 5\config\startup_YYYYMMDD_HHMMSS.ini"" at start`
 - **Cause**: Absolute path with spaces requires shell quotes, MT5 receives double quotes
 - **Fix**: Use relative path `config\startup_${TIMESTAMP}.ini` without quotes in `/config:` parameter
@@ -439,6 +456,7 @@ def compute_my_indicator(data: pd.DataFrame, period: int = 14) -> pd.Series:
 ### No CSV generated
 
 **Check**:
+
 1. Did script execute? (check logs)
 2. Did script have errors? (check Experts log tab in MT5)
 3. Is file in correct location? (`MQL5/Files/`)
@@ -447,6 +465,7 @@ def compute_my_indicator(data: pd.DataFrame, period: int = 14) -> pd.Series:
 ### Python validation fails
 
 **Check**:
+
 1. Are you using the same algorithm? (EMA vs SMA for RSI)
 2. Are initial bars handled correctly? (skip first N)
 3. Is precision sufficient? (use more decimal places)
@@ -455,6 +474,7 @@ def compute_my_indicator(data: pd.DataFrame, period: int = 14) -> pd.Series:
 ### MT5 closes immediately
 
 **Check**:
+
 1. Wine version (need 8.0+ for recent MT5 builds)
 2. Is display available? (CrossOver should handle this)
 3. Check terminal logs for crash messages

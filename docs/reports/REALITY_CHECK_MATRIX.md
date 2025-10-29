@@ -8,12 +8,12 @@
 
 ## Service Level Objectives
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| **Availability** | 100% | All documented steps executable |
-| **Correctness** | 100% | Steps produce expected outcomes |
-| **Observability** | 100% | Verification step per phase |
-| **Maintainability** | ≥ 90% | Steps remain valid across updates |
+| Metric              | Target | Measurement                       |
+| ------------------- | ------ | --------------------------------- |
+| **Availability**    | 100%   | All documented steps executable   |
+| **Correctness**     | 100%   | Steps produce expected outcomes   |
+| **Observability**   | 100%   | Verification step per phase       |
+| **Maintainability** | ≥ 90%  | Steps remain valid across updates |
 
 **Current SLO Status**: 🔴 42% (5/12 phases match reality)
 
@@ -21,22 +21,23 @@
 
 ## Matrix: Guide vs Reality
 
-| Phase | Current Guide Says | What We Actually Did | Match? | Gap Type |
-|-------|-------------------|---------------------|--------|----------|
-| **Prerequisites** | Assumes Wine Python + MT5 package installed | No verification step documented | ❌ | Missing verification |
-| **Find Indicator** | `find ... -name "*.mq5"` | Used this exact command | ✅ | - |
-| **Analyze Algorithm** | "Read and understand", document in guide | Created LAGUERRE_RSI_ANALYSIS.md (37KB doc) | ✅ | - |
-| **Modify MQL5** | "Add inline export code to OnCalculate()" | Modified existing indicator, added buffer exposure (buffers 3-4) | ❌ | Wrong approach |
-| **CLI Compile** | Shows command WITH `/inc` flag | Used CLI WITHOUT `/inc` flag | ❌ | Wrong flag usage |
-| **Copy to Simple Path** | Copy to C:/Indicator.mq5 | Did NOT copy - compiled directly | ⚠️ | Workflow deviation |
-| **Verify Compilation** | Check log + .ex5 existence | Did this exactly | ✅ | - |
-| **Start MT5** | `wine ... terminal64.exe &` + `sleep 5` | MT5 was already running, no verification | ⚠️ | Incomplete |
-| **Fetch Historical Data** | Inline Wine Python `-c` script (30 lines) | Used inline script (exact from validation report) | ✅ | - |
-| **Python Implementation** | Generic template shown | Created 11 functions, 400+ lines in laguerre_rsi.py | ⚠️ | Complexity gap |
-| **Export MQL5 Values** | "Add export code to OnCalculate()" | Used ExportAligned.mq5 script separately | ❌ | Wrong approach |
-| **Validate** | Use validate_indicator.py | Used inline Python script with scipy | ⚠️ | Tool difference |
+| Phase                     | Current Guide Says                          | What We Actually Did                                             | Match? | Gap Type             |
+| ------------------------- | ------------------------------------------- | ---------------------------------------------------------------- | ------ | -------------------- |
+| **Prerequisites**         | Assumes Wine Python + MT5 package installed | No verification step documented                                  | ❌     | Missing verification |
+| **Find Indicator**        | `find ... -name "*.mq5"`                    | Used this exact command                                          | ✅     | -                    |
+| **Analyze Algorithm**     | "Read and understand", document in guide    | Created LAGUERRE_RSI_ANALYSIS.md (37KB doc)                      | ✅     | -                    |
+| **Modify MQL5**           | "Add inline export code to OnCalculate()"   | Modified existing indicator, added buffer exposure (buffers 3-4) | ❌     | Wrong approach       |
+| **CLI Compile**           | Shows command WITH `/inc` flag              | Used CLI WITHOUT `/inc` flag                                     | ❌     | Wrong flag usage     |
+| **Copy to Simple Path**   | Copy to C:/Indicator.mq5                    | Did NOT copy - compiled directly                                 | ⚠️     | Workflow deviation   |
+| **Verify Compilation**    | Check log + .ex5 existence                  | Did this exactly                                                 | ✅     | -                    |
+| **Start MT5**             | `wine ... terminal64.exe &` + `sleep 5`     | MT5 was already running, no verification                         | ⚠️     | Incomplete           |
+| **Fetch Historical Data** | Inline Wine Python `-c` script (30 lines)   | Used inline script (exact from validation report)                | ✅     | -                    |
+| **Python Implementation** | Generic template shown                      | Created 11 functions, 400+ lines in laguerre_rsi.py              | ⚠️     | Complexity gap       |
+| **Export MQL5 Values**    | "Add export code to OnCalculate()"          | Used ExportAligned.mq5 script separately                         | ❌     | Wrong approach       |
+| **Validate**              | Use validate_indicator.py                   | Used inline Python script with scipy                             | ⚠️     | Tool difference      |
 
 **Legend**:
+
 - ✅ Match: Guide accurately represents reality
 - ❌ Gap: Guide shows wrong approach
 - ⚠️ Deviation: Reality differs but both work
@@ -48,6 +49,7 @@
 ### Gap 1: MQL5 Modification Approach
 
 **Guide Says**:
+
 ```mql5
 // In indicator OnCalculate(), add export code
 if(rates_total > 5000)
@@ -59,6 +61,7 @@ if(rates_total > 5000)
 ```
 
 **Reality**:
+
 - Modified `/MQL5/Indicators/Custom/PythonInterop/ATR_Adaptive_Laguerre_RSI.mq5`
 - Added buffer exposure: `#property indicator_buffers 5` (was 3)
 - Added buffers 3-4 as INDICATOR_CALCULATIONS type
@@ -74,6 +77,7 @@ if(rates_total > 5000)
 ### Gap 2: CLI Compilation Flags
 
 **Guide Shows**:
+
 ```bash
 "$CX" --bottle "MetaTrader 5" --cx-app "C:/Program Files/MetaTrader 5/MetaEditor64.exe" \
   /log /compile:"C:/Indicator.mq5" /inc:"C:/Program Files/MetaTrader 5/MQL5"
@@ -81,11 +85,13 @@ if(rates_total > 5000)
 ```
 
 **Reality**:
+
 - Used CLI compilation WITHOUT `/inc` flag
 - File: `docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md` states "/inc OVERRIDES default paths"
 - For standard indicators using `#include <MovingAverages.mqh>`, omit `/inc`
 
 **Actual Command**:
+
 ```bash
 "$CX" --bottle "MetaTrader 5" --cx-app "C:/Program Files/MetaTrader 5/MetaEditor64.exe" \
   /log /compile:"C:/Indicator.mq5"
@@ -102,6 +108,7 @@ if(rates_total > 5000)
 **Guide Says**: Add inline export code to indicator OnCalculate()
 
 **Reality**:
+
 - Used ExportAligned.mq5 script from `/MQL5/Scripts/DataExport/`
 - Script runs separately from indicator
 - Reads indicator buffers via `CopyBuffer()`
@@ -120,12 +127,14 @@ if(rates_total > 5000)
 **Guide Says**: "Required Tools" section lists tools, no verification
 
 **Reality**: No documented way to check:
+
 - Is Wine Python 3.12 installed?
 - Is MetaTrader5 package version 5.0.5328 (not 2.x)?
 - Is MT5 terminal installed and accessible?
 - Are validation tools present?
 
 **Missing Commands**:
+
 ```bash
 # Check Wine Python
 ls "Program Files/Python312/python.exe"
@@ -154,6 +163,7 @@ wine "C:\\Program Files\\Python312\\python.exe" \
 **Reality**: Compiled directly from original location with spaces in path
 
 **Actual File Path**:
+
 ```
 /Program Files/MetaTrader 5/MQL5/Indicators/Custom/PythonInterop/ATR_Adaptive_Laguerre_RSI.mq5
                                                                   ^^^^^ Has spaces ^^^^^
@@ -176,6 +186,7 @@ wine "C:\\Program Files\\Python312\\python.exe" \
 ### What Actually Happened (Laguerre RSI)
 
 **Indicator Complexity**:
+
 - 11 Python functions
 - 400+ lines of code
 - 4 buffers to validate
@@ -184,6 +195,7 @@ wine "C:\\Program Files\\Python312\\python.exe" \
 - Adaptive gamma coefficient calculation
 
 **Actual Time Investment** (estimated from git commits):
+
 - Oct 13-17: 4 days of work
 - Multiple bug fixes: shared state, array indexing, price smoothing
 - 3+ hours of validation debugging (NaN traps, warmup issues)
@@ -198,6 +210,7 @@ wine "C:\\Program Files\\Python312\\python.exe" \
 **Guide Missing**: CX_BOTTLE environment variable requirement
 
 **Reality** (from WINE_PYTHON_EXECUTION.md):
+
 ```bash
 CX_BOTTLE="MetaTrader 5" \
 WINEPREFIX="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5" \
@@ -241,6 +254,7 @@ wine "C:\\Program Files\\Python312\\python.exe" script.py
 ## Correct Minimal Workflow (What We Actually Did)
 
 ### Phase 1: Prerequisites Verification
+
 ```bash
 # Check Wine Python exists
 ls "$BOTTLE/drive_c/Program Files/Python312/python.exe"
@@ -256,23 +270,27 @@ wine "C:\\Program Files\\Python312\\python.exe" \
 ```
 
 ### Phase 2: Find Indicator
+
 ```bash
 find "$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Indicators" \
   -name "*Laguerre*"
 ```
 
 ### Phase 3: Analyze Algorithm
+
 - Read MQL5 source with chardet encoding detection
 - Document algorithm in ANALYSIS.md
 - Identify buffers, parameters, dependencies
 
 ### Phase 4: Modify MQL5 for Export
+
 - Copy to PythonInterop/ folder
 - Add buffer exposure (increase buffer count)
 - Set hidden buffers as INDICATOR_CALCULATIONS type
 - Do NOT add inline export code
 
 ### Phase 5: Compile
+
 ```bash
 CX="$HOME/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
 
@@ -283,6 +301,7 @@ CX="$HOME/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
 ```
 
 ### Phase 6: Verify Compilation
+
 ```python
 from pathlib import Path
 log = Path.home() / "Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/Program Files/MetaTrader 5/logs/metaeditor.log"
@@ -291,6 +310,7 @@ print(lines[-1])  # Should show "0 errors, X warnings, Y msec elapsed"
 ```
 
 ### Phase 7: Fetch Historical Data (5000+ bars)
+
 ```bash
 CX_BOTTLE="MetaTrader 5" \
 WINEPREFIX="$BOTTLE" \
@@ -309,12 +329,14 @@ mt5.shutdown()
 ```
 
 ### Phase 8: Attach Indicator to MT5 Chart
+
 - Open MT5 GUI
 - Open EURUSD M1 chart
 - Drag indicator from Navigator to chart
 - Wait for warmup (10 seconds)
 
 ### Phase 9: Export Indicator Values
+
 ```bash
 # Use ExportAligned.mq5 script
 # Attach to chart and run, or use mt5.ini config method
@@ -322,12 +344,14 @@ mt5.shutdown()
 ```
 
 ### Phase 10: Implement Python Indicator
+
 - Create indicators/your_indicator.py
 - Implement all functions matching MQL5 algorithm
 - Handle expanding windows for ATR calculations
 - Match MQL5 initialization behavior exactly
 
 ### Phase 11: Validate
+
 ```python
 # Load 5000-bar dataset
 df_5000 = pd.read_csv("EURUSD_M1_5000bars.csv")
@@ -380,6 +404,7 @@ print(f"Correlation: {corr:.6f}")
 **Before updating guide**: Test workflow with SMA (Simple Moving Average)
 
 **Why SMA**:
+
 - 5-10 lines of code
 - No dependencies
 - No complex state management

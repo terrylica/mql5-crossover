@@ -11,6 +11,7 @@
 **Current Archive State**: Well-organized foundation from Phases 1-2, but opportunities remain.
 
 **Key Findings**:
+
 - ✅ Archive structure is good (experiments/, plans/, docs/, indicators/)
 - ⚠️ 10 misplaced cc files in laguerre_rsi/development/ (minor cleanup needed)
 - ⚠️ 2 SMA iteration reports could be archived (blocked project)
@@ -75,6 +76,7 @@ archive/
 I reviewed `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/docs/reports/PRUNING_ASSESSMENT.md ` and found:
 
 **Overall Quality**: ✅ Excellent
+
 - Conservative recommendations
 - Clear justification for each item
 - Risk assessment included
@@ -83,16 +85,19 @@ I reviewed `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTra
 **Recommendations Status**:
 
 #### Phase 1 (COMPLETE ✅):
+
 - Archived 5 spike tests → `archive/experiments/`
 - Archived 8 completed plans → `archive/plans/`
 - Archived 3 outdated guides → `archive/docs/`
 - Added deprecation warning to `validate_export.py`
 
 #### Phase 2 (COMPLETE ✅):
+
 - Reorganized archive/indicators/ structure
 - Created separate subdirectories for laguerre_rsi, cc, vwap
 
 #### Phase 3 (HIGH PRIORITY - RECOMMENDED):
+
 **Items NOT yet archived but SHOULD be**:
 
 1. **docs/guides/CROSSOVER_MQ5.md** → **archive/docs/CROSSOVER_MQ5.v2.0.0.md**
@@ -107,6 +112,7 @@ I reviewed `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTra
    - **Action**: SKIP (already gone)
 
 #### Phase 4 (MEDIUM PRIORITY - OPTIONAL):
+
 **SMA Iteration Reports** (blocked project):
 
 1. **docs/reports/ITERATION_2_SMA_INTERIM_REPORT.md**
@@ -124,7 +130,9 @@ I reviewed `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTra
    - **Risk**: LOW (test plan only, no production value)
 
 #### Phase 5 (LOW PRIORITY - COSMETIC):
+
 **BUFFER_FIX consolidation** (optional):
+
 - 3 files: BUFFER_FIX_COMPLETE.md, BUFFER_FIX_STATUS.md, BUFFER_ISSUE_ANALYSIS.md
 - **Recommendation**: Keep as-is (already archived, consolidation optional)
 - **Risk**: ZERO (files already in archive, no active references)
@@ -138,6 +146,7 @@ I reviewed `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTra
 **Location**: `archive/indicators/laguerre_rsi/development/`
 
 **Misplaced Files** (10 total):
+
 ```
 cc_backup.ex5
 cc_backup.mq5
@@ -158,6 +167,7 @@ cc.mq5
 **Impact**: LOW (files already archived, just need reorganization)
 
 **Git Command**:
+
 ```bash
 BOTTLE="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c"
 
@@ -178,12 +188,14 @@ mv cc*.mq5 cc*.ex5 "$BOTTLE/archive/indicators/cc/development/"
 **Recommendation**: Create archive/README.md
 
 **Content**:
+
 ```markdown
 # Archive Directory
 
 **Purpose**: Preserve historical code, completed plans, and deprecated documentation.
 
 **Organization**:
+
 - `docs/` - Outdated documentation (v2.0.0 guides, investigation reports)
 - `experiments/` - Spike tests (completed, results documented elsewhere)
 - `indicators/` - Historical indicator versions (organized by project)
@@ -227,6 +239,7 @@ mv cc*.mq5 cc*.ex5 "$BOTTLE/archive/indicators/cc/development/"
 ### No Significant Duplicates Found
 
 **Checked**:
+
 - ✅ Active guides vs archived guides: No duplication (archived are v2.0.0, active are v3.0.0+)
 - ✅ Plan documents: All completed plans archived, active plan (HEADLESS_EXECUTION_PLAN.md) is different
 - ✅ Python scripts: Spike tests archived, production tools in users/crossover/
@@ -275,24 +288,28 @@ mv cc*.mq5 cc*.ex5 "$BOTTLE/archive/indicators/cc/development/"
 **Method**: Searched for references to moved files
 
 ### References to QUICKSTART.md
+
 - **Old location**: `docs/guides/QUICKSTART.md`
 - **New location**: `archive/docs/QUICKSTART.v2.0.0.md`
 - **Active references**: None found in CLAUDE.md (already removed in Phase 1)
 - **Status**: ✅ CLEAN
 
 ### References to AI_AGENT_WORKFLOW.md
+
 - **Old location**: `docs/guides/AI_AGENT_WORKFLOW.md`
 - **New location**: `archive/docs/AI_AGENT_WORKFLOW.v2.0.0.md`
 - **Active references**: None found in CLAUDE.md
 - **Status**: ✅ CLEAN
 
 ### References to spike files
+
 - **Old location**: `users/crossover/spike_*.py`
 - **New location**: `archive/experiments/spike_*.py`
 - **Active references**: PRUNING_ASSESSMENT.md (line 160+)
 - **Status**: ✅ CORRECT (references archive location)
 
 ### References to completed plans
+
 - **Active references**: Some guides may reference (need to audit)
 - **Action**: Low priority, plans are informational only
 
@@ -305,11 +322,13 @@ mv cc*.mq5 cc*.ex5 "$BOTTLE/archive/indicators/cc/development/"
 ### Phase 3: High Priority Archive Actions (15 minutes)
 
 **Items**:
+
 1. Archive CROSSOVER_MQ5.md (if still exists)
 2. Move 10 misplaced cc files to cc/development/
 3. Create archive/README.md
 
 **Git Commands**:
+
 ```bash
 BOTTLE="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c"
 
@@ -360,12 +379,14 @@ tree -L 2 "$BOTTLE/archive/" || ls -R "$BOTTLE/archive/"
 ### Phase 4: Medium Priority Archive Actions (10 minutes)
 
 **Items**:
+
 1. Archive ITERATION_2_SMA_INTERIM_REPORT.md
 2. Archive ITERATION_2_SMA_TEST_PLAN.md
 
 **Justification**: Both documents relate to a blocked project (SMA test iteration). The project was blocked at script execution and never completed. Archiving preserves the attempt without cluttering active reports.
 
 **Git Commands**:
+
 ```bash
 BOTTLE="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c"
 
@@ -388,7 +409,8 @@ echo "✅ Archived SMA iteration reports"
 ### Phase 5: Low Priority Cleanup (OPTIONAL)
 
 **Items**:
-1. Consolidate BUFFER_FIX_*.md into single document
+
+1. Consolidate BUFFER*FIX*\*.md into single document
 2. Add context notes to archived indicator folders
 
 **Recommendation**: SKIP - files already well-archived, low value
@@ -402,27 +424,32 @@ echo "✅ Archived SMA iteration reports"
 ```markdown
 ## Single Source of Truth
 
-| Topic                       | Authoritative Document                  |
-| --------------------------- | --------------------------------------- |
+| Topic | Authoritative Document |
+| ----- | ---------------------- |
+
 | ...
-| MT5/CrossOver Setup (v2.0.0) | `archive/docs/CROSSOVER_MQ5.v2.0.0.md` |  ← UPDATE PATH
+| MT5/CrossOver Setup (v2.0.0) | `archive/docs/CROSSOVER_MQ5.v2.0.0.md` | ← UPDATE PATH
 | ...
 ```
 
 **Remove from Core Guides section**:
+
 - CROSSOVER_MQ5.md (moved to archive)
 
 **Add to Archive References section** (new):
+
 ```markdown
 ## Archived Documentation
 
 **v2.0.0 Legacy Guides**:
+
 - `archive/docs/CROSSOVER_MQ5.v2.0.0.md` - MT5/CrossOver setup
 - `archive/docs/QUICKSTART.v2.0.0.md` - v2.0.0 quickstart
 - `archive/docs/AI_AGENT_WORKFLOW.v2.0.0.md` - v2.0.0 development patterns
 - `archive/docs/MQL5_CLI_COMPILATION_INVESTIGATION.md` - 11+ failed CLI attempts
 
 **Completed Plans** (10 archived):
+
 - See `archive/plans/` directory for historical implementation plans
 ```
 
@@ -458,12 +485,14 @@ echo "✅ Archived SMA iteration reports"
 ### ✅ KEEP ACTIVE (All Current Guides):
 
 **Master Guides** (3):
+
 - MQL5_TO_PYTHON_MIGRATION_GUIDE.md - Master workflow
 - EXTERNAL_RESEARCH_BREAKTHROUGHS.md - Critical lessons
 - PYTHON_INDICATOR_VALIDATION_FAILURES.md - Debugging journey
 - LESSONS_LEARNED_PLAYBOOK.md - Comprehensive gotchas and anti-patterns
 
 **Technical Guides** (7):
+
 - WINE_PYTHON_EXECUTION.md - v3.0.0 production
 - MQL5_CLI_COMPILATION_SUCCESS.md - Working CLI method
 - MT5_FILE_LOCATIONS.md - File paths
@@ -476,12 +505,14 @@ echo "✅ Archived SMA iteration reports"
 - SCRIPT_PARAMETER_PASSING_RESEARCH.md - Parameter passing research
 
 **Bug Documentation** (4):
+
 - LAGUERRE_RSI_SHARED_STATE_BUG.md - Root cause
 - LAGUERRE_RSI_ARRAY_INDEXING_BUG.md - Indexing fix
 - LAGUERRE_RSI_BUG_FIX_SUMMARY.md - Price smoothing
 - LAGUERRE_RSI_BUG_REPORT.md - Original report
 
 **Reports** (6+):
+
 - DOCUMENTATION_READINESS_ASSESSMENT.md
 - LAGUERRE_RSI_VALIDATION_SUCCESS.md
 - VALIDATION_STATUS.md
@@ -493,6 +524,7 @@ echo "✅ Archived SMA iteration reports"
 - ITERATION_2_SMA_TEST_PLAN.md (keep or archive - user choice)
 
 **Plans** (2):
+
 - HEADLESS_EXECUTION_PLAN.md - Active reference
 - WORKFLOW_EVOLUTION_FRAMEWORK.md - Process documentation
 
@@ -585,19 +617,20 @@ Result: Cleaner active reports directory, preserved blocked project history"
 
 ### Phase 3 Actions (Recommended)
 
-| Action | Risk Level | Justification |
-|--------|-----------|---------------|
-| Archive CROSSOVER_MQ5.md | 🟢 LOW | Already marked v2.0.0, content duplicated in newer guides |
-| Move cc files | 🟢 VERY LOW | Files already in archive, just reorganizing |
-| Create README | 🟢 ZERO | New file, no risk |
+| Action                   | Risk Level  | Justification                                             |
+| ------------------------ | ----------- | --------------------------------------------------------- |
+| Archive CROSSOVER_MQ5.md | 🟢 LOW      | Already marked v2.0.0, content duplicated in newer guides |
+| Move cc files            | 🟢 VERY LOW | Files already in archive, just reorganizing               |
+| Create README            | 🟢 ZERO     | New file, no risk                                         |
 
 ### Phase 4 Actions (Optional)
 
-| Action | Risk Level | Justification |
-|--------|-----------|---------------|
-| Archive SMA reports | 🟡 MEDIUM | Recent files (2025-10-17), blocked project might resume |
+| Action              | Risk Level | Justification                                           |
+| ------------------- | ---------- | ------------------------------------------------------- |
+| Archive SMA reports | 🟡 MEDIUM  | Recent files (2025-10-17), blocked project might resume |
 
 **Recommendation**:
+
 - Execute Phase 3 (low risk, high value)
 - Hold Phase 4 for user decision (moderate risk if project resumes)
 
@@ -606,17 +639,20 @@ Result: Cleaner active reports directory, preserved blocked project history"
 ## Success Metrics
 
 ### Before Phase 3
+
 - Archive has no README (unclear purpose/structure)
 - 10 cc files misplaced in laguerre_rsi/development/
 - CROSSOVER_MQ5.md in active guides despite v2.0.0 focus
 
 ### After Phase 3
+
 - ✅ Archive README explains structure and policy
 - ✅ All cc files in cc/ subdirectory
 - ✅ All v2.0.0 guides consistently in archive/docs/
 - ✅ Clearer separation between active (v3.0.0+) and archived (v2.0.0)
 
 ### After Phase 4 (Optional)
+
 - ✅ Active reports directory contains only current/successful projects
 - ✅ Blocked/incomplete projects preserved in archive/reports/
 
@@ -625,7 +661,9 @@ Result: Cleaner active reports directory, preserved blocked project history"
 ## Recommendations
 
 ### Immediate Action (Phase 3 - 15 minutes)
+
 **Execute Phase 3 cleanup**:
+
 1. Archive CROSSOVER_MQ5.md if exists
 2. Move 10 cc files to cc/development/
 3. Create archive/README.md
@@ -635,13 +673,16 @@ Result: Cleaner active reports directory, preserved blocked project history"
 **Confidence**: HIGH (low risk, high organization value)
 
 ### User Decision Required (Phase 4 - 10 minutes)
+
 **SMA Iteration Reports**:
+
 - Keep active: If SMA validation might be resumed
 - Archive: If focus is fully on Laguerre RSI and beyond
 
 **Recommendation**: ARCHIVE (project blocked, Laguerre RSI method proven, SMA less critical)
 
 ### Optional (Phase 5)
+
 **SKIP**: BUFFER_FIX consolidation and indicator folder notes have minimal value.
 
 ---

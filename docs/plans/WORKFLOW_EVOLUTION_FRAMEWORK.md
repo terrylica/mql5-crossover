@@ -9,6 +9,7 @@
 ## Meta-Level Problem
 
 **What are we ACTUALLY trying to do?**
+
 - Convert MQL5 indicators to Python
 - Prove they produce identical results
 - Make this repeatable for any indicator
@@ -39,6 +40,7 @@
 ## Workflow Evolution Levels
 
 ### Level 0: Manual Chaos (Where We Were)
+
 - Copy indicator files around manually
 - Compile by opening GUI
 - Export data by clicking charts
@@ -46,6 +48,7 @@
 - **Pain**: Takes 8 hours, error-prone, not repeatable
 
 ### Level 1: Documented Manual (Where We Think We Are)
+
 - Written steps for each task
 - Known file locations
 - Standard comparison method
@@ -53,6 +56,7 @@
 - **Status**: ❌ NOT VALIDATED - Only tested once with complex indicator
 
 ### Level 2: Semi-Automated (Where We Should Be)
+
 - Scripts for common tasks (compile, export, validate)
 - CLI tools for repetitive steps
 - Template-based indicator implementation
@@ -60,17 +64,20 @@
 - **Status**: ⏳ PARTIALLY IMPLEMENTED - Need to validate
 
 ### Level 3: Fully Automated (Future)
+
 - One command: `./migrate_indicator.sh "RSI"`
 - System handles compilation, export, validation
 - **Goal**: 15-minute workflow
 - **Status**: ❌ NOT STARTED
 
 ### Level 4: Self-Validating (Further Future)
+
 - System runs test suite on every change
 - Catches regressions automatically
 - **Status**: ❌ NOT STARTED
 
 ### Level 5: Self-Improving (Aspirational)
+
 - System updates docs based on failures
 - Learns new patterns from repeated tasks
 - **Status**: 🌙 MOONSHOT
@@ -97,13 +104,13 @@
 
 **Deliverable**: Reality Check Matrix
 
-| Step | What Guide Says | What We Actually Did | Gap? |
-|------|----------------|---------------------|------|
-| Find indicator | `find ... -name "*.mq5"` | Used this command | ✅ OK |
-| Compile | `--cx-app with /inc` | Used --cx-app WITHOUT /inc | ⚠️ GAP |
-| Export | Inline OnCalculate code | Used ExportAligned.mq5 | ⚠️ GAP |
-| Fetch data | Inline Python -c | Used export_aligned.py file | ⚠️ GAP |
-| Validate | validate_indicator.py | Used validate_indicator.py | ✅ OK |
+| Step           | What Guide Says          | What We Actually Did        | Gap?   |
+| -------------- | ------------------------ | --------------------------- | ------ |
+| Find indicator | `find ... -name "*.mq5"` | Used this command           | ✅ OK  |
+| Compile        | `--cx-app with /inc`     | Used --cx-app WITHOUT /inc  | ⚠️ GAP |
+| Export         | Inline OnCalculate code  | Used ExportAligned.mq5      | ⚠️ GAP |
+| Fetch data     | Inline Python -c         | Used export_aligned.py file | ⚠️ GAP |
+| Validate       | validate_indicator.py    | Used validate_indicator.py  | ✅ OK  |
 
 **Action**: Create this matrix for ALL 7 phases
 
@@ -118,12 +125,14 @@
 **Goal**: Strip workflow down to ONLY proven steps
 
 **Method**:
+
 1. Remove all "nice to have" steps
 2. Remove all "alternative approaches"
 3. Keep only what we ACTUALLY used for Laguerre RSI
 4. Document EXACTLY those steps
 
 **KISS Rules**:
+
 - If we didn't do it, don't document it
 - If there are 2 ways, pick 1 and document THAT
 - If a step is "optional", remove it
@@ -159,6 +168,7 @@
    - **Estimated time**: 30 minutes
 
 **Test Plan**:
+
 1. Pick SMA (simplest possible)
 2. Follow MINIMAL workflow EXACTLY
 3. Write down EVERY command executed
@@ -167,6 +177,7 @@
 6. Achieve ≥ 0.999 correlation
 
 **Success Criteria**:
+
 - SMA Python matches MQL5 (correlation ≥ 0.999)
 - Completed in ≤ 1 hour
 - No "hidden steps" required
@@ -183,6 +194,7 @@
 **Goal**: Incorporate learnings from SMA test into workflow
 
 **Method**:
+
 1. Review deviations noted in SMA test
 2. Update MINIMAL workflow with corrections
 3. Add "Known Issues" section for unresolved problems
@@ -201,6 +213,7 @@
 **Method**: Same as Iteration 2, but with RSI
 
 **Success Criteria**:
+
 - RSI Python matches MQL5 (correlation ≥ 0.999)
 - Completed in ≤ 1.5 hours (RSI slightly more complex than SMA)
 - No NEW deviations from guide (only known issues from Iteration 3)
@@ -218,6 +231,7 @@
 **Method**: Compare SMA and RSI test reports
 
 **Questions**:
+
 1. Did we encounter the SAME issues?
 2. Did we use the SAME steps?
 3. Did time estimates match?
@@ -249,16 +263,19 @@ ELSE
 **Automation Candidates**:
 
 1. **Prerequisites Check** (repeated every test)
+
    ```bash
    ./check_prerequisites.sh
    ```
 
 2. **Indicator Compilation** (repeated every test)
+
    ```bash
    ./compile_indicator.sh "IndicatorName.mq5"
    ```
 
 3. **Data Export** (repeated every test)
+
    ```bash
    ./export_indicator_data.sh "EURUSD" "M1" "IndicatorName" 5000
    ```
@@ -285,6 +302,7 @@ ELSE
 **Method**: Use ONLY helper scripts, no manual steps
 
 **Success Criteria**:
+
 - MACD completes in ≤ 1 hour (faster than manual)
 - Correlation ≥ 0.999
 - No manual interventions required
@@ -300,6 +318,7 @@ ELSE
 **Goal**: Lock down documentation based on 4 validated indicators
 
 **Method**:
+
 1. Archive old docs (MQL5_TO_PYTHON_MIGRATION_GUIDE.md → archive/)
 2. Promote AUTOMATED_WORKFLOW.md to main guide
 3. Add validation badges: "Tested with 4 indicators: SMA, RSI, MACD, Laguerre RSI"
@@ -316,11 +335,13 @@ ELSE
 **Goal**: External validation with coworker
 
 **Method**:
+
 1. Ask coworker to migrate indicator of THEIR choice
 2. No help unless blocked > 15 minutes
 3. Collect feedback
 
 **Success Criteria**:
+
 - Coworker succeeds without intervention
 - Time ≤ 2 hours
 - No documentation bugs found
@@ -338,6 +359,7 @@ ELSE
 **Method**: Create issue template for workflow failures
 
 **Template**:
+
 ```markdown
 ## Indicator Migration Failure Report
 
@@ -352,6 +374,7 @@ ELSE
 ```
 
 **Process**:
+
 1. Every failure creates issue
 2. Issue analysis → workflow update
 3. Workflow update → test with previous indicators (regression test)
@@ -368,6 +391,7 @@ ELSE
 This checklist validates the WORKFLOW itself:
 
 ### Checklist 1: Reality Check
+
 - [ ] Every documented step was actually performed
 - [ ] No undocumented steps exist
 - [ ] All commands are copy-pastable
@@ -375,6 +399,7 @@ This checklist validates the WORKFLOW itself:
 - [ ] All prerequisites are verifiable
 
 ### Checklist 2: KISS Compliance
+
 - [ ] No "alternative approaches" documented
 - [ ] No "optional steps" documented
 - [ ] Each phase has ONE clear method
@@ -382,6 +407,7 @@ This checklist validates the WORKFLOW itself:
 - [ ] Documentation < 5 pages
 
 ### Checklist 3: Validation Coverage
+
 - [ ] Tested with ≥ 3 indicators
 - [ ] Tested with simple indicators (SMA, RSI)
 - [ ] Tested with complex indicators (Laguerre RSI)
@@ -389,6 +415,7 @@ This checklist validates the WORKFLOW itself:
 - [ ] All 3 complexity levels validated
 
 ### Checklist 4: Automation Readiness
+
 - [ ] Repeated patterns identified
 - [ ] Scripts for common tasks exist
 - [ ] Scripts tested with ≥ 2 indicators
@@ -396,6 +423,7 @@ This checklist validates the WORKFLOW itself:
 - [ ] Scripts documented
 
 ### Checklist 5: Peer Validation
+
 - [ ] External person reviewed docs
 - [ ] External person successfully followed workflow
 - [ ] Feedback incorporated
@@ -403,6 +431,7 @@ This checklist validates the WORKFLOW itself:
 - [ ] Time estimates validated
 
 ### Checklist 6: Continuous Improvement
+
 - [ ] Failure report template exists
 - [ ] Process for incorporating learnings defined
 - [ ] Regression test suite exists
@@ -433,20 +462,20 @@ Iteration 10: ❌ NOT STARTED (continuous improvement)
 
 ## Time Investment Required
 
-| Iteration | Time | Cumulative |
-|-----------|------|------------|
-| 0. Audit Reality | 0.5h | 0.5h |
-| 1. Simplify | 1h | 1.5h |
-| 2. SMA Test | 1h | 2.5h |
-| 3. Update | 0.5h | 3h |
-| 4. RSI Test | 1.5h | 4.5h |
-| 5. Convergence | 0.5h | 5h |
-| 6. Automation | 2h | 7h |
-| 7. MACD Test | 1h | 8h |
-| 8. Docs Freeze | 1h | 9h |
-| 9. Peer Validation | 3h | 12h |
-| 10. CI Process | 0.5h | 12.5h |
-| **TOTAL** | **12.5h** | - |
+| Iteration          | Time      | Cumulative |
+| ------------------ | --------- | ---------- |
+| 0. Audit Reality   | 0.5h      | 0.5h       |
+| 1. Simplify        | 1h        | 1.5h       |
+| 2. SMA Test        | 1h        | 2.5h       |
+| 3. Update          | 0.5h      | 3h         |
+| 4. RSI Test        | 1.5h      | 4.5h       |
+| 5. Convergence     | 0.5h      | 5h         |
+| 6. Automation      | 2h        | 7h         |
+| 7. MACD Test       | 1h        | 8h         |
+| 8. Docs Freeze     | 1h        | 9h         |
+| 9. Peer Validation | 3h        | 12h        |
+| 10. CI Process     | 0.5h      | 12.5h      |
+| **TOTAL**          | **12.5h** | -          |
 
 **Investment**: 12.5 hours
 **Payoff**: Rock-solid workflow validated with 4 indicators + peer review
@@ -457,12 +486,15 @@ Iteration 10: ❌ NOT STARTED (continuous improvement)
 ## Recommended Action
 
 ### Option A: Full Evolution (12.5 hours)
+
 Execute Iterations 0-10 sequentially. High confidence, production-ready.
 
 ### Option B: Fast Track (5 hours)
+
 Execute Iterations 0-5 only. Medium confidence, validated with 3 indicators.
 
 ### Option C: Minimal (2.5 hours)
+
 Execute Iterations 0-2 only. Low confidence, but SMA proven.
 
 ---
@@ -533,18 +565,21 @@ As we execute iterations:
 ## Success Metrics (How We Know We're Done)
 
 ### Level 1 Complete (Iterations 0-5):
+
 - [ ] 3 simple indicators validated (SMA, RSI, EMA)
 - [ ] Workflow documented with actual commands
 - [ ] No NEW deviations in 2nd and 3rd tests
 - [ ] Time estimates match reality
 
 ### Level 2 Complete (Iterations 6-8):
+
 - [ ] 4 total indicators validated (add MACD)
 - [ ] Helper scripts created and tested
 - [ ] Workflow time < 1 hour per indicator
 - [ ] Documentation frozen
 
 ### Level 3 Complete (Iterations 9-10):
+
 - [ ] Peer validated
 - [ ] Continuous improvement process running
 - [ ] Team using workflow successfully

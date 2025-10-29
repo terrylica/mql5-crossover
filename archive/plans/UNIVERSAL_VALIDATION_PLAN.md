@@ -13,6 +13,7 @@
 Replace indicator-specific validation scripts with universal registry-driven architecture using DuckDB for validation history.
 
 **Success Criteria**:
+
 - Laguerre RSI validation: MQL5 vs Python correlation ≥ 0.999
 - Existing export_aligned.py usage unchanged (backward compatibility)
 - Single source of truth: registry.yaml for all indicators
@@ -60,12 +61,12 @@ Query results via SQL views
 
 ## Service Level Objectives
 
-| SLO | Target | Measurement |
-|-----|--------|-------------|
-| **Availability** | 100% | All 20 workspace files accessible |
-| **Correctness** | 100% | Correlation ≥ 0.999 between MQL5 and Python |
-| **Observability** | 100% | All validation runs tracked in DuckDB |
-| **Maintainability** | 100% | Single registry.yaml, no indicator-specific scripts |
+| SLO                 | Target | Measurement                                         |
+| ------------------- | ------ | --------------------------------------------------- |
+| **Availability**    | 100%   | All 20 workspace files accessible                   |
+| **Correctness**     | 100%   | Correlation ≥ 0.999 between MQL5 and Python         |
+| **Observability**   | 100%   | All validation runs tracked in DuckDB               |
+| **Maintainability** | 100%   | Single registry.yaml, no indicator-specific scripts |
 
 ---
 
@@ -74,6 +75,7 @@ Query results via SQL views
 ### Phase 0: Spike Validation (Status: ❌ Spike 1 FAILED - Architecture Revised)
 
 **Spike 1 Result**: ❌ FAILED
+
 - **Assumption**: MT5 Python API supports `mt5.create_indicator()` + `mt5.copy_buffer()`
 - **Finding**: MetaTrader5 module has NO such methods
 - **Available methods**: Only trading ops, OHLC/tick data (copy_rates, copy_ticks), account management
@@ -81,15 +83,18 @@ Query results via SQL views
 - **Action**: Revised architecture to use `LaguerreRSIModule.mqh` + extend `ExportAligned.mq5`
 
 **Remaining Spikes**: Registry YAML (Spike 2), DuckDB performance (Spike 3), Backward compat (Spike 4)
+
 - Status: Deferred (not critical for MQL5 export approach)
 
 **CLI Compilation Discovery** (2025-10-16 21:46):
+
 - **Finding**: `/inc` parameter BREAKS compilation by overriding default include search
 - **Solution**: Omit `/inc` parameter for scripts in MQL5 directory structure
 - **Working Command**: `metaeditor64.exe /log /compile:"C:/SimpleName.mq5"`
 - **Result**: ExportAligned.mq5 with LaguerreRSIModule compiled successfully (0 errors, 892ms)
 
 **Script Automation Discovery** (2025-10-16 22:00, Research Audit):
+
 - **Previous Assumption**: MQL5 scripts require manual GUI execution
 - **Finding**: MT5 supports automated script execution via `[StartUp]` configuration
 - **Method**: `terminal64.exe /config:config.ini` with `[StartUp] Script=..., ShutdownTerminal=1`
@@ -102,15 +107,18 @@ Query results via SQL views
 ### Phase 1: Core Infrastructure (Status: ✅ COMPLETE)
 
 **Files Created**:
+
 - ✅ `Include/DataExport/modules/LaguerreRSIModule.mqh` - MQL5 module for Laguerre RSI export
 - ✅ `Scripts/DataExport/ExportAligned.mq5` - Extended with Laguerre RSI support
 - ✅ `Scripts/DataExport/ExportAligned.ex5` - Compiled successfully (23KB)
 
 **Dependencies Installed**:
+
 - ✅ `duckdb==1.4.1` - Analytical database
 - ✅ `pyyaml==6.0.3` - YAML parsing
 
 **Files Created**:
+
 - ✅ `validation_schema.sql` - DuckDB schema (4 tables, 3 views)
 - ✅ `validate_indicator.py` - Universal validation script
 
@@ -121,16 +129,19 @@ Query results via SQL views
 ### Phase 2: Automation Integration (Status: ⏳ In Progress)
 
 **Files to Create**:
+
 - `generate_mt5_config.py` - Generate MT5 startup config.ini files
 - `run_validation.py` - End-to-end validation orchestrator
 
 **Automation Workflow**:
+
 1. Generate config.ini with `[StartUp]` section (Script, Symbol, Period, ShutdownTerminal)
 2. Execute `terminal64.exe /config:config.ini` (script runs with default parameters, terminal closes)
 3. Load exported CSV and run `validate_indicator.py`
 4. Store results in `validation.ddb`
 
 **Parameter Limitation**:
+
 - MT5 config.ini does NOT support passing script input parameters
 - Scripts use default values from source code (e.g., InpUseLaguerreRSI=false, InpBars=5000)
 - Workaround: Modify defaults and recompile, or use .set preset files (requires additional automation)
@@ -142,6 +153,7 @@ Query results via SQL views
 ### Phase 3: Validation Testing (Status: ⏳ Pending)
 
 **Scenarios**:
+
 - Baseline: EURUSD M1, 5000 bars
 - Parameters: SMMA, LWMA variations
 - Symbols: XAUUSD H1, GBPUSD H4
@@ -153,6 +165,7 @@ Query results via SQL views
 ### Phase 4: Documentation (Status: ⏳ Pending)
 
 **Files to Create**:
+
 - `docs/guides/VALIDATION_WORKFLOW.md`
 - `validation_report.py`
 
@@ -163,6 +176,7 @@ Query results via SQL views
 ## Dependencies
 
 **Python Packages** (OSS):
+
 - `duckdb` - Analytical database (columnar storage, SQL analytics)
 - `pyyaml` - YAML parsing (configuration)
 - `MetaTrader5` - MT5 Python API (already installed)
@@ -170,6 +184,7 @@ Query results via SQL views
 - `numpy` - Numerical computing (already installed)
 
 **Installation**:
+
 ```bash
 CX_BOTTLE="MetaTrader 5" \
 WINEPREFIX="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5" \
@@ -198,12 +213,12 @@ wine "C:\\Program Files\\Python312\\python.exe" -m pip install duckdb pyyaml
 
 ## Version History
 
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0.0 | 2025-10-16 | Initial plan | AI Agent |
-| 1.1.0 | 2025-10-16 | Spike 1 failure, architecture revised to MQL5 CSV export | AI Agent |
-| 1.2.0 | 2025-10-16 | Phase 1 complete, CLI compilation discovery, dependencies installed | AI Agent |
-| 1.3.0 | 2025-10-16 | Script automation discovery via research audit, fully automated workflow | AI Agent |
+| Version | Date       | Changes                                                                  | Author   |
+| ------- | ---------- | ------------------------------------------------------------------------ | -------- |
+| 1.0.0   | 2025-10-16 | Initial plan                                                             | AI Agent |
+| 1.1.0   | 2025-10-16 | Spike 1 failure, architecture revised to MQL5 CSV export                 | AI Agent |
+| 1.2.0   | 2025-10-16 | Phase 1 complete, CLI compilation discovery, dependencies installed      | AI Agent |
+| 1.3.0   | 2025-10-16 | Script automation discovery via research audit, fully automated workflow | AI Agent |
 
 ---
 

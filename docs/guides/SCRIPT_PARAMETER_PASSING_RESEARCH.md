@@ -12,6 +12,7 @@
 This research investigated whether MQL5 scripts can receive input parameters via `startup.ini` files and `.set` files for automated execution. The findings reveal **partial support with significant limitations and bugs**.
 
 **Key Findings**:
+
 1. ✅ Scripts CAN be launched automatically via `[StartUp]` section in .ini files
 2. ⚠️ `ScriptParameters` feature is documented but **rarely works in practice**
 3. ✅ `ShutdownTerminal=1` enables true headless automation (script-only feature)
@@ -23,6 +24,7 @@ This research investigated whether MQL5 scripts can receive input parameters via
 ## Research Methodology
 
 **Search Strategy**:
+
 - MQL5.com forum posts (2015-2025)
 - GitHub repositories with MT5 automation
 - Stack Overflow MQL5 questions
@@ -30,12 +32,14 @@ This research investigated whether MQL5 scripts can receive input parameters via
 - Community workarounds and tools
 
 **Keywords Used**:
+
 - "startup.ini script parameters"
 - "ScriptParameters .set file"
 - "MQL5 script headless execution"
 - "[StartUp] Script= ini example"
 
 **Data Sources**:
+
 - 30+ forum posts analyzed
 - 5+ GitHub repositories examined
 - Official MT4/MT5 documentation reviewed
@@ -48,6 +52,7 @@ This research investigated whether MQL5 scripts can receive input parameters via
 ### What MetaTrader Documentation Says
 
 **From MT4 Help** (`Configuration at Startup`):
+
 ```
 Script – the name of the script, which must be launched after the
         client terminal startup
@@ -57,6 +62,7 @@ ScriptParameters – the name of the file containing the script parameters
 ```
 
 **From MT5 Help** (`Platform Start - For Advanced Users`):
+
 ```ini
 [StartUp]
 Script=Examples\ObjectSphere\SphereSample
@@ -68,6 +74,7 @@ ShutdownTerminal=1
 ```
 
 **Quoted Description**:
+
 > "ScriptParameters — configuration file containing script input parameters
 > (located in MQL5\presets). Parameter files must reside in the designated
 > MQL5\presets directory within the platform data folder."
@@ -85,6 +92,7 @@ ShutdownTerminal=1
 **User**: Kingston86
 
 **Setup**:
+
 ```ini
 Expert=POW_BANKER_EA_8.32.ex5
 ExpertParameters=T&R NEW v8.34.set
@@ -95,6 +103,7 @@ ToDate=2023.06.30
 ```
 
 **Result**: ❌ FAILED
+
 - "MT5 closes immediately"
 - "Settings populate but inputs tab remains empty"
 - "No report generated"
@@ -110,16 +119,19 @@ ToDate=2023.06.30
 **User**: Multiple
 
 **Problem Reported**:
+
 > "MT5 appears to read the .ini file and populate the settings tab, but the
 > input parameters (from ExpertParameters) are not being loaded into the
 > inputs tab."
 
 **Attempted Workarounds**:
+
 1. Hard-coding .set file parameters into .ini file → FAILED
 2. Using absolute paths → FAILED
 3. Different .set file locations → FAILED
 
 **Response from Moderator** (Fernando Carreiro):
+
 > "No, because it needs to connect to the broker, because of the other
 > required information for the Contract Specifications and Trading Account
 > conditions."
@@ -135,6 +147,7 @@ ToDate=2023.06.30
 **User**: Multiple
 
 **Problem**:
+
 ```bash
 terminal.exe /config:c:\\myconfiguration1.ini
 ```
@@ -143,6 +156,7 @@ terminal.exe /config:c:\\myconfiguration1.ini
 **Actual**: "Platform loads last used account, ignoring .ini file"
 
 **Solution Attempt** (Anthony Garot):
+
 ```bash
 "C:\\Program Files\\MetaTrader 5\\terminal64.exe" \
   /config:"C:\\Users\\me\\AppData\\Roaming\\MetaQuotes\\Terminal\\[ID]\\MQL5\\myconfiguration1.ini"
@@ -163,6 +177,7 @@ terminal.exe /config:c:\\myconfiguration1.ini
 **User**: rbs_gmbh
 
 **Working Configuration**:
+
 ```ini
 ; SESSIONS-OPT_OPT.ini (MT4, not MT5!)
 
@@ -192,12 +207,14 @@ TestVisualEnable=false
 ```
 
 **Execution**:
+
 ```bash
 cmd /c start /min /wait M:\$($folder)\terminal.exe \
   /portable M:\$($folder)\tester\files\$($symbol)\$($ea)_TEST.ini
 ```
 
 **Critical Discovery**:
+
 > "Figured out.. the Ini file needs to be converted to ASCII in order to be
 > loaded correctly."
 
@@ -214,10 +231,12 @@ cmd /c start /min /wait M:\$($folder)\terminal.exe \
 **Source**: MQL5 Documentation + Forum Posts
 
 **Problem**:
+
 > "For scripts, the parameter input dialog is not shown by default, even if
 > the script defines inputs."
 
 **Solution**:
+
 ```mql5
 #property script_show_inputs
 ```
@@ -225,6 +244,7 @@ cmd /c start /min /wait M:\$($folder)\terminal.exe \
 **This directive must be present in the script** for `.set` files to have any chance of loading.
 
 **From Documentation**:
+
 > "The #property script_show_inputs directive should be applied, which takes
 > precedence over script_show_confirm and calls a dialog even if there are
 > no input variables."
@@ -235,15 +255,16 @@ cmd /c start /min /wait M:\$($folder)\terminal.exe \
 
 **Key Difference**:
 
-| Feature | Expert Advisors | Scripts |
-|---------|----------------|---------|
-| Auto-launch via [StartUp] | ✅ Reliable | ✅ Works |
-| Parameter loading via .set | ✅ Usually works | ⚠️ Rarely works |
-| Input dialog | Always shown | Requires #property directive |
-| ShutdownTerminal support | ❌ No | ✅ Yes |
-| Strategy Tester support | ✅ Full | ❌ Limited |
+| Feature                    | Expert Advisors  | Scripts                      |
+| -------------------------- | ---------------- | ---------------------------- |
+| Auto-launch via [StartUp]  | ✅ Reliable      | ✅ Works                     |
+| Parameter loading via .set | ✅ Usually works | ⚠️ Rarely works              |
+| Input dialog               | Always shown     | Requires #property directive |
+| ShutdownTerminal support   | ❌ No            | ✅ Yes                       |
+| Strategy Tester support    | ✅ Full          | ❌ Limited                   |
 
 **From Forum Posts**:
+
 > "Scripts are run by the same rules as Expert Advisor." (Official docs)
 >
 > But in practice: "The logic appears to have changed from MT4 to MT5."
@@ -257,11 +278,13 @@ cmd /c start /min /wait M:\$($folder)\terminal.exe \
 
 **Problem**:
 When launching MT4 with startup.ini containing an EA that uses DLLs:
+
 - EA executes TWICE
 - First execution: succeeds
 - Second execution: "DLL could not be loaded" error
 
 **Configuration**:
+
 ```ini
 ExpertsDllImport=true
 ```
@@ -278,6 +301,7 @@ ExpertsDllImport=true
 ### .set File Structure
 
 **Example** (from community posts):
+
 ```
 <inputs>
 Broker=------Broker Five or Four Digit------
@@ -291,10 +315,12 @@ S1=---------------- Entry Settings
 ```
 
 **File Location**:
+
 - **For Live Trading**: `MQL5\presets\`
 - **For Backtesting**: `MQL5\profiles\tester\`
 
 **Creation Method**:
+
 1. Open script/EA in MT5
 2. Configure input parameters in Properties dialog
 3. Click "Inputs → Save"
@@ -309,6 +335,7 @@ S1=---------------- Entry Settings
 ### Approach 1: File-Based Communication ✅
 
 **Method**: EA/Script monitors a command file
+
 ```mql5
 // EA reads commands from file
 void OnTimer() {
@@ -322,6 +349,7 @@ void OnTimer() {
 ```
 
 **Python/Bash writes commands**:
+
 ```bash
 echo "EXPORT EURUSD M1 5000" > commands.txt
 ```
@@ -333,6 +361,7 @@ echo "EXPORT EURUSD M1 5000" > commands.txt
 ### Approach 2: Python MetaTrader5 API ✅
 
 **Method**: Use Python's MetaTrader5 package
+
 ```python
 import MetaTrader5 as mt5
 
@@ -342,6 +371,7 @@ rates = mt5.copy_rates_from_pos("EURUSD", mt5.TIMEFRAME_M1, 0, 5000)
 ```
 
 **Limitations**:
+
 - ❌ Cannot access indicator buffers
 - ❌ Cannot trigger script execution
 - ✅ CAN fetch market data
@@ -356,6 +386,7 @@ rates = mt5.copy_rates_from_pos("EURUSD", mt5.TIMEFRAME_M1, 0, 5000)
 ### Approach 3: Socket/IPC Communication ✅
 
 **Method**: MQL5 script sends data via sockets
+
 ```mql5
 int socket = SocketCreate();
 SocketConnect(socket, "localhost", 8080);
@@ -363,6 +394,7 @@ SocketSend(socket, buffer_data);
 ```
 
 **Python receives**:
+
 ```python
 import socket
 server = socket.socket()
@@ -379,11 +411,13 @@ data = server.recv(1024)
 **Source**: https://github.com/EA31337/EA-Tester
 
 **Features**:
+
 - Automated backtesting via .ini files
 - Batch testing with parameter sets
 - Report generation
 
 **Configuration Example**:
+
 ```ini
 [Common]
 Login=12345
@@ -409,6 +443,7 @@ TestShutdownTerminal=true
 ### Discovery
 
 **From MT5 Documentation**:
+
 > "ShutdownTerminal — platform shutdown control (0=disabled, 1=enabled)"
 >
 > "When enabled, the platform automatically closes upon script completion."
@@ -418,6 +453,7 @@ TestShutdownTerminal=true
 ### Implications
 
 **Enables True Headless Automation**:
+
 ```ini
 [StartUp]
 Script=DataExport\\ExportAligned.ex5
@@ -427,6 +463,7 @@ ShutdownTerminal=1
 ```
 
 **Execution**:
+
 ```bash
 terminal64.exe /config:"export.ini"
 # Script runs → Exports data → Terminal closes automatically
@@ -443,14 +480,17 @@ terminal64.exe /config:"export.ini"
 ### ASCII Encoding Requirement
 
 **From MT4 Forum** (rbs_gmbh):
+
 > "The ini file needs to be converted to ASCII in order to be loaded correctly."
 
 **Encoding Issues**:
+
 - UTF-16LE: May fail to load
 - UTF-8 with BOM: May fail to load
 - ASCII: Works reliably
 
 **Command**:
+
 ```bash
 iconv -f UTF-16LE -t ASCII startup.ini > startup_ascii.ini
 ```
@@ -460,12 +500,14 @@ iconv -f UTF-16LE -t ASCII startup.ini > startup_ascii.ini
 ### Line Ending Issues
 
 **From Forum Posts**:
+
 > "The file should use CRLF (DOS format) line terminators rather than Unix format."
 
 **Problem**: Unix (LF) line endings cause .ini parsing failures
 **Solution**: Convert to DOS (CRLF)
 
 **Command**:
+
 ```bash
 unix2dos startup.ini
 ```
@@ -483,6 +525,7 @@ unix2dos startup.ini
 ### Hypothesis
 
 **Possible Reasons for Failure**:
+
 1. `#property script_show_inputs` missing in script
 2. .set file in wrong location (not `MQL5\presets\`)
 3. .set file encoding issues (not ASCII)
@@ -492,6 +535,7 @@ unix2dos startup.ini
 ### What Needs Testing
 
 **Experiment 1**: Minimal Test Case
+
 ```mql5
 // test_script.mq5
 #property script_show_inputs
@@ -506,12 +550,14 @@ void OnStart() {
 ```
 
 **test_script.set**:
+
 ```
 TestParam=999
 TestString=from_set_file
 ```
 
 **startup.ini**:
+
 ```ini
 [StartUp]
 Script=test_script.ex5
@@ -557,6 +603,7 @@ ShutdownTerminal=1
 ### For This Project (mql5-crossover)
 
 **DO THIS**:
+
 1. ✅ Use `[StartUp]` + `ShutdownTerminal=1` for script automation
 2. ✅ Pass parameters via hardcoded input values (not .set files)
 3. ✅ Use Python MetaTrader5 API for data fetching (v3.0.0 approach)
@@ -564,6 +611,7 @@ ShutdownTerminal=1
 5. ✅ Use file-based communication for dynamic parameterization
 
 **AVOID THIS**:
+
 1. ❌ Don't rely on ScriptParameters until empirically validated
 2. ❌ Don't use DLL-dependent scripts for automated startup
 3. ❌ Don't expect UTF-16LE .ini files to work (use ASCII)
@@ -576,6 +624,7 @@ ShutdownTerminal=1
 ### Architecture
 
 **Step 1**: Generate .ini files programmatically
+
 ```python
 # generate_export_config.py
 def create_export_ini(symbol, period, bars):
@@ -589,6 +638,7 @@ ShutdownTerminal=1
 ```
 
 **Step 2**: Hardcode default parameters in script
+
 ```mql5
 // ExportAligned.mq5
 input string InpSymbol = "EURUSD";  // Symbol
@@ -602,6 +652,7 @@ void OnStart() {
 ```
 
 **Step 3**: Override via command file (if needed)
+
 ```bash
 echo "EURUSD M1 10000" > /path/to/export_params.txt
 ```
@@ -625,22 +676,26 @@ void OnStart() {
 ### Experiment Set
 
 **Test 1**: Basic ScriptParameters Test
+
 - Create minimal script with `#property script_show_inputs`
 - Create corresponding .set file in MQL5\presets\
 - Launch with `ScriptParameters=test.set`
 - **Goal**: Confirm if .set files load at all
 
 **Test 2**: Encoding Variations
+
 - Test UTF-8, UTF-16LE, ASCII .ini files
 - Test CRLF vs LF line endings
 - **Goal**: Identify working encoding
 
 **Test 3**: Expert Advisor Comparison
+
 - Convert script to EA
 - Test with ExpertParameters
 - **Goal**: Confirm EA reliability vs scripts
 
 **Test 4**: Cross-Platform Validation
+
 - Test on Windows native MT5
 - Test on Wine/CrossOver
 - **Goal**: Identify platform-specific issues
@@ -650,6 +705,7 @@ void OnStart() {
 ## References
 
 ### Forum Posts Analyzed
+
 1. https://www.mql5.com/en/forum/454776 - "MT5 Start with configuration.ini"
 2. https://www.mql5.com/en/forum/457213 - "Running Strategy Tester from Batch File"
 3. https://www.mql5.com/en/forum/265448 - "Startup MT5 with configuration file not work"
@@ -659,17 +715,20 @@ void OnStart() {
 7. https://www.mql5.com/en/forum/143417 - "Input Parameters Unavailable"
 
 ### GitHub Repositories
+
 1. https://github.com/EA31337/EA-Tester - Automated backtesting framework
 2. https://github.com/EA31337/EA-Tester/issues/220 - MQL5Login/Password issues
 3. https://github.com/martinfou/metatrader - metaeditor.ini example
 
 ### Official Documentation
+
 1. MetaTrader 4 Help - Configuration at Startup
 2. MetaTrader 5 Help - Platform Start (Advanced Users)
 3. MQL5 Documentation - Input Variables
 4. MQL5 Documentation - Event Handling (OnStart)
 
 ### Stack Overflow
+
 1. https://stackoverflow.com/questions/73766843 - Running test from script in 2022
 2. https://stackoverflow.com/questions/66968258 - Python command to execute MQL5 files
 
@@ -678,6 +737,7 @@ void OnStart() {
 ## Appendix A: Complete Working Example (EA Automation)
 
 **File**: `backtest_automation.ini` (MT4)
+
 ```ini
 ; MetaTrader 4 Automated Backtest Configuration
 ; Source: MQL5 Forum Post #158615 (rbs_gmbh)
@@ -717,6 +777,7 @@ TestReport=backtest_results
 ```
 
 **Execution**:
+
 ```powershell
 $MT4_PATH = "C:\Program Files\MetaTrader 4"
 & "$MT4_PATH\terminal.exe" /portable "$MT4_PATH\config\backtest_automation.ini"
@@ -729,6 +790,7 @@ $MT4_PATH = "C:\Program Files\MetaTrader 4"
 ## Appendix B: Minimal Script Example
 
 **File**: `test_params.mq5`
+
 ```mql5
 //+------------------------------------------------------------------+
 //| Script to test parameter passing via .set files                  |
@@ -754,6 +816,7 @@ void OnStart() {
 ```
 
 **File**: `test_params.set` (in MQL5\presets\)
+
 ```
 InpSymbol=XAUUSD
 InpBars=5000
@@ -761,6 +824,7 @@ InpDebug=0
 ```
 
 **File**: `test_startup.ini`
+
 ```ini
 [StartUp]
 Script=test_params.ex5
@@ -771,6 +835,7 @@ ShutdownTerminal=1
 ```
 
 **Expected Output** (if ScriptParameters works):
+
 ```
 === Test Script Started ===
 InpSymbol: XAUUSD
@@ -790,6 +855,7 @@ InpDebug: false
 **Empirical Testing Status**: ⚠️ PENDING
 
 **Next Steps**:
+
 1. Test Appendix B minimal example on Windows MT5
 2. Test same example on CrossOver MT5
 3. Document actual results in validation report

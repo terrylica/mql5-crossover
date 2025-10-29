@@ -16,13 +16,16 @@ This guide provides the **complete, battle-tested workflow** for migrating any M
 ## Prerequisites
 
 ### Required Tools
+
 - **MT5**: Installed via CrossOver on macOS, logged in to account
 - **Python 3.12+**: With pandas, numpy, scipy
 - **Wine Python 3.12**: Installed in CrossOver bottle at `C:\Program Files\Python312\`
 - **MetaTrader5 Package**: Installed in Wine Python (`pip install MetaTrader5`)
 
 ### Critical Knowledge
+
 Before starting, read these hard-learned lessons:
+
 - **[EXTERNAL_RESEARCH_BREAKTHROUGHS.md](EXTERNAL_RESEARCH_BREAKTHROUGHS.md)** - MQL5 CLI pitfalls, Python API limitations
 - **[PYTHON_INDICATOR_VALIDATION_FAILURES.md](PYTHON_INDICATOR_VALIDATION_FAILURES.md)** - 3-hour debugging journey
 - **[LAGUERRE_RSI_VALIDATION_SUCCESS.md](../reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md)** - Success methodology
@@ -61,6 +64,7 @@ find "$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Indicators/Custom" -name "
 ```
 
 **Example**:
+
 ```bash
 # ATR adaptive smoothed Laguerre RSI
 find "$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Indicators" -name "*Laguerre*"
@@ -150,6 +154,7 @@ Modify the indicator to expose internal buffers for CSV export:
 ### Step 2.3: Document Changes
 
 Create a buffer fix document (e.g., `BUFFER_FIX_COMPLETE.md`) documenting:
+
 - Which buffers were hidden
 - Which were exposed
 - Compilation results (0 errors, 0 warnings)
@@ -184,6 +189,7 @@ BOTTLE="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5"
 **Hard-Learned Lesson**: Do NOT add `/inc` unless using external includes. The `/inc` parameter OVERRIDES (not augments) default search paths. See `EXTERNAL_RESEARCH_BREAKTHROUGHS.md` for details.
 
 **Correct (for standard indicators)**:
+
 ```bash
 "$CX" --bottle "MetaTrader 5" --cx-app "C:/Program Files/MetaTrader 5/MetaEditor64.exe" \
   /log /compile:"C:/Indicator.mq5"
@@ -371,12 +377,14 @@ def calculate_your_indicator(
 **Hard-Learned Lesson**: Pandas `rolling().mean()` returns NaN until full window is available. MQL5 ATR uses expanding window (sum/period). See `PYTHON_INDICATOR_VALIDATION_FAILURES.md` for details.
 
 **Avoid**:
+
 ```python
 # WRONG: Returns NaN for first 31 bars
 atr = tr.rolling(window=32).mean()
 ```
 
 **Use**:
+
 ```python
 # RIGHT: Matches MQL5 behavior
 for i in range(len(tr)):
@@ -456,6 +464,7 @@ python validate_indicator.py \
 ```
 
 **Expected Output** (success):
+
 ```
 [PASS] Buffer1
   Correlation: 1.000000 (threshold: 0.999)
@@ -504,10 +513,10 @@ Document your success in `docs/reports/YOUR_INDICATOR_VALIDATION_SUCCESS.md`:
 
 ## Validation Results
 
-| Buffer | Correlation | MAE | Result |
-|--------|-------------|-----|--------|
-| Buffer1 | 1.000000 | 0.000000 | ✅ PASS |
-| Buffer2 | 0.999987 | 0.000000 | ✅ PASS |
+| Buffer  | Correlation | MAE      | Result  |
+| ------- | ----------- | -------- | ------- |
+| Buffer1 | 1.000000    | 0.000000 | ✅ PASS |
+| Buffer2 | 0.999987    | 0.000000 | ✅ PASS |
 
 ## Key Implementation Details
 
@@ -523,11 +532,13 @@ Document your success in `docs/reports/YOUR_INDICATOR_VALIDATION_SUCCESS.md`:
 ### Step 7.2: Update CLAUDE.md
 
 Add to Core Guides section:
+
 ```markdown
 - **[YOUR_INDICATOR_ANALYSIS.md](docs/guides/YOUR_INDICATOR_ANALYSIS.md)** - Algorithm breakdown
 ```
 
 Add to Single Source of Truth table:
+
 ```markdown
 | Your Indicator Algorithm & Translation | `docs/guides/YOUR_INDICATOR_ANALYSIS.md` |
 | Your Indicator Validation Success | `docs/reports/YOUR_INDICATOR_VALIDATION_SUCCESS.md` |
@@ -611,16 +622,16 @@ Before declaring success, verify ALL of these:
 
 ## Time Estimates
 
-| Phase | First Time | Subsequent |
-|-------|-----------|------------|
-| 1. Locate & Analyze | 30-60 min | 10-15 min |
-| 2. Modify MQL5 | 15-30 min | 5-10 min |
-| 3. CLI Compile | 10-20 min | 2-5 min |
-| 4. Fetch Historical Data | 5-10 min | 2-3 min |
-| 5. Implement Python | 1-2 hours | 30-60 min |
-| 6. Validate | 15-30 min | 5-10 min |
-| 7. Document | 20-30 min | 10-15 min |
-| **Total** | **2-4 hours** | **1-2 hours** |
+| Phase                    | First Time    | Subsequent    |
+| ------------------------ | ------------- | ------------- |
+| 1. Locate & Analyze      | 30-60 min     | 10-15 min     |
+| 2. Modify MQL5           | 15-30 min     | 5-10 min      |
+| 3. CLI Compile           | 10-20 min     | 2-5 min       |
+| 4. Fetch Historical Data | 5-10 min      | 2-3 min       |
+| 5. Implement Python      | 1-2 hours     | 30-60 min     |
+| 6. Validate              | 15-30 min     | 5-10 min      |
+| 7. Document              | 20-30 min     | 10-15 min     |
+| **Total**                | **2-4 hours** | **1-2 hours** |
 
 **Includes**: Debugging time, documentation, learning curve
 
@@ -631,6 +642,7 @@ Before declaring success, verify ALL of these:
 **Target**: 100% accuracy replication (correlation ≥ 0.999)
 
 **Achieved** (as of 2025-10-17):
+
 - **Laguerre RSI**: 1.000000 correlation ✅
 - **ATR**: 0.999987 correlation ✅
 - **Adaptive Period**: 1.000000 correlation ✅
@@ -642,17 +654,20 @@ Before declaring success, verify ALL of these:
 ## References
 
 ### Hard-Learned Lessons
+
 - **[EXTERNAL_RESEARCH_BREAKTHROUGHS.md](EXTERNAL_RESEARCH_BREAKTHROUGHS.md)** - External AI research findings
 - **[PYTHON_INDICATOR_VALIDATION_FAILURES.md](PYTHON_INDICATOR_VALIDATION_FAILURES.md)** - 3-hour debugging journey
 - **[LAGUERRE_RSI_VALIDATION_SUCCESS.md](../reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md)** - Success methodology
 
 ### Technical Guides
+
 - **[MQL5_CLI_COMPILATION_SUCCESS.md](MQL5_CLI_COMPILATION_SUCCESS.md)** - CrossOver CLI compilation
 - **[WINE_PYTHON_EXECUTION.md](WINE_PYTHON_EXECUTION.md)** - v3.0.0 Wine Python workflow
 - **[MT5_FILE_LOCATIONS.md](MT5_FILE_LOCATIONS.md)** - File paths and locations
 - **[MQL5_ENCODING_SOLUTIONS.md](MQL5_ENCODING_SOLUTIONS.md)** - UTF-8/UTF-16LE handling
 
 ### Example Implementation
+
 - **[LAGUERRE_RSI_ANALYSIS.md](LAGUERRE_RSI_ANALYSIS.md)** - Complete algorithm breakdown
 - **Python Implementation**: `users/crossover/indicators/laguerre_rsi.py`
 - **MQL5 Export Version**: `MQL5/Indicators/Custom/PythonInterop/ATR_Adaptive_Laguerre_RSI.mq5`
