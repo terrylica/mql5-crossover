@@ -4,8 +4,8 @@
 //+------------------------------------------------------------------+
 #property copyright   "Terry Li"
 #property link        "https://github.com/terrylica/mql5-crossover"
-#property version     "4.00"
-#property description "CCI Neutrality Score - Adaptive Percentile Rank (Red=Bottom 30%, Yellow=Middle 40%, Green=Top 30%)"
+#property version     "4.10"
+#property description "CCI Neutrality Score - Adaptive Percentile Rank with Timeframe Conversion (Red=Bottom 30%, Yellow=Middle 40%, Green=Top 30%)"
 
 #property indicator_separate_window
 #property indicator_buffers 3  // 3 buffers: Score (visible) + CCI (hidden) + Color (index)
@@ -21,8 +21,11 @@
 
 //--- Input parameters
 input group "=== CCI Parameters ==="
-input int    InpCCILength        = 20;      // CCI period
-input int    InpAdaptiveWindow   = 120;     // Adaptive normalization window
+input int              InpCCILength           = 20;             // CCI period
+
+input group "=== Adaptive Window Parameters ==="
+input ENUM_TIMEFRAMES  InpReferenceTimeframe  = PERIOD_CURRENT; // Reference timeframe
+input int              InpReferenceWindowBars = 120;            // Window size (in reference timeframe bars)
 
 //--- Indicator buffers
 double BufScore[];  // Visible: Percentile rank values (0-1)
@@ -31,6 +34,9 @@ double BufColor[];  // Color index: 0=Red, 1=Yellow, 2=Green
 
 //--- Indicator handle
 int hCCI = INVALID_HANDLE;
+
+//--- Global variables
+int g_AdaptiveWindow = 0;  // Calculated adaptive window size (in current chart timeframe bars)
 
 //+------------------------------------------------------------------+
 //| Percentile Rank Calculation Function                            |
@@ -47,6 +53,33 @@ double PercentileRank(double value, const double &window[], int size)
   }
 
 //+------------------------------------------------------------------+
+//| Calculate Adaptive Window Size Based on Timeframe Conversion    |
+//| MQL5 Best Practice: Scale window by timeframe ratio             |
+//| Formula: WindowCurrent = WindowRef × (SecondsRef / SecondsCurrent)|
+//+------------------------------------------------------------------+
+int CalculateAdaptiveWindow(ENUM_TIMEFRAMES reference_tf, int reference_bars)
+  {
+   // Get seconds per bar for both timeframes
+   int ref_seconds = PeriodSeconds(reference_tf);
+   int current_seconds = PeriodSeconds(_Period);
+
+   // Handle special case: PERIOD_CURRENT means use chart timeframe (no conversion)
+   if(reference_tf == PERIOD_CURRENT || ref_seconds == current_seconds)
+     {
+      return reference_bars;  // No conversion needed
+     }
+
+   // Calculate equivalent bars: maintain same time duration
+   // Example: 120 bars on M12 (120 × 12min = 1440min) = 1440 bars on M1
+   double calculated_bars = (double)reference_bars * ref_seconds / current_seconds;
+
+   // Use MathFloor (MQL5 community standard) - conservative approach
+   int adaptive_window = (int)MathFloor(calculated_bars);
+
+   return MathMax(2, adaptive_window);  // Minimum 2 bars for percentile calculation
+  }
+
+//+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
 int OnInit()
@@ -58,9 +91,18 @@ int OnInit()
       return INIT_PARAMETERS_INCORRECT;
      }
 
-   if(InpAdaptiveWindow < 2)
+   if(InpReferenceWindowBars < 2)
      {
-      Print("ERROR: Adaptive window must be >= 2");
+      Print("ERROR: Reference window bars must be >= 2");
+      return INIT_PARAMETERS_INCORRECT;
+     }
+
+//--- Calculate adaptive window size for current chart timeframe
+   g_AdaptiveWindow = CalculateAdaptiveWindow(InpReferenceTimeframe, InpReferenceWindowBars);
+
+   if(g_AdaptiveWindow < 2)
+     {
+      PrintFormat("ERROR: Calculated adaptive window (%d bars) is too small", g_AdaptiveWindow);
       return INIT_PARAMETERS_INCORRECT;
      }
 
@@ -70,7 +112,7 @@ int OnInit()
    SetIndexBuffer(2, BufCCI, INDICATOR_CALCULATIONS);  // Buffer 2: Hidden CCI
 
 //--- Set draw begin (CCI warmup + adaptive window warmup)
-   int StartCalcPosition = InpCCILength + InpAdaptiveWindow - 1;
+   int StartCalcPosition = InpCCILength + g_AdaptiveWindow - 1;
    PlotIndexSetInteger(0, PLOT_DRAW_BEGIN, StartCalcPosition);
 
 //--- Set empty values
@@ -86,9 +128,15 @@ int OnInit()
    IndicatorSetDouble(INDICATOR_MINIMUM, 0.0);
    IndicatorSetDouble(INDICATOR_MAXIMUM, 1.0);
 
-//--- Set indicator name
+//--- Set indicator name with timeframe info
+   string ref_tf_str = EnumToString(InpReferenceTimeframe);
+   if(InpReferenceTimeframe == PERIOD_CURRENT)
+      ref_tf_str = EnumToString(_Period);
+
    IndicatorSetString(INDICATOR_SHORTNAME,
-                      StringFormat("CCI Adaptive(%d,W=%d)", InpCCILength, InpAdaptiveWindow));
+                      StringFormat("CCI Adaptive(%d,TF=%s,W=%d→%d)",
+                                   InpCCILength, ref_tf_str,
+                                   InpReferenceWindowBars, g_AdaptiveWindow));
 
 //--- Create CCI indicator handle
    hCCI = iCCI(_Symbol, _Period, InpCCILength, PRICE_TYPICAL);
@@ -98,8 +146,13 @@ int OnInit()
       return INIT_FAILED;
      }
 
-   PrintFormat("CCI Adaptive initialized: CCI=%d, Window=%d, Colors: Red<30%%<Yellow<70%%<Green",
-               InpCCILength, InpAdaptiveWindow);
+   PrintFormat("CCI Adaptive v4.10 initialized:");
+   PrintFormat("  CCI Period: %d", InpCCILength);
+   PrintFormat("  Reference Timeframe: %s (%d seconds/bar)", ref_tf_str, PeriodSeconds(InpReferenceTimeframe));
+   PrintFormat("  Reference Window: %d bars", InpReferenceWindowBars);
+   PrintFormat("  Current Chart: %s (%d seconds/bar)", EnumToString(_Period), PeriodSeconds(_Period));
+   PrintFormat("  Adaptive Window: %d bars (scaled for current timeframe)", g_AdaptiveWindow);
+   PrintFormat("  Colors: Red<30%%<Yellow<70%%<Green");
 
    return INIT_SUCCEEDED;
   }
@@ -134,7 +187,7 @@ int OnCalculate(const int rates_total,
                 const int &spread[])
   {
 //--- Calculate warmup requirement
-   int StartCalcPosition = InpCCILength + InpAdaptiveWindow - 1;
+   int StartCalcPosition = InpCCILength + g_AdaptiveWindow - 1;
 
 //--- Check if we have enough bars
    if(rates_total <= StartCalcPosition)
@@ -187,14 +240,14 @@ int OnCalculate(const int rates_total,
 
 //--- Rolling window for percentile rank calculation
    static double cci_window[];
-   ArrayResize(cci_window, InpAdaptiveWindow);
+   ArrayResize(cci_window, g_AdaptiveWindow);
 
 //--- Main calculation loop
    for(int i = start; i < rates_total && !IsStopped(); i++)
      {
-      //--- Build rolling window [i - InpAdaptiveWindow + 1, i]
-      int window_start = i - InpAdaptiveWindow + 1;
-      for(int j = 0; j < InpAdaptiveWindow; j++)
+      //--- Build rolling window [i - g_AdaptiveWindow + 1, i]
+      int window_start = i - g_AdaptiveWindow + 1;
+      for(int j = 0; j < g_AdaptiveWindow; j++)
         {
          cci_window[j] = cci[window_start + j];
         }
@@ -203,7 +256,7 @@ int OnCalculate(const int rates_total,
       double current_cci = cci[i];
 
       //--- Calculate percentile rank
-      double score = PercentileRank(current_cci, cci_window, InpAdaptiveWindow);
+      double score = PercentileRank(current_cci, cci_window, g_AdaptiveWindow);
 
       //--- Assign color based on percentile rank thresholds
       int color_index;
