@@ -1,11 +1,56 @@
 # Changelog
 
-All notable changes to the CCI Neutrality Adaptive indicator will be documented in this file.
+All notable changes to the project indicators will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [5.0.0] - 2025-10-29
+## Consecutive Pattern Indicator
+
+### [1.40.0] - 2025-10-30
+
+#### Added
+
+- **Contraction Circle Markers**: Two orange circles (upper + lower) mark consecutive contraction patterns
+  - Upper circle placed above bar high
+  - Lower circle placed below bar low
+  - Creates distinctive "sandwich" visual different from single expansion dots
+  - Always visible when contraction pattern detected
+
+#### Changed
+
+- **Removed Bar Coloring for Contractions**: Contraction patterns no longer color bars
+  - Only circle markers shown for contractions
+  - Keeps visual focus on the circle markers
+  - Bar coloring still works for expansion patterns (if enabled)
+- **Version**: Updated from v1.30 (experimental) to v1.40 (production)
+
+#### Technical Details
+
+- 5 plots total: colored candles, expansion dots (2), contraction circles (2)
+- 15 buffers: 5 data, 10 calculations
+- Arrow code 159 (circle) used for both upper and lower markers
+- Color: Orange (clrOrange) for visibility
+- Spacing: 10 points above high / below low
+
+### [1.30.0] - 2025-10-30
+
+#### Added
+
+- Initial experimental version with contraction markers (tested triangle/arrow codes)
+- Research: Wine/CrossOver on macOS has incomplete Wingdings font support
+
+### [1.20.0] - 2025-10-29
+
+#### Removed
+
+- Inside bar detection functionality (simplified indicator focus)
+
+---
+
+## CCI Neutrality Adaptive Indicator
+
+### [5.0.0] - 2025-10-29
 
 ### BREAKING CHANGES
 
