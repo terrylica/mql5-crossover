@@ -425,7 +425,8 @@ echo "✅ Archived SMA iteration reports"
 ## Single Source of Truth
 
 | Topic | Authoritative Document |
-| ----- | ---------------------- |
+| --- | --- |
+
 
 | ...
 | MT5/CrossOver Setup (v2.0.0) | `archive/docs/CROSSOVER_MQ5.v2.0.0.md` | ← UPDATE PATH
@@ -617,17 +618,17 @@ Result: Cleaner active reports directory, preserved blocked project history"
 
 ### Phase 3 Actions (Recommended)
 
-| Action                   | Risk Level  | Justification                                             |
-| ------------------------ | ----------- | --------------------------------------------------------- |
-| Archive CROSSOVER_MQ5.md | 🟢 LOW      | Already marked v2.0.0, content duplicated in newer guides |
-| Move cc files            | 🟢 VERY LOW | Files already in archive, just reorganizing               |
-| Create README            | 🟢 ZERO     | New file, no risk                                         |
+| Action | Risk Level | Justification |
+| --- | --- | --- |
+| Archive CROSSOVER_MQ5.md | 🟢 LOW | Already marked v2.0.0, content duplicated in newer guides |
+| Move cc files | 🟢 VERY LOW | Files already in archive, just reorganizing |
+| Create README | 🟢 ZERO | New file, no risk |
 
 ### Phase 4 Actions (Optional)
 
-| Action              | Risk Level | Justification                                           |
-| ------------------- | ---------- | ------------------------------------------------------- |
-| Archive SMA reports | 🟡 MEDIUM  | Recent files (2025-10-17), blocked project might resume |
+| Action | Risk Level | Justification |
+| --- | --- | --- |
+| Archive SMA reports | 🟡 MEDIUM | Recent files (2025-10-17), blocked project might resume |
 
 **Recommendation**:
 

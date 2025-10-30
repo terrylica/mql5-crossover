@@ -94,11 +94,11 @@ ShutdownTerminal=1
 
 ### Key Parameters
 
-| Parameter          | Purpose                                 | Notes                                             |
-| ------------------ | --------------------------------------- | ------------------------------------------------- |
-| `Script`           | Script path relative to `MQL5\Scripts\` | Use `\` not `/` for subdirectories                |
-| `ScriptParameters` | Name of .set file in `MQL5\Presets\`    | File extension `.set` is required                 |
-| `ShutdownTerminal` | Auto-shutdown after completion          | `1` = enabled, optional but useful for automation |
+| Parameter | Purpose | Notes |
+| --- | --- | --- |
+| `Script` | Script path relative to `MQL5\Scripts\` | Use `\` not `/` for subdirectories |
+| `ScriptParameters` | Name of .set file in `MQL5\Presets\` | File extension `.set` is required |
+| `ShutdownTerminal` | Auto-shutdown after completion | `1` = enabled, optional but useful for automation |
 
 ### NOT Used
 
@@ -299,16 +299,16 @@ ls -lh "$BOTTLE/drive_c/users/crossover/exports/"
 
 ## 7. Comparison: [Inputs] vs ScriptParameters
 
-| Feature             | [Inputs] Section                     | ScriptParameters (.set)                   |
-| ------------------- | ------------------------------------ | ----------------------------------------- |
-| **Status**          | ❌ Broken (confirmed non-functional) | ✅ Working (confirmed functional)         |
-| **Syntax**          | `ParameterName=value` in startup.ini | Separate .set file                        |
-| **Location**        | startup.ini                          | MQL5\Presets\filename.set                 |
-| **Encoding**        | Any (startup.ini is ANSI/UTF-8)      | UCS-2 LE BOM (strict requirement)         |
-| **Reusability**     | Single-use per startup.ini           | Multiple .set files for different configs |
-| **GUI Creation**    | Manual editing only                  | Save from MT5 parameter dialog            |
-| **Error Detection** | Silent failure                       | Silent failure (same behavior)            |
-| **Recommended**     | ❌ DO NOT USE                        | ✅ USE THIS METHOD                        |
+| Feature | [Inputs] Section | ScriptParameters (.set) |
+| --- | --- | --- |
+| **Status** | ❌ Broken (confirmed non-functional) | ✅ Working (confirmed functional) |
+| **Syntax** | `ParameterName=value` in startup.ini | Separate .set file |
+| **Location** | startup.ini | MQL5\Presets\filename.set |
+| **Encoding** | Any (startup.ini is ANSI/UTF-8) | UCS-2 LE BOM (strict requirement) |
+| **Reusability** | Single-use per startup.ini | Multiple .set files for different configs |
+| **GUI Creation** | Manual editing only | Save from MT5 parameter dialog |
+| **Error Detection** | Silent failure | Silent failure (same behavior) |
+| **Recommended** | ❌ DO NOT USE | ✅ USE THIS METHOD |
 
 ---
 

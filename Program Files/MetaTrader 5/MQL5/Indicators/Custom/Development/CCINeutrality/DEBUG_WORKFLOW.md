@@ -10,18 +10,18 @@ Debug version strips all visual complexity and outputs full calculation data to 
 **Analyzer**: `/users/crossover/analyze_cci_debug.py`
 **Output**: `MQL5/Files/cci_debug_SYMBOL_PERIOD_DATE.csv`
 
----
+______________________________________________________________________
 
 ## Quick Start
 
 ### Step 1: Attach Debug Indicator
 
 1. Open MT5
-2. Open any chart (EURUSD M12 recommended)
-3. Navigator → Indicators → Custom → Development → CCINeutrality → **CCI_Neutrality_Debug**
-4. Drag to chart
-5. **Leave all parameters as default** (CSV enabled by default)
-6. Click OK
+1. Open any chart (EURUSD M12 recommended)
+1. Navigator → Indicators → Custom → Development → CCINeutrality → **CCI_Neutrality_Debug**
+1. Drag to chart
+1. **Leave all parameters as default** (CSV enabled by default)
+1. Click OK
 
 ### Step 2: Verify CSV Output
 
@@ -48,7 +48,7 @@ python3 analyze_cci_debug.py
 
 The script automatically finds the most recent `cci_debug_*.csv` file and analyzes it.
 
----
+______________________________________________________________________
 
 ## CSV Output Columns
 
@@ -74,7 +74,7 @@ The script automatically finds the most recent `cci_debug_*.csv` file and analyz
 | sum_cci2   | Rolling sum of CCI² values (debug)       |
 | sum_excess | Rolling sum of breach magnitudes (debug) |
 
----
+______________________________________________________________________
 
 ## Python Analyzer Output
 
@@ -128,7 +128,7 @@ The `analyze_cci_debug.py` script performs **7 diagnostic checks**:
 - Pass/fail for each diagnostic
 - Overall health assessment
 
----
+______________________________________________________________________
 
 ## Example Output
 
@@ -230,7 +230,7 @@ Summary
 ================================================================================
 ```
 
----
+______________________________________________________________________
 
 ## Debugging Workflow
 
@@ -241,12 +241,12 @@ Summary
 **Possible causes**:
 
 1. Market is trending (not range-bound)
-2. Thresholds too strict
+1. Thresholds too strict
 
 **Solutions**:
 
 1. Try EURUSD M5 during Asian session (more range-bound)
-2. Adjust thresholds in indicator parameters:
+1. Adjust thresholds in indicator parameters:
    - Score threshold: 0.80 → 0.70
    - Min fraction inside: 0.80 → 0.70
 
@@ -298,7 +298,7 @@ Summary
 - Incorrect threshold comparisons
 - Logic error in multi-condition AND
 
----
+______________________________________________________________________
 
 ## Manual CSV Inspection
 
@@ -318,7 +318,7 @@ grep ";1$" "/path/to/cci_debug_*.csv"
 # File → Open → Select CSV → Delimiter: semicolon (;)
 ```
 
----
+______________________________________________________________________
 
 ## Parameters Reference
 
@@ -348,7 +348,7 @@ All debug parameters match the main indicator:
 - Enable CSV: true (default)
 - Flush interval: 100 bars
 
----
+______________________________________________________________________
 
 ## Cleanup
 
@@ -364,15 +364,15 @@ ls -lh cci_debug_*.csv
 ls -t cci_debug_*.csv | tail -n +4 | xargs rm -f
 ```
 
----
+______________________________________________________________________
 
 ## Next Steps After Validation
 
 Once all diagnostics pass:
 
 1. **Mathematical correctness confirmed** ✓
-2. **Signal logic verified** ✓
-3. **Performance validated (O(1) rolling window)** ✓
+1. **Signal logic verified** ✓
+1. **Performance validated (O(1) rolling window)** ✓
 
 Then you can:
 
@@ -381,16 +381,16 @@ Then you can:
 - Backtest signal effectiveness
 - Tune parameters for specific markets
 
----
+______________________________________________________________________
 
 ## Support
 
 For issues with the debug workflow:
 
 1. Check MT5 Journal for error messages
-2. Verify CSV file exists in MQL5/Files
-3. Run Python analyzer and review diagnostics
-4. Examine specific bars with violations in CSV
+1. Verify CSV file exists in MQL5/Files
+1. Run Python analyzer and review diagnostics
+1. Examine specific bars with violations in CSV
 
 All source code available:
 

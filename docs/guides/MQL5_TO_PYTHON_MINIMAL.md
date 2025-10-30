@@ -8,12 +8,12 @@
 
 ## Service Level Objectives
 
-| Metric              | Target              | Method                          |
-| ------------------- | ------------------- | ------------------------------- |
-| **Availability**    | 100%                | All commands executable         |
-| **Correctness**     | ≥ 0.999 correlation | scipy.stats.pearsonr validation |
-| **Observability**   | 100%                | Verification step per phase     |
-| **Maintainability** | ≥ 90%               | Commands use absolute paths     |
+| Metric | Target | Method |
+| --- | --- | --- |
+| **Availability** | 100% | All commands executable |
+| **Correctness** | ≥ 0.999 correlation | scipy.stats.pearsonr validation |
+| **Observability** | 100% | Verification step per phase |
+| **Maintainability** | ≥ 90% | Commands use absolute paths |
 
 ---
 
@@ -364,18 +364,18 @@ for i in range(len(data)):
 
 ## Time Estimates
 
-| Phase                 | Time              |
-| --------------------- | ----------------- |
-| 0. Prerequisites      | 5 min             |
-| 1. Find Indicator     | 2 min             |
-| 2. Analyze Algorithm  | 15-60 min         |
-| 3. Expose Buffers     | 10 min            |
-| 4. Compile            | 5 min             |
-| 5. Fetch Data         | 5 min             |
-| 6. Export MQL5 Values | 10 min            |
-| 7. Implement Python   | 30-120 min        |
-| 8. Validate           | 10 min            |
-| **Total**             | **1.5-3.5 hours** |
+| Phase | Time |
+| --- | --- |
+| 0. Prerequisites | 5 min |
+| 1. Find Indicator | 2 min |
+| 2. Analyze Algorithm | 15-60 min |
+| 3. Expose Buffers | 10 min |
+| 4. Compile | 5 min |
+| 5. Fetch Data | 5 min |
+| 6. Export MQL5 Values | 10 min |
+| 7. Implement Python | 30-120 min |
+| 8. Validate | 10 min |
+| **Total** | **1.5-3.5 hours** |
 
 **Note**: Times based on Laguerre RSI (complex indicator). Simple indicators (SMA, EMA) should be faster.
 

@@ -207,18 +207,18 @@ All implementation plans are **completed** (either successfully implemented or d
 
 All successfully completed and archived:
 
-| File                            | Status       | Outcome                      |
-| ------------------------------- | ------------ | ---------------------------- |
-| BUFFER_FIX_COMPLETE.md          | ✅ COMPLETED | Buffer issue resolved        |
-| BUFFER_FIX_STATUS.md            | ✅ COMPLETED | Intermediate status report   |
-| BUFFER_ISSUE_ANALYSIS.md        | ✅ COMPLETED | Root cause analysis          |
-| CC_REFACTORING_PLAN.md          | ✅ COMPLETED | cc indicator refactored      |
-| exporter_plan.md                | ✅ COMPLETED | Exporter implemented         |
-| LAGUERRE_RSI_VALIDATION_PLAN.md | ✅ COMPLETED | v1.0.0 validation achieved   |
-| MIGRATION_PLAN.md               | ✅ COMPLETED | Initial migration strategy   |
-| MT5_IDIOMATIC_REFACTORING.md    | ✅ COMPLETED | Structure reorganized        |
-| UNIVERSAL_VALIDATION_PLAN.md    | ✅ COMPLETED | Became validate_indicator.py |
-| WORKSPACE_REFACTORING_PLAN.md   | ✅ COMPLETED | Workspace reorganized        |
+| File | Status | Outcome |
+| --- | --- | --- |
+| BUFFER_FIX_COMPLETE.md | ✅ COMPLETED | Buffer issue resolved |
+| BUFFER_FIX_STATUS.md | ✅ COMPLETED | Intermediate status report |
+| BUFFER_ISSUE_ANALYSIS.md | ✅ COMPLETED | Root cause analysis |
+| CC_REFACTORING_PLAN.md | ✅ COMPLETED | cc indicator refactored |
+| exporter_plan.md | ✅ COMPLETED | Exporter implemented |
+| LAGUERRE_RSI_VALIDATION_PLAN.md | ✅ COMPLETED | v1.0.0 validation achieved |
+| MIGRATION_PLAN.md | ✅ COMPLETED | Initial migration strategy |
+| MT5_IDIOMATIC_REFACTORING.md | ✅ COMPLETED | Structure reorganized |
+| UNIVERSAL_VALIDATION_PLAN.md | ✅ COMPLETED | Became validate_indicator.py |
+| WORKSPACE_REFACTORING_PLAN.md | ✅ COMPLETED | Workspace reorganized |
 
 **Recommendation**: **KEEP ALL ARCHIVED** (historical context, shows successful completion)
 
@@ -376,11 +376,11 @@ archive/indicators/
 
 ## Current Workflow Matrix
 
-| Use Case                               | Solution                 | Status         | Automation      |
-| -------------------------------------- | ------------------------ | -------------- | --------------- |
-| Manual GUI exports + custom indicators | v4.0.0 file-based config | PRODUCTION     | SEMI-AUTOMATED  |
-| Automated headless + market data       | v3.0.0 Python API        | PRODUCTION     | FULLY AUTOMATED |
-| Custom indicator data programmatically | NOT POSSIBLE             | API limitation | N/A             |
+| Use Case | Solution | Status | Automation |
+| --- | --- | --- | --- |
+| Manual GUI exports + custom indicators | v4.0.0 file-based config | PRODUCTION | SEMI-AUTOMATED |
+| Automated headless + market data | v3.0.0 Python API | PRODUCTION | FULLY AUTOMATED |
+| Custom indicator data programmatically | NOT POSSIBLE | API limitation | N/A |
 
 **Key Insight**: v3.0.0 and v4.0.0 are **complementary**, not competing solutions:
 
@@ -524,18 +524,18 @@ archive/indicators/
 
 ## Assessment Metrics
 
-| Metric                     | Count | Status                          |
-| -------------------------- | ----- | ------------------------------- |
-| **Total Legacy Items**     | 70+   | ✅ All inventoried              |
-| **Shell Scripts**          | 2     | ✅ Archived, don't retest       |
-| **Python Utilities**       | 1     | ✅ Deprecated with warning      |
-| **Spike Experiments**      | 5     | ✅ Research complete            |
-| **Implementation Plans**   | 8     | ✅ All completed/archived       |
-| **Archived Documentation** | 3     | ✅ Reference only               |
-| **Indicator Files**        | 50+   | ✅ Reorganized (cc fix applied) |
-| **Legacy Workspace**       | 14    | ✅ Historical reference         |
-| **NOT VIABLE Items**       | 3     | ✅ Documented with evidence     |
-| **Production Solutions**   | 2     | ✅ v3.0.0 + v4.0.0              |
+| Metric | Count | Status |
+| --- | --- | --- |
+| **Total Legacy Items** | 70+ | ✅ All inventoried |
+| **Shell Scripts** | 2 | ✅ Archived, don't retest |
+| **Python Utilities** | 1 | ✅ Deprecated with warning |
+| **Spike Experiments** | 5 | ✅ Research complete |
+| **Implementation Plans** | 8 | ✅ All completed/archived |
+| **Archived Documentation** | 3 | ✅ Reference only |
+| **Indicator Files** | 50+ | ✅ Reorganized (cc fix applied) |
+| **Legacy Workspace** | 14 | ✅ Historical reference |
+| **NOT VIABLE Items** | 3 | ✅ Documented with evidence |
+| **Production Solutions** | 2 | ✅ v3.0.0 + v4.0.0 |
 
 ---
 

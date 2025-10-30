@@ -260,7 +260,7 @@ bool CRateOfChangeStatistics::Calculate(const double &data[],
       int data_idx = historical_start + i;
       if(data_idx >= 0 && data_idx + 1 < size)
         {
-         historical_deltas[i] = data[data_idx + 1] - data[data_idx];
+         historical_deltas[i] = MathAbs(data[data_idx + 1] - data[data_idx]);
         }
       else
         {

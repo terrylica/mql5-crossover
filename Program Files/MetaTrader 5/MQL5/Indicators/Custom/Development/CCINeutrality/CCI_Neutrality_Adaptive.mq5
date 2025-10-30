@@ -4,8 +4,8 @@
 //+------------------------------------------------------------------+
 #property copyright   "Terry Li"
 #property link        "https://github.com/terrylica/mql5-crossover"
-#property version     "4.10"
-#property description "CCI Neutrality Score - Adaptive Percentile Rank with Timeframe Conversion (Red=Bottom 30%, Yellow=Middle 40%, Green=Top 30%)"
+#property version     "4.20"
+#property description "CCI Neutrality Score - Adaptive Percentile Rank with Timeframe Conversion (Red=Volatile/Extreme, Yellow=Normal, Green=Calm/Neutral)"
 
 #property indicator_separate_window
 #property indicator_buffers 3  // 3 buffers: Score (visible) + CCI (hidden) + Color (index)
@@ -120,9 +120,9 @@ int OnInit()
 
 //--- Define 3-color palette
    PlotIndexSetInteger(0, PLOT_COLOR_INDEXES, 3);
-   PlotIndexSetInteger(0, PLOT_LINE_COLOR, 0, clrRed);       // Index 0: Bottom 30%
-   PlotIndexSetInteger(0, PLOT_LINE_COLOR, 1, clrYellow);    // Index 1: Middle 40%
-   PlotIndexSetInteger(0, PLOT_LINE_COLOR, 2, clrLime);      // Index 2: Top 30%
+   PlotIndexSetInteger(0, PLOT_LINE_COLOR, 0, clrRed);       // Index 0: Volatile/Extreme (|CCI| > 70th percentile)
+   PlotIndexSetInteger(0, PLOT_LINE_COLOR, 1, clrYellow);    // Index 1: Normal (30th-70th percentile)
+   PlotIndexSetInteger(0, PLOT_LINE_COLOR, 2, clrLime);      // Index 2: Calm/Neutral (|CCI| < 30th percentile)
 
 //--- Set scale range for percentile rank (0.0 - 1.0)
    IndicatorSetDouble(INDICATOR_MINIMUM, 0.0);
@@ -152,7 +152,7 @@ int OnInit()
    PrintFormat("  Reference Window: %d bars", InpReferenceWindowBars);
    PrintFormat("  Current Chart: %s (%d seconds/bar)", EnumToString(_Period), PeriodSeconds(_Period));
    PrintFormat("  Adaptive Window: %d bars (scaled for current timeframe)", g_AdaptiveWindow);
-   PrintFormat("  Colors: Red<30%%<Yellow<70%%<Green");
+   PrintFormat("  Colors: Green(Calm)<30%%<Yellow<70%%<Red(Volatile)");
 
    return INIT_SUCCEEDED;
   }
@@ -245,27 +245,28 @@ int OnCalculate(const int rates_total,
 //--- Main calculation loop
    for(int i = start; i < rates_total && !IsStopped(); i++)
      {
-      //--- Build rolling window [i - g_AdaptiveWindow + 1, i]
+         //--- Build rolling window [i - g_AdaptiveWindow + 1, i]
       int window_start = i - g_AdaptiveWindow + 1;
       for(int j = 0; j < g_AdaptiveWindow; j++)
         {
-         cci_window[j] = cci[window_start + j];
+         cci_window[j] = MathAbs(cci[window_start + j]);
         }
 
-      //--- Get current CCI value
+      //--- Get current CCI value (use absolute value for volatility measurement)
       double current_cci = cci[i];
+      double current_cci_abs = MathAbs(current_cci);
 
-      //--- Calculate percentile rank
-      double score = PercentileRank(current_cci, cci_window, g_AdaptiveWindow);
+      //--- Calculate percentile rank using absolute CCI (measures extremity, not direction)
+      double score = PercentileRank(current_cci_abs, cci_window, g_AdaptiveWindow);
 
       //--- Assign color based on percentile rank thresholds
       int color_index;
       if(score > 0.7)
-         color_index = 2;       // Green: Top 30%
+         color_index = 0;       // Red: Top 30% (high extremity = volatile/chaotic)
       else if(score > 0.3)
-         color_index = 1;       // Yellow: Middle 40%
+         color_index = 1;       // Yellow: Middle 40% (normal)
       else
-         color_index = 0;       // Red: Bottom 30%
+         color_index = 2;       // Green: Bottom 30% (low extremity = calm/neutral)
 
       //--- Store results
       BufCCI[i] = current_cci;      // Hidden buffer

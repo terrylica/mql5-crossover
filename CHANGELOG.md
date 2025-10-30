@@ -5,6 +5,77 @@ All notable changes to the CCI Neutrality Adaptive indicator will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2025-10-29
+
+### BREAKING CHANGES
+
+- **Color Mapping Inverted**: Complete reversal of color meaning to match intended behavior
+  - **RED** now indicates high volatility/extreme CCI values (previously GREEN)
+  - **GREEN** now indicates calm/neutral CCI values (previously RED)
+  - **YELLOW** remains middle range (30th-70th percentile)
+- **Absolute Value Percentile Ranking**: Changed from directional to magnitude-based measurement
+  - Now uses `MathAbs(CCI)` for percentile calculation
+  - Measures extremity regardless of direction (bullish or bearish)
+  - Eliminates directional bias where only bearish moves showed red
+
+### Fixed
+
+- **Critical Bug: Inverted Color Logic** (lines 264-269)
+  - Fixed color thresholds: `score > 0.7` now maps to RED (was GREEN)
+  - Fixed color thresholds: `score < 0.3` now maps to GREEN (was RED)
+  - Updated all color labels and documentation to reflect correct mapping
+- **Critical Bug: Directional Bias in Percentile Calculation** (lines 252, 257, 260)
+  - Changed window building to use `MathAbs(cci[...])` instead of raw CCI values
+  - Changed current value to use `MathAbs(current_cci)` for percentile ranking
+  - Ensures both bullish and bearish extremes show RED (volatile/chaotic)
+- **PercentileNormalizer Library Delta Calculation** (v2.00 → v2.01)
+  - Fixed line 263 in `/MQL5/Include/Custom/PercentileNormalizer.mqh`
+  - Changed from `data[i+1] - data[i]` to `MathAbs(data[i+1] - data[i])`
+  - Applies to all RoC statistics: Mean Delta, Std Dev, Sum Delta, Max Abs Delta
+  - Eliminates directional bias in rate-of-change measurements
+
+### Changed
+
+- **Version**: Updated from v4.10 to v4.20 → v5.0.0 (breaking changes warrant major bump)
+- **Description**: Updated to reflect corrected color meanings
+- **Initialization Logging**: Changed from "Red<30%<Yellow<70%<Green" to "Green(Calm)<30%<Yellow<70%<Red(Volatile)"
+
+### Removed
+
+- **CCINeutrality Directory Cleanup**: Removed 13 redundant indicator files
+  - Deleted 13 .mq5 source files without matching use cases
+  - Deleted 13 .ex5 compiled files (orphaned executables)
+  - Kept only `CCI_Neutrality_Adaptive.mq5` as the canonical implementation
+- **Consecutive Pattern (cc.mq5) Inside Bar Detection** (v1.10 → v1.20)
+  - Removed `InpShowInsideBars`, `InpInsideBarThreshold`, `InpShowInsideBarDots` parameters
+  - Removed `BufferInsideBarBearishSignal[]` and `BufferInsideBarBullishSignal[]` buffers
+  - Removed inside bar detection loop and `#include "lib/CandlePatterns.mqh"`
+  - Reduced from 15 buffers/5 plots to 13 buffers/3 plots
+  - Now focuses solely on expansion and contraction patterns
+
+### Files Modified
+
+- `Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/CCI_Neutrality_Adaptive.mq5`
+- `Program Files/MetaTrader 5/MQL5/Include/Custom/PercentileNormalizer.mqh`
+- `Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/ConsecutivePattern/cc.mq5`
+
+### Compilation Results
+
+- **CCI_Neutrality_Adaptive.ex5**: 17KB, 0 errors, 0 warnings (855ms compile time)
+- **cc.ex5**: 18KB, 0 errors, 0 warnings (933ms compile time)
+
+### Migration Guide
+
+**For existing users of v4.10 or earlier:**
+
+1. **Interpret Colors Correctly**:
+   - If you previously looked for GREEN as "extreme", now look for RED
+   - If you previously looked for RED as "neutral", now look for GREEN
+2. **Behavior Change**:
+   - Indicator now shows RED during BOTH bullish and bearish volatile moves
+   - Previously only showed RED during bearish moves (bug)
+3. **Recompile**: Must recompile to pick up library changes in PercentileNormalizer.mqh
+
 ## [4.10] - 2025-10-29
 
 ### Added
@@ -105,10 +176,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version Comparison
 
-| Version | Key Feature                     | Window Behavior                        | Compilation Size |
-| ------- | ------------------------------- | -------------------------------------- | ---------------- |
-| v4.10   | Timeframe-aware adaptive window | Scales automatically across timeframes | 17KB             |
-| v4.0.0  | Single-window percentile rank   | Fixed 120 bars on current timeframe    | 10KB             |
+| Version | Key Feature | Window Behavior | Compilation Size |
+| --- | --- | --- | --- |
+| v4.10 | Timeframe-aware adaptive window | Scales automatically across timeframes | 17KB |
+| v4.0.0 | Single-window percentile rank | Fixed 120 bars on current timeframe | 10KB |
 
 ## Documentation
 

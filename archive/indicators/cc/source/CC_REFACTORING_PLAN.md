@@ -6,12 +6,12 @@
 
 ## Service Level Objectives
 
-| SLO                 | Target | Measurement                                                                                                                                                        |
-| ------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Availability**    | 100%   | All files accessible, indicator loads without errors                                                                                                               |
-| **Correctness**     | 100%   | Behavioral accuracy: (1) Nth+ inside bars colored, (2) bars can protrude outside 1st inside bar, (3) white color for overlaps, (4) contraction priority maintained |
-| **Observability**   | 100%   | Compilation logs show 0 errors, visual verification on chart                                                                                                       |
-| **Maintainability** | 100%   | Modular architecture with .mqh files, clear function separation, documented logic                                                                                  |
+| SLO | Target | Measurement |
+| --- | --- | --- |
+| **Availability** | 100% | All files accessible, indicator loads without errors |
+| **Correctness** | 100% | Behavioral accuracy: (1) Nth+ inside bars colored, (2) bars can protrude outside 1st inside bar, (3) white color for overlaps, (4) contraction priority maintained |
+| **Observability** | 100% | Compilation logs show 0 errors, visual verification on chart |
+| **Maintainability** | 100% | Modular architecture with .mqh files, clear function separation, documented logic |
 
 ## Architecture - Option C: Modular Include Files
 

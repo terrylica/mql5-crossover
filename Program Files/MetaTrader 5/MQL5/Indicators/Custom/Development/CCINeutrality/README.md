@@ -8,7 +8,7 @@ Quantifies "consecutive CCI bounded near zero with few ±100 breaches" using sta
 **Status**: Development (Community-grade audit compliance)
 **Branch**: feature/cci-neutrality-indicator
 
----
+______________________________________________________________________
 
 ## Mathematical Foundation
 
@@ -24,7 +24,7 @@ where TP = Typical Price = (High + Low + Close) / 3
 
 ### 2. In-Channel Tracking
 
-Binary flag for CCI within [-100, +100]:
+Binary flag for CCI within \[-100, +100\]:
 
 ```
 b_t = 1 if |CCI_t| ≤ 100, else 0
@@ -92,38 +92,44 @@ S_t = p_t · c_t · v_t · q_t ∈ [0,1]
 - Prior bar had coil signal
 - |CCI_t| crosses 100 or -100
 
----
+______________________________________________________________________
 
 ## Audit Compliance (Community-Grade)
 
 ### Issues Fixed from Initial Implementation
 
 1. **prev_calculated Flow** ✅
+
    - Implements incremental calculation
    - Avoids full history recalculation on each tick
    - Recalculates only last bar on new data
 
-2. **BarsCalculated Hygiene** ✅
+1. **BarsCalculated Hygiene** ✅
+
    - Checks indicator readiness before CopyBuffer
    - Handles partial data availability
    - Reports errors with diagnostic messages
 
-3. **O(1) Rolling Window** ✅
+1. **O(1) Rolling Window** ✅
+
    - Maintains running sums (sum_b, sum_cci, sum_cci2, sum_excess)
    - Slides window with add/remove operations
    - Replaces O(N·W) nested loops with O(N) single loop
 
-4. **Plot Configuration** ✅
+1. **Plot Configuration** ✅
+
    - Sets PLOT_DRAW_BEGIN = W - 1
    - Explicitly defines PLOT_EMPTY_VALUE
    - Configures arrow glyphs (159 = ●, 241 = ▲)
 
-5. **Buffer Management** ✅
+1. **Buffer Management** ✅
+
    - Uses forward indexing (ArraySetAsSeries = false)
    - Separates state tracking (prev_coil_bar) from output buffers
    - Proper buffer initialization with EMPTY_VALUE
 
-6. **Error Handling** ✅
+1. **Error Handling** ✅
+
    - Validates input parameters
    - Handles CopyBuffer failures
    - Reports errors with context
@@ -137,7 +143,7 @@ S_t = p_t · c_t · v_t · q_t ∈ [0,1]
 | Rolling window slide | O(1)       | Running sum updates      |
 | Memory               | O(N)       | Static arrays reused     |
 
----
+______________________________________________________________________
 
 ## Installation
 
@@ -170,8 +176,8 @@ ME="C:/Program Files/MetaTrader 5/MetaEditor64.exe"
 **GUI Method**:
 
 1. Open MetaEditor
-2. File → Open → Navigate to CCI_Neutrality.mq5
-3. Press F7 to compile
+1. File → Open → Navigate to CCI_Neutrality.mq5
+1. Press F7 to compile
 
 ### 3. Verification
 
@@ -182,16 +188,16 @@ tail -1 "$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_
 # Expected: "0 errors, X warnings, YYY msec elapsed"
 ```
 
----
+______________________________________________________________________
 
 ## Usage
 
 ### Basic Setup
 
 1. Open MT5 chart (any symbol, any timeframe)
-2. Navigator → Indicators → Custom → Development → CCINeutrality → CCI_Neutrality
-3. Drag to chart
-4. Configure parameters (see below)
+1. Navigator → Indicators → Custom → Development → CCINeutrality → CCI_Neutrality
+1. Drag to chart
+1. Configure parameters (see below)
 
 ### Input Parameters
 
@@ -225,7 +231,7 @@ tail -1 "$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_
 - **Log file prefix** (default: "cci_neutrality"): Filename prefix
 - **Flush interval** (default: 500): Write buffer every N bars
 
----
+______________________________________________________________________
 
 ## CSV Logging
 
@@ -277,7 +283,7 @@ time;bar;cci;in_channel;p;mu;sd;e;c;v;q;score;streak;coil;expansion
 | coil       | 1 if coil signal, else 0      |
 | expansion  | 1 if expansion signal, else 0 |
 
----
+______________________________________________________________________
 
 ## Testing
 
@@ -286,10 +292,10 @@ time;bar;cci;in_channel;p;mu;sd;e;c;v;q;score;streak;coil;expansion
 **Setup**:
 
 1. View → Strategy Tester
-2. Mode: "Indicator"
-3. Select CCI_Neutrality
-4. Choose symbol, period, date range
-5. Enable "Visual mode" for chart playback
+1. Mode: "Indicator"
+1. Select CCI_Neutrality
+1. Choose symbol, period, date range
+1. Enable "Visual mode" for chart playback
 
 **Why Use Tester**:
 
@@ -340,8 +346,8 @@ Attach indicator to SYNTH_CCI chart.
 **MT5 Export**:
 
 1. Enable CSV logging
-2. Run on historical data
-3. Collect CSV output
+1. Run on historical data
+1. Collect CSV output
 
 **Pine Script Reference**:
 
@@ -359,7 +365,7 @@ W    = input.int(30, "Window W")
 - Score values (composite calculation)
 - Coil/expansion signals (threshold logic)
 
----
+______________________________________________________________________
 
 ## Tuning Guidelines
 
@@ -397,7 +403,7 @@ W    = input.int(30, "Window W")
 - Reduce `Score threshold` (0.7-0.75)
 - Expect more coil signals
 
----
+______________________________________________________________________
 
 ## Implementation Notes
 
@@ -446,7 +452,7 @@ bool expansion = (prev_coil_bar == i - 1) &&
 
 **Why Separate State**: Output buffers (BufCoil) use EMPTY_VALUE for non-signals, unsuitable for state tracking.
 
----
+______________________________________________________________________
 
 ## Troubleshooting
 
@@ -455,35 +461,35 @@ bool expansion = (prev_coil_bar == i - 1) &&
 **Check**:
 
 1. Compilation errors: View → Toolbox → Errors tab
-2. Journal messages: Tools → Options → Expert Advisors → Enable Journal
-3. Indicator handle validity: Check for "ERROR: Failed to create CCI handle"
+1. Journal messages: Tools → Options → Expert Advisors → Enable Journal
+1. Indicator handle validity: Check for "ERROR: Failed to create CCI handle"
 
 ### No Signals Visible
 
 **Check**:
 
 1. Enough bars: Need at least W + 2 bars
-2. Thresholds too strict: Try default parameters first
-3. CCI range: Most signals occur when CCI oscillates near [-100,100]
+1. Thresholds too strict: Try default parameters first
+1. CCI range: Most signals occur when CCI oscillates near [-100,100]
 
 ### CSV Logging Not Working
 
 **Check**:
 
 1. `Enable CSV logging = true`
-2. File permissions: Terminal may need write access
-3. Log location: Check Common Files path in Journal output
-4. File open errors: Look for "CsvLogger: Failed to open file"
+1. File permissions: Terminal may need write access
+1. Log location: Check Common Files path in Journal output
+1. File open errors: Look for "CsvLogger: Failed to open file"
 
 ### Performance Issues
 
 **Check**:
 
 1. Window W size: Larger windows = more memory
-2. Flush interval: Increase to 1000+ for large datasets
-3. CSV logging: Disable if not needed
+1. Flush interval: Increase to 1000+ for large datasets
+1. CSV logging: Disable if not needed
 
----
+______________________________________________________________________
 
 ## References
 
@@ -501,7 +507,7 @@ bool expansion = (prev_coil_bar == i - 1) &&
 - [LESSONS_LEARNED_PLAYBOOK.md](../../../../docs/guides/LESSONS_LEARNED_PLAYBOOK.md)
 - [MQL5_CLI_COMPILATION_SUCCESS.md](../../../../docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md)
 
----
+______________________________________________________________________
 
 ## Version History
 

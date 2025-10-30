@@ -235,16 +235,16 @@ return ((CU+CD) != 0) ? CU/(CU+CD) : 0;
 
 ## Validation Checklist
 
-| Check                                     | Status | Details                                    |
-| ----------------------------------------- | ------ | ------------------------------------------ |
-| No `[i+1]` or `[i+n]` forward references  | ✓ PASS | All references use `[i]`, `[i-1]`, `[i-k]` |
-| Loop direction (oldest → newest)          | ✓ PASS | `for(int i=limit; i<rates_total; i++)`     |
-| Cache validation without future bars      | ✓ PASS | Cache check removed (line 263 comment)     |
-| ATR calculation uses historical data only | ✓ PASS | Lines 246-260                              |
-| ATR min/max uses historical data only     | ✓ PASS | Lines 263-283                              |
-| Laguerre filter cascade correct           | ✓ PASS | Lines 327-340, 402-408                     |
-| RSI calculation memoryless                | ✓ PASS | Lines 345-380, 410-424                     |
-| True Range uses previous close only       | ✓ PASS | Lines 240-243                              |
+| Check | Status | Details |
+| --- | --- | --- |
+| No `[i+1]` or `[i+n]` forward references | ✓ PASS | All references use `[i]`, `[i-1]`, `[i-k]` |
+| Loop direction (oldest → newest) | ✓ PASS | `for(int i=limit; i<rates_total; i++)` |
+| Cache validation without future bars | ✓ PASS | Cache check removed (line 263 comment) |
+| ATR calculation uses historical data only | ✓ PASS | Lines 246-260 |
+| ATR min/max uses historical data only | ✓ PASS | Lines 263-283 |
+| Laguerre filter cascade correct | ✓ PASS | Lines 327-340, 402-408 |
+| RSI calculation memoryless | ✓ PASS | Lines 345-380, 410-424 |
+| True Range uses previous close only | ✓ PASS | Lines 240-243 |
 
 ---
 

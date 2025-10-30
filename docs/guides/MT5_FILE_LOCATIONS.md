@@ -205,15 +205,15 @@ with open('...mq5', 'r', encoding='utf-16-le') as f:
 
 **Mapping Guide**:
 
-| MQL5 Concept             | Python Equivalent                           |
-| ------------------------ | ------------------------------------------- |
-| `double array[]`         | `pd.Series` or `np.array`                   |
+| MQL5 Concept | Python Equivalent |
+| --- | --- |
+| `double array[]` | `pd.Series` or `np.array` |
 | `iMA()` / `iMAOnArray()` | `series.rolling().mean()` or `series.ewm()` |
-| `iATR()`                 | Custom TR calculation + EMA                 |
-| `OnInit()`               | Function initialization in `__init__()`     |
-| `OnCalculate()`          | Main processing in `calculate()` method     |
-| `CopyBuffer()`           | Data frame column access                    |
-| `ArrayResize()`          | `np.resize()` or list operations            |
+| `iATR()` | Custom TR calculation + EMA |
+| `OnInit()` | Function initialization in `__init__()` |
+| `OnCalculate()` | Main processing in `calculate()` method |
+| `CopyBuffer()` | Data frame column access |
+| `ArrayResize()` | `np.resize()` or list operations |
 
 **Example Translation**:
 

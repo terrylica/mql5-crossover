@@ -514,17 +514,17 @@ subset['atr'] = 0  // Safe
 
 ## Time Investment Summary
 
-| Activity                        | Time Spent      | Outcome                        |
-| ------------------------------- | --------------- | ------------------------------ |
-| Initial validation failure      | 15 min          | Found 0.951 correlation        |
-| NaN discovery                   | 20 min          | Found pandas behavior mismatch |
-| Wrong fix (expanding mean)      | 30 min          | Still wrong                    |
-| Manual loop implementation      | 45 min          | Calculation fixed              |
-| Still bad correlation debugging | 30 min          | Found warmup issue             |
-| startup.ini export attempt      | 15 min          | Failed approach                |
-| Wine Python MT5 API solution    | 20 min          | Success!                       |
-| Two-stage validation            | 10 min          | Perfect correlation            |
-| **TOTAL**                       | **185 minutes** | **~3 hours**                   |
+| Activity | Time Spent | Outcome |
+| --- | --- | --- |
+| Initial validation failure | 15 min | Found 0.951 correlation |
+| NaN discovery | 20 min | Found pandas behavior mismatch |
+| Wrong fix (expanding mean) | 30 min | Still wrong |
+| Manual loop implementation | 45 min | Calculation fixed |
+| Still bad correlation debugging | 30 min | Found warmup issue |
+| startup.ini export attempt | 15 min | Failed approach |
+| Wine Python MT5 API solution | 20 min | Success! |
+| Two-stage validation | 10 min | Perfect correlation |
+| **TOTAL** | **185 minutes** | **~3 hours** |
 
 ---
 

@@ -513,10 +513,10 @@ Document your success in `docs/reports/YOUR_INDICATOR_VALIDATION_SUCCESS.md`:
 
 ## Validation Results
 
-| Buffer  | Correlation | MAE      | Result  |
-| ------- | ----------- | -------- | ------- |
-| Buffer1 | 1.000000    | 0.000000 | ✅ PASS |
-| Buffer2 | 0.999987    | 0.000000 | ✅ PASS |
+| Buffer | Correlation | MAE | Result |
+| --- | --- | --- | --- |
+| Buffer1 | 1.000000 | 0.000000 | ✅ PASS |
+| Buffer2 | 0.999987 | 0.000000 | ✅ PASS |
 
 ## Key Implementation Details
 
@@ -622,16 +622,16 @@ Before declaring success, verify ALL of these:
 
 ## Time Estimates
 
-| Phase                    | First Time    | Subsequent    |
-| ------------------------ | ------------- | ------------- |
-| 1. Locate & Analyze      | 30-60 min     | 10-15 min     |
-| 2. Modify MQL5           | 15-30 min     | 5-10 min      |
-| 3. CLI Compile           | 10-20 min     | 2-5 min       |
-| 4. Fetch Historical Data | 5-10 min      | 2-3 min       |
-| 5. Implement Python      | 1-2 hours     | 30-60 min     |
-| 6. Validate              | 15-30 min     | 5-10 min      |
-| 7. Document              | 20-30 min     | 10-15 min     |
-| **Total**                | **2-4 hours** | **1-2 hours** |
+| Phase | First Time | Subsequent |
+| --- | --- | --- |
+| 1. Locate & Analyze | 30-60 min | 10-15 min |
+| 2. Modify MQL5 | 15-30 min | 5-10 min |
+| 3. CLI Compile | 10-20 min | 2-5 min |
+| 4. Fetch Historical Data | 5-10 min | 2-3 min |
+| 5. Implement Python | 1-2 hours | 30-60 min |
+| 6. Validate | 15-30 min | 5-10 min |
+| 7. Document | 20-30 min | 10-15 min |
+| **Total** | **2-4 hours** | **1-2 hours** |
 
 **Includes**: Debugging time, documentation, learning curve
 

@@ -8,12 +8,12 @@
 
 ## Service Level Objectives
 
-| Metric              | Target | Measurement                       |
-| ------------------- | ------ | --------------------------------- |
-| **Availability**    | 100%   | All documented steps executable   |
-| **Correctness**     | 100%   | Steps produce expected outcomes   |
-| **Observability**   | 100%   | Verification step per phase       |
-| **Maintainability** | ≥ 90%  | Steps remain valid across updates |
+| Metric | Target | Measurement |
+| --- | --- | --- |
+| **Availability** | 100% | All documented steps executable |
+| **Correctness** | 100% | Steps produce expected outcomes |
+| **Observability** | 100% | Verification step per phase |
+| **Maintainability** | ≥ 90% | Steps remain valid across updates |
 
 **Current SLO Status**: 🔴 42% (5/12 phases match reality)
 
@@ -21,20 +21,20 @@
 
 ## Matrix: Guide vs Reality
 
-| Phase                     | Current Guide Says                          | What We Actually Did                                             | Match? | Gap Type             |
-| ------------------------- | ------------------------------------------- | ---------------------------------------------------------------- | ------ | -------------------- |
-| **Prerequisites**         | Assumes Wine Python + MT5 package installed | No verification step documented                                  | ❌     | Missing verification |
-| **Find Indicator**        | `find ... -name "*.mq5"`                    | Used this exact command                                          | ✅     | -                    |
-| **Analyze Algorithm**     | "Read and understand", document in guide    | Created LAGUERRE_RSI_ANALYSIS.md (37KB doc)                      | ✅     | -                    |
-| **Modify MQL5**           | "Add inline export code to OnCalculate()"   | Modified existing indicator, added buffer exposure (buffers 3-4) | ❌     | Wrong approach       |
-| **CLI Compile**           | Shows command WITH `/inc` flag              | Used CLI WITHOUT `/inc` flag                                     | ❌     | Wrong flag usage     |
-| **Copy to Simple Path**   | Copy to C:/Indicator.mq5                    | Did NOT copy - compiled directly                                 | ⚠️     | Workflow deviation   |
-| **Verify Compilation**    | Check log + .ex5 existence                  | Did this exactly                                                 | ✅     | -                    |
-| **Start MT5**             | `wine ... terminal64.exe &` + `sleep 5`     | MT5 was already running, no verification                         | ⚠️     | Incomplete           |
-| **Fetch Historical Data** | Inline Wine Python `-c` script (30 lines)   | Used inline script (exact from validation report)                | ✅     | -                    |
-| **Python Implementation** | Generic template shown                      | Created 11 functions, 400+ lines in laguerre_rsi.py              | ⚠️     | Complexity gap       |
-| **Export MQL5 Values**    | "Add export code to OnCalculate()"          | Used ExportAligned.mq5 script separately                         | ❌     | Wrong approach       |
-| **Validate**              | Use validate_indicator.py                   | Used inline Python script with scipy                             | ⚠️     | Tool difference      |
+| Phase | Current Guide Says | What We Actually Did | Match? | Gap Type |
+| --- | --- | --- | --- | --- |
+| **Prerequisites** | Assumes Wine Python + MT5 package installed | No verification step documented | ❌ | Missing verification |
+| **Find Indicator** | `find ... -name "*.mq5"` | Used this exact command | ✅ | - |
+| **Analyze Algorithm** | "Read and understand", document in guide | Created LAGUERRE_RSI_ANALYSIS.md (37KB doc) | ✅ | - |
+| **Modify MQL5** | "Add inline export code to OnCalculate()" | Modified existing indicator, added buffer exposure (buffers 3-4) | ❌ | Wrong approach |
+| **CLI Compile** | Shows command WITH `/inc` flag | Used CLI WITHOUT `/inc` flag | ❌ | Wrong flag usage |
+| **Copy to Simple Path** | Copy to C:/Indicator.mq5 | Did NOT copy - compiled directly | ⚠️ | Workflow deviation |
+| **Verify Compilation** | Check log + .ex5 existence | Did this exactly | ✅ | - |
+| **Start MT5** | `wine ... terminal64.exe &` + `sleep 5` | MT5 was already running, no verification | ⚠️ | Incomplete |
+| **Fetch Historical Data** | Inline Wine Python `-c` script (30 lines) | Used inline script (exact from validation report) | ✅ | - |
+| **Python Implementation** | Generic template shown | Created 11 functions, 400+ lines in laguerre_rsi.py | ⚠️ | Complexity gap |
+| **Export MQL5 Values** | "Add export code to OnCalculate()" | Used ExportAligned.mq5 script separately | ❌ | Wrong approach |
+| **Validate** | Use validate_indicator.py | Used inline Python script with scipy | ⚠️ | Tool difference |
 
 **Legend**:
 

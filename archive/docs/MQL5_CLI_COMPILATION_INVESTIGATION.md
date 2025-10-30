@@ -589,19 +589,19 @@ ls /tmp/wine* /tmp/crash* 2>/dev/null
 
 ## Attempted Workarounds - Summary
 
-| Method                 | Description                               | Result                      |
-| ---------------------- | ----------------------------------------- | --------------------------- |
-| Direct wine call       | `wine MetaEditor64.exe /compile:file.mq5` | ❌ Bottle detection failure |
-| WINEPREFIX env         | Set full bottle path via WINEPREFIX       | ❌ Ignored by wrapper       |
-| CX_BOTTLE env          | Set bottle name via CX_BOTTLE             | ❌ Ignored by wrapper       |
-| cxrun utility          | CrossOver's application runner            | ❌ Incompatible flag syntax |
-| cxbottle               | Bottle management utility                 | ❌ No compilation features  |
-| Relative paths         | Execute from MT5 directory                | ❌ No effect                |
-| Simplified paths       | C:/test.mq5 instead of long path          | ❌ No effect                |
-| mql64.exe              | Standalone compiler                       | ❌ Same bottle failure      |
-| Python subprocess      | Explicit env and timeout control          | ❌ Timeout after 10s        |
-| Path format variations | 5+ different quoting/path styles          | ❌ No effect                |
-| Multiple flags         | /inc, /log, combined                      | ❌ No effect                |
+| Method | Description | Result |
+| --- | --- | --- |
+| Direct wine call | `wine MetaEditor64.exe /compile:file.mq5` | ❌ Bottle detection failure |
+| WINEPREFIX env | Set full bottle path via WINEPREFIX | ❌ Ignored by wrapper |
+| CX_BOTTLE env | Set bottle name via CX_BOTTLE | ❌ Ignored by wrapper |
+| cxrun utility | CrossOver's application runner | ❌ Incompatible flag syntax |
+| cxbottle | Bottle management utility | ❌ No compilation features |
+| Relative paths | Execute from MT5 directory | ❌ No effect |
+| Simplified paths | C:/test.mq5 instead of long path | ❌ No effect |
+| mql64.exe | Standalone compiler | ❌ Same bottle failure |
+| Python subprocess | Explicit env and timeout control | ❌ Timeout after 10s |
+| Path format variations | 5+ different quoting/path styles | ❌ No effect |
+| Multiple flags | /inc, /log, combined | ❌ No effect |
 
 ---
 

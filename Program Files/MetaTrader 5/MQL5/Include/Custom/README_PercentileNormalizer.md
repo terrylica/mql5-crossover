@@ -28,9 +28,10 @@ The `PercentileNormalizer.mqh` library provides two powerful capabilities for MQ
 
 ### The Problem This Solves
 
-When you have a normalized histogram (like CCI Neutrality with values 0.0-1.0), sometimes it changes **fast** and sometimes **slow**. You want to know: *"Is the current rate of change unusual compared to history?"*
+When you have a normalized histogram (like CCI Neutrality with values 0.0-1.0), sometimes it changes **fast** and sometimes **slow**. You want to know: _"Is the current rate of change unusual compared to history?"_
 
 **Real-World Example**:
+
 - Last 14 bars: Histogram jumping wildly (0.2 → 0.8 → 0.3 → 0.9)
 - Historical norm: Usually changes slowly (0.5 → 0.52 → 0.54)
 - **Signal**: Current market regime is unusually volatile/trending
@@ -38,6 +39,7 @@ When you have a normalized histogram (like CCI Neutrality with values 0.0-1.0), 
 ### How It Works
 
 1. **Calculate Deltas**: Measure change between consecutive histogram bars
+
    ```
    Bar 100: 0.50 → Bar 101: 0.65 = Delta: +0.15
    Bar 101: 0.65 → Bar 102: 0.55 = Delta: -0.10
@@ -261,6 +263,7 @@ CRateOfChangeStatistics(int short_window = 14,
 ```
 
 **Parameters**:
+
 - `short_window` - Window size for delta statistics (default: 14 bars)
 - `long_window` - Window size for historical normalization (default: 120 bars)
 - `threshold_low` - Low percentile threshold (default: 0.30 = 30%)
@@ -283,6 +286,7 @@ bool Calculate(const double &data[],
 **Description**: Main calculation method. Computes 4 normalized RoC statistics for current bar.
 
 **Parameters**:
+
 - `data` - Source histogram values (percentile ranks 0.0-1.0)
 - `index` - Current bar index
 - `size` - Total size of data array
@@ -318,6 +322,7 @@ static double CalculateStdDevDelta(const double &deltas[], int size, double mean
 **Description**: Calculates standard deviation of rate of change (volatility measure).
 
 **Parameters**:
+
 - `deltas` - Array of delta values
 - `size` - Array size
 - `mean` - Pre-calculated mean (from `CalculateMeanDelta`)
@@ -357,6 +362,7 @@ CPercentileNormalizer(int window_size = 120,
 ```
 
 **Parameters**:
+
 - `window_size` - Rolling window size (default: 120 bars)
 - `threshold_low` - Low percentile threshold (default: 0.30 = 30%)
 - `threshold_high` - High percentile threshold (default: 0.70 = 70%)
@@ -375,6 +381,7 @@ double Normalize(const double value,
 **Description**: Main normalization method. Calculates percentile rank of `value` within a rolling window.
 
 **Parameters**:
+
 - `value` - Current value to normalize
 - `data` - Source data array (timeseries)
 - `index` - Current bar index in data array
@@ -413,6 +420,7 @@ static int MapToColorIndex(double percentile_rank,
 **Description**: Maps percentile rank to 3-color index.
 
 **Returns**:
+
 - `0` (Red) - Bottom tier (< threshold_low)
 - `1` (Yellow) - Middle tier (threshold_low to threshold_high)
 - `2` (Green) - Top tier (> threshold_high)
@@ -509,6 +517,7 @@ void OnDeinit(const int reason)
 ## 🔄 Version History
 
 ### v2.00 (2025-10-29)
+
 - **NEW**: Added `CRateOfChangeStatistics` class
 - Calculates 4 normalized RoC statistics (mean, std dev, sum, max abs delta)
 - 14-bar short window for current statistics
@@ -517,6 +526,7 @@ void OnDeinit(const int reason)
 - Complete API documentation with practical examples
 
 ### v1.00 (2025-10-29)
+
 - Initial release
 - Extracted from CCI_Neutrality_Adaptive v4.10
 - Class-based and functional interfaces
@@ -529,15 +539,18 @@ void OnDeinit(const int reason)
 ## 📖 References
 
 **MQL5 Official Documentation**:
+
 - [Including Files (#include)](https://www.mql5.com/en/docs/basis/preprosessor/include)
 - [Standard Library](https://www.mql5.com/en/docs/standardlibrary)
 
 **MQL5 Community Articles**:
+
 - [Article #247: Implementation of Indicators as Classes](https://www.mql5.com/en/articles/247)
 - [Article #5: Step on New Rails: Custom Indicators in MQL5](https://www.mql5.com/en/articles/5)
 - [Article #37: Custom Indicators in MQL5 for Newbies](https://www.mql5.com/en/articles/37)
 
 **Related Files**:
+
 - `CCI_Neutrality_Adaptive.mq5` - Original implementation (v4.10)
 - `CCI_Neutrality_RoC_Statistics.mq5` - Rate-of-change statistics indicator example
 - `/docs/reports/ADAPTIVE_NORMALIZATION_VALIDATION.md` - Research validation

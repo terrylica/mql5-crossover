@@ -103,12 +103,12 @@ Score std change: 1.03x (stable)
 
 **Results**:
 
-| Contamination  | Mean Deviation | Score Std Impact |
-| -------------- | -------------- | ---------------- |
-| 1% (10 bars)   | 0.010          | 0.296 vs 0.295   |
-| 5% (50 bars)   | 0.041          | 0.295 vs 0.295   |
-| 10% (100 bars) | 0.073          | 0.293 vs 0.295   |
-| 20% (200 bars) | 0.137          | 0.297 vs 0.295   |
+| Contamination | Mean Deviation | Score Std Impact |
+| --- | --- | --- |
+| 1% (10 bars) | 0.010 | 0.296 vs 0.295 |
+| 5% (50 bars) | 0.041 | 0.295 vs 0.295 |
+| 10% (100 bars) | 0.073 | 0.293 vs 0.295 |
+| 20% (200 bars) | 0.137 | 0.297 vs 0.295 |
 
 **Interpretation**:
 ✅ **EXCELLENT** - Robust up to 20% outlier contamination
@@ -127,10 +127,10 @@ Score std change: 1.03x (stable)
 
 **Results**:
 
-| Market Type | Autocorr | GREEN | YELLOW | RED   |
-| ----------- | -------- | ----- | ------ | ----- |
-| Trending    | 0.927    | 29.5% | 37.3%  | 33.2% |
-| Ranging     | 0.796    | 29.8% | 39.7%  | 30.6% |
+| Market Type | Autocorr | GREEN | YELLOW | RED |
+| --- | --- | --- | --- | --- |
+| Trending | 0.927 | 29.5% | 37.3% | 33.2% |
+| Ranging | 0.796 | 29.8% | 39.7% | 30.6% |
 
 **Interpretation**:
 ✅ **EXCELLENT** - Consistent signal distribution across market types
@@ -150,15 +150,15 @@ Score std change: 1.03x (stable)
 
 **Results**:
 
-| Window  | GREEN     | YELLOW    | RED       | Score Std |
-| ------- | --------- | --------- | --------- | --------- |
-| 10      | 32.1%     | 33.7%     | 34.2%     | 0.365     |
-| 20      | 31.4%     | 37.5%     | 31.1%     | 0.332     |
-| 30      | 32.3%     | 36.5%     | 31.1%     | 0.316     |
-| 60      | 29.4%     | 40.5%     | 30.1%     | 0.299     |
+| Window | GREEN | YELLOW | RED | Score Std |
+| --- | --- | --- | --- | --- |
+| 10 | 32.1% | 33.7% | 34.2% | 0.365 |
+| 20 | 31.4% | 37.5% | 31.1% | 0.332 |
+| 30 | 32.3% | 36.5% | 31.1% | 0.316 |
+| 60 | 29.4% | 40.5% | 30.1% | 0.299 |
 | **120** | **30.7%** | **38.8%** | **30.5%** | **0.294** |
-| 240     | 30.6%     | 41.1%     | 28.2%     | 0.288     |
-| 500     | 30.3%     | 41.5%     | 28.2%     | 0.284     |
+| 240 | 30.6% | 41.1% | 28.2% | 0.288 |
+| 500 | 30.3% | 41.5% | 28.2% | 0.284 |
 
 **Interpretation**:
 ✅ **120 bars is optimal** - Best balance of stability and responsiveness
@@ -178,10 +178,10 @@ Score std change: 1.03x (stable)
 
 **Results**:
 
-| Distribution | Skewness | GREEN | YELLOW | RED   |
-| ------------ | -------- | ----- | ------ | ----- |
-| High skew    | -0.477   | 32.2% | 37.5%  | 30.3% |
-| Low skew     | -0.000   | 30.7% | 38.5%  | 30.8% |
+| Distribution | Skewness | GREEN | YELLOW | RED |
+| --- | --- | --- | --- | --- |
+| High skew | -0.477 | 32.2% | 37.5% | 30.3% |
+| Low skew | -0.000 | 30.7% | 38.5% | 30.8% |
 
 **Interpretation**:
 ✅ **EXCELLENT** - Handles skewed distributions without bias
@@ -200,10 +200,10 @@ Score std change: 1.03x (stable)
 
 **Results**:
 
-| Method       | Score Std | Volatility | CCI Correlation |
-| ------------ | --------- | ---------- | --------------- |
-| Single (120) | 0.297     | 0.1494     | 0.9150          |
-| Multi-scale  | 0.294     | 0.1569     | 0.8854          |
+| Method | Score Std | Volatility | CCI Correlation |
+| --- | --- | --- | --- |
+| Single (120) | 0.297 | 0.1494 | 0.9150 |
+| Multi-scale | 0.294 | 0.1569 | 0.8854 |
 
 **Interpretation**:
 ⚠️ **UNEXPECTED** - Multi-scale shows HIGHER volatility (not lower)
@@ -253,13 +253,13 @@ Score std change: 1.03x (stable)
 
 **Performance** (10,000 calculations, 120-bar window):
 
-| Method     | Time   | Per-Calc | Speedup       |
-| ---------- | ------ | -------- | ------------- |
-| Numba JIT  | 0.000s | 0.0000ms | **Fastest**   |
-| Bottleneck | 0.001s | 0.0001ms | 100x          |
-| NumPy      | 0.017s | 0.0017ms | 10x           |
-| SciPy      | 0.008s | 0.0081ms | 20x (limited) |
-| Pandas     | 0.277s | 0.0277ms | 1x (baseline) |
+| Method | Time | Per-Calc | Speedup |
+| --- | --- | --- | --- |
+| Numba JIT | 0.000s | 0.0000ms | **Fastest** |
+| Bottleneck | 0.001s | 0.0001ms | 100x |
+| NumPy | 0.017s | 0.0017ms | 10x |
+| SciPy | 0.008s | 0.0081ms | 20x (limited) |
+| Pandas | 0.277s | 0.0277ms | 1x (baseline) |
 
 **Recommendation for Python Prototyping**:
 
@@ -274,11 +274,11 @@ Score std change: 1.03x (stable)
 
 **Performance** (10,000 bars, median + IQR):
 
-| Method     | Time   | Speedup |
-| ---------- | ------ | ------- |
+| Method | Time | Speedup |
+| --- | --- | --- |
 | Bottleneck | 0.000s | **77x** |
-| Pandas     | 0.008s | 3x      |
-| Numba JIT  | 0.025s | 1x      |
+| Pandas | 0.008s | 3x |
+| Numba JIT | 0.025s | 1x |
 
 **Recommendation**:
 
@@ -315,12 +315,12 @@ Score std change: 1.03x (stable)
 
 **Methods Tested**:
 
-| Method           | Outliers | Percentage |
-| ---------------- | -------- | ---------- |
-| IQR (Tukey)      | 7        | 0.7%       |
-| Z-Score (>3σ)    | 7        | 0.7%       |
-| Modified Z (MAD) | 3        | 0.3%       |
-| Isolation Forest | 100      | 10.0%      |
+| Method | Outliers | Percentage |
+| --- | --- | --- |
+| IQR (Tukey) | 7 | 0.7% |
+| Z-Score (>3σ) | 7 | 0.7% |
+| Modified Z (MAD) | 3 | 0.3% |
+| Isolation Forest | 100 | 10.0% |
 
 **Recommendation**:
 ✅ **No outlier removal needed** - Percentile rank is already robust
@@ -428,13 +428,13 @@ Score std change: 1.03x (stable)
 
 ### Performance Comparison Table
 
-| Method          | Latency   | vs Native | Production | Complexity |
-| --------------- | --------- | --------- | ---------- | ---------- |
-| **Native MQL5** | 0.001ms   | 1x        | ✅ YES     | Low        |
-| DLL + Python    | 1-5ms     | 1,000x    | ⚠️ Maybe   | Very High  |
-| Named Pipes     | 10-50ms   | 10,000x   | ❌ NO      | High       |
-| File-Based      | 100-500ms | 100,000x  | ❌ NO      | Low        |
-| MT5 Python API  | N/A       | N/A       | ❌ NO      | Medium     |
+| Method | Latency | vs Native | Production | Complexity |
+| --- | --- | --- | --- | --- |
+| **Native MQL5** | 0.001ms | 1x | ✅ YES | Low |
+| DLL + Python | 1-5ms | 1,000x | ⚠️ Maybe | Very High |
+| Named Pipes | 10-50ms | 10,000x | ❌ NO | High |
+| File-Based | 100-500ms | 100,000x | ❌ NO | Low |
+| MT5 Python API | N/A | N/A | ❌ NO | Medium |
 
 ---
 
@@ -680,35 +680,35 @@ double score_H4  = iCustom(Symbol(), PERIOD_H4,  "CCI_Adaptive", ...);
 
 ### Implementation Risks
 
-| Risk                     | Likelihood | Impact | Mitigation                          |
-| ------------------------ | ---------- | ------ | ----------------------------------- |
-| Window too small         | Medium     | High   | Validate with Test 4 results (>=60) |
-| Performance degradation  | Low        | Medium | Use circular buffer, test on chart  |
-| False positive rate      | Medium     | Medium | Backtest and measure empirically    |
-| Regime-specific failures | Low        | Low    | Validated in Tests 1, 3, 5          |
-| Outlier sensitivity      | Low        | Low    | Validated in Test 2 (20% robust)    |
+| Risk | Likelihood | Impact | Mitigation |
+| --- | --- | --- | --- |
+| Window too small | Medium | High | Validate with Test 4 results (>=60) |
+| Performance degradation | Low | Medium | Use circular buffer, test on chart |
+| False positive rate | Medium | Medium | Backtest and measure empirically |
+| Regime-specific failures | Low | Low | Validated in Tests 1, 3, 5 |
+| Outlier sensitivity | Low | Low | Validated in Test 2 (20% robust) |
 
 ---
 
 ### Validation Risks
 
-| Risk                       | Likelihood | Impact | Mitigation                        |
-| -------------------------- | ---------- | ------ | --------------------------------- |
-| Python-MQL5 discrepancy    | Medium     | High   | Export both, validate correlation |
-| Warmup period insufficient | Low        | Medium | Use 2x window size for warmup     |
-| Data quality issues        | Low        | Medium | Validate against multiple sources |
-| Overfitting to EURUSD      | Medium     | Medium | Test on GBPUSD, USDJPY, XAUUSD    |
+| Risk | Likelihood | Impact | Mitigation |
+| --- | --- | --- | --- |
+| Python-MQL5 discrepancy | Medium | High | Export both, validate correlation |
+| Warmup period insufficient | Low | Medium | Use 2x window size for warmup |
+| Data quality issues | Low | Medium | Validate against multiple sources |
+| Overfitting to EURUSD | Medium | Medium | Test on GBPUSD, USDJPY, XAUUSD |
 
 ---
 
 ### Production Risks
 
-| Risk                   | Likelihood | Impact | Mitigation                    |
-| ---------------------- | ---------- | ------ | ----------------------------- |
-| MT5 platform changes   | Low        | High   | Test after each MT5 update    |
-| Symbol-specific issues | Medium     | Medium | Multi-asset validation        |
-| Timeframe dependency   | Low        | Low    | Tested across M5, M15, H1, H4 |
-| Live vs backtest diff  | Medium     | High   | Paper trade before going live |
+| Risk | Likelihood | Impact | Mitigation |
+| --- | --- | --- | --- |
+| MT5 platform changes | Low | High | Test after each MT5 update |
+| Symbol-specific issues | Medium | Medium | Multi-asset validation |
+| Timeframe dependency | Low | Low | Tested across M5, M15, H1, H4 |
+| Live vs backtest diff | Medium | High | Paper trade before going live |
 
 ---
 

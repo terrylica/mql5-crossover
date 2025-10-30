@@ -9,7 +9,7 @@ Fast validation using **historical data** instead of waiting for live ticks. Lev
 - **[docs/MT5_REFERENCE_HUB.md](../../../../../docs/MT5_REFERENCE_HUB.md)** - Automation matrix and decision trees
 - **[README.md](README.md)** - Strategy Tester workflow
 
----
+______________________________________________________________________
 
 ## Why Historical Data?
 
@@ -28,7 +28,7 @@ Fast validation using **historical data** instead of waiting for live ticks. Lev
 - Reproducible test conditions
 - Per **INDICATOR_VALIDATION_METHODOLOGY.md**: 5000-bar minimum for warmup
 
----
+______________________________________________________________________
 
 ## Quick Start (3 Steps)
 
@@ -77,7 +77,7 @@ python3 analyze_cci_debug.py
 - Validates all calculations
 - Shows ✓ PASS or ✗ FAIL for each
 
----
+______________________________________________________________________
 
 ## Complete Automated Workflow
 
@@ -92,13 +92,13 @@ cd "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/dr
 **What it does**:
 
 1. Generates 5000 bars of historical test data via Wine Python
-2. Prompts you to attach indicator (GUI step)
-3. Finds CSV output automatically
-4. Runs analysis and shows results
+1. Prompts you to attach indicator (GUI step)
+1. Finds CSV output automatically
+1. Runs analysis and shows results
 
 **Total time**: ~1 minute (vs 20+ hours for live M12 data)
 
----
+______________________________________________________________________
 
 ## Documentation References
 
@@ -144,7 +144,7 @@ cd "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/dr
 - Custom Symbol creation for synthetic data
 - Parameter tuning guidelines
 
----
+______________________________________________________________________
 
 ## Test Data Structure
 
@@ -168,7 +168,7 @@ time,open,high,low,close,cci
 
 `generate_test_data.py` generates both formats.
 
----
+______________________________________________________________________
 
 ## Debugging CSV Output Columns
 
@@ -184,23 +184,23 @@ CCI_Neutrality_Debug outputs **19 columns** for analysis:
 
 See **[DEBUG_WORKFLOW.md](DEBUG_WORKFLOW.md)** for complete column descriptions.
 
----
+______________________________________________________________________
 
 ## Analysis Diagnostics
 
 `analyze_cci_debug.py` performs **7 checks** (per **DEBUG_WORKFLOW.md**):
 
 1. **CCI Value Analysis**: Range, mean, in-channel %
-2. **Statistical Components**: p, mu, sd, e ranges
-3. **Score Components Validation**: c, v, q ∈ [0,1]
-4. **Composite Score Verification**: S = p·c·v·q (error < 1e-6)
-5. **Signal Analysis**: Coil/expansion counts and stats
-6. **Rolling Window Sum Verification**: Spot check 5 bars (error < 1e-3)
-7. **Coil Threshold Compliance**: All 5 conditions must pass
+1. **Statistical Components**: p, mu, sd, e ranges
+1. **Score Components Validation**: c, v, q ∈ [0,1]
+1. **Composite Score Verification**: S = p·c·v·q (error < 1e-6)
+1. **Signal Analysis**: Coil/expansion counts and stats
+1. **Rolling Window Sum Verification**: Spot check 5 bars (error < 1e-3)
+1. **Coil Threshold Compliance**: All 5 conditions must pass
 
 All should show **✓ PASS** for production readiness.
 
----
+______________________________________________________________________
 
 ## Comparison to Live Data Testing
 
@@ -213,7 +213,7 @@ All should show **✓ PASS** for production readiness.
 | **Validation**         | Manual                 | Automated (Python script)       |
 | **Reference Docs**     | N/A                    | 3+ existing guides              |
 
----
+______________________________________________________________________
 
 ## Alternative: Strategy Tester (GUI Workflow)
 
@@ -240,7 +240,7 @@ Per **[README.md](README.md)** Section "Testing → Strategy Tester":
 - GUI interaction required
 - More steps than automated workflow
 
----
+______________________________________________________________________
 
 ## Alternative: Custom Symbol (Synthetic Data)
 
@@ -269,7 +269,7 @@ CustomRatesUpdate(sym, rates);
 
 See **[README.md](README.md)** Section "Testing → Custom Symbol" for complete code.
 
----
+______________________________________________________________________
 
 ## Files
 
@@ -310,15 +310,15 @@ See **[README.md](README.md)** Section "Testing → Custom Symbol" for complete 
 
 **[AUDIT_COMPLIANCE.md](AUDIT_COMPLIANCE.md)**: Implementation validation
 
----
+______________________________________________________________________
 
 ## Next Steps
 
 After all diagnostics pass:
 
 1. **Mathematical correctness confirmed** ✓
-2. **Signal logic verified** ✓
-3. **Performance validated (O(1) rolling window)** ✓
+1. **Signal logic verified** ✓
+1. **Performance validated (O(1) rolling window)** ✓
 
 Then:
 
@@ -327,7 +327,7 @@ Then:
 - Tune parameters for specific markets
 - Use full version with CSV logging for production
 
----
+______________________________________________________________________
 
 ## References
 
@@ -347,15 +347,15 @@ Then:
 - **[AUDIT_COMPLIANCE.md](AUDIT_COMPLIANCE.md)** - Implementation validation
 - **[VISUAL_SETUP_GUIDE.md](VISUAL_SETUP_GUIDE.md)** - GUI setup steps
 
----
+______________________________________________________________________
 
 ## Support
 
 For issues:
 
 1. Check referenced documentation above
-2. Review MT5 Terminal → Journal for errors
-3. Verify prerequisites (Wine Python, MT5 API, pandas, numpy)
-4. Run `python3 analyze_cci_debug.py` manually for detailed diagnostics
+1. Review MT5 Terminal → Journal for errors
+1. Verify prerequisites (Wine Python, MT5 API, pandas, numpy)
+1. Run `python3 analyze_cci_debug.py` manually for detailed diagnostics
 
 All scripts include inline documentation and reference the canonical guides.

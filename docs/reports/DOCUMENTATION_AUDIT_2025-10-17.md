@@ -46,15 +46,15 @@ The mql5-crossover project has **exceptional documentation quality** with 21 act
 
 ### 1.1 Python Scripts Documentation Status
 
-| Script                     | Documented | Location                                       | Recommendation                       |
-| -------------------------- | ---------- | ---------------------------------------------- | ------------------------------------ |
-| **export_aligned.py**      | ✅ YES     | CLAUDE.md + WINE_PYTHON_EXECUTION.md           | Complete                             |
-| **validate_indicator.py**  | ✅ YES     | CLAUDE.md + LAGUERRE_RSI_VALIDATION_SUCCESS.md | Complete                             |
-| **validate_export.py**     | ✅ YES     | CLAUDE.md (marked DEPRECATED)                  | Complete                             |
-| **test_mt5_connection.py** | ✅ YES     | CLAUDE.md (brief mention)                      | Complete                             |
-| **test_xauusd_info.py**    | ✅ YES     | CLAUDE.md (brief mention)                      | Complete                             |
-| **generate_mt5_config.py** | ❌ NO      | None                                           | **NEEDS DOC** - v4.0.0 critical tool |
-| **run_validation.py**      | ❌ NO      | None                                           | **NEEDS DOC** - Orchestration tool   |
+| Script | Documented | Location | Recommendation |
+| --- | --- | --- | --- |
+| **export_aligned.py** | ✅ YES | CLAUDE.md + WINE_PYTHON_EXECUTION.md | Complete |
+| **validate_indicator.py** | ✅ YES | CLAUDE.md + LAGUERRE_RSI_VALIDATION_SUCCESS.md | Complete |
+| **validate_export.py** | ✅ YES | CLAUDE.md (marked DEPRECATED) | Complete |
+| **test_mt5_connection.py** | ✅ YES | CLAUDE.md (brief mention) | Complete |
+| **test_xauusd_info.py** | ✅ YES | CLAUDE.md (brief mention) | Complete |
+| **generate_mt5_config.py** | ❌ NO | None | **NEEDS DOC** - v4.0.0 critical tool |
+| **run_validation.py** | ❌ NO | None | **NEEDS DOC** - Orchestration tool |
 
 **Priority**: **MEDIUM**
 
@@ -72,10 +72,10 @@ The mql5-crossover project has **exceptional documentation quality** with 21 act
 
 ### 1.2 Python Indicators Documentation Status
 
-| Indicator           | Documented | Validation Status    | Recommendation                                         |
-| ------------------- | ---------- | -------------------- | ------------------------------------------------------ |
-| **laguerre_rsi.py** | ✅ YES     | 1.000000 correlation | Complete                                               |
-| **simple_sma.py**   | ❌ NO      | Unknown              | **NEEDS DOC** - Test indicator for workflow validation |
+| Indicator | Documented | Validation Status | Recommendation |
+| --- | --- | --- | --- |
+| **laguerre_rsi.py** | ✅ YES | 1.000000 correlation | Complete |
+| **simple_sma.py** | ❌ NO | Unknown | **NEEDS DOC** - Test indicator for workflow validation |
 
 **Priority**: **LOW**
 
@@ -89,12 +89,12 @@ The mql5-crossover project has **exceptional documentation quality** with 21 act
 
 ### 1.3 MQL5 Scripts Documentation Status
 
-| Script                    | Documented | Purpose                 | Recommendation                  |
-| ------------------------- | ---------- | ----------------------- | ------------------------------- |
-| **ExportAligned.mq5**     | ✅ YES     | CLAUDE.md + v4.0.0 docs | Complete                        |
-| **ExportEURUSD.mq5**      | ✅ YES     | CLAUDE.md (legacy)      | Complete                        |
-| **ExportAlignedTest.mq5** | ❌ NO      | Test version            | **NEEDS DOC** - Purpose unclear |
-| **TestConfigReader.mq5**  | ⚠️ PARTIAL | Root MQL5/ directory    | Spike test (should archive?)    |
+| Script | Documented | Purpose | Recommendation |
+| --- | --- | --- | --- |
+| **ExportAligned.mq5** | ✅ YES | CLAUDE.md + v4.0.0 docs | Complete |
+| **ExportEURUSD.mq5** | ✅ YES | CLAUDE.md (legacy) | Complete |
+| **ExportAlignedTest.mq5** | ❌ NO | Test version | **NEEDS DOC** - Purpose unclear |
+| **TestConfigReader.mq5** | ⚠️ PARTIAL | Root MQL5/ directory | Spike test (should archive?) |
 
 **Priority**: **LOW**
 
@@ -108,14 +108,14 @@ The mql5-crossover project has **exceptional documentation quality** with 21 act
 
 ### 1.4 MQL5 Include Modules Documentation Status
 
-| Module                                    | Documented  | Purpose                     | Recommendation                |
-| ----------------------------------------- | ----------- | --------------------------- | ----------------------------- |
-| **DataExportCore.mqh**                    | ✅ YES      | CLAUDE.md structure diagram | Complete                      |
-| **ExportAlignedCommon.mqh**               | ✅ YES      | CLAUDE.md structure diagram | Complete                      |
-| **RSIModule.mqh**                         | ✅ YES      | CLAUDE.md structure diagram | Complete                      |
-| **LaguerreRSIModule.mqh**                 | ❌ NO       | modules/ directory          | **NEEDS DOC** - v4.0.0 module |
-| **SMAModule.mqh**                         | ❌ NO       | modules/ directory          | **NEEDS DOC** - v4.0.0 module |
-| **LaguerreRSIModule.mqh.with_buffers_34** | ⚠️ ARTIFACT | Backup file                 | Should archive/delete         |
+| Module | Documented | Purpose | Recommendation |
+| --- | --- | --- | --- |
+| **DataExportCore.mqh** | ✅ YES | CLAUDE.md structure diagram | Complete |
+| **ExportAlignedCommon.mqh** | ✅ YES | CLAUDE.md structure diagram | Complete |
+| **RSIModule.mqh** | ✅ YES | CLAUDE.md structure diagram | Complete |
+| **LaguerreRSIModule.mqh** | ❌ NO | modules/ directory | **NEEDS DOC** - v4.0.0 module |
+| **SMAModule.mqh** | ❌ NO | modules/ directory | **NEEDS DOC** - v4.0.0 module |
+| **LaguerreRSIModule.mqh.with_buffers_34** | ⚠️ ARTIFACT | Backup file | Should archive/delete |
 
 **Priority**: **LOW**
 
@@ -133,15 +133,15 @@ The mql5-crossover project has **exceptional documentation quality** with 21 act
 
 ### 1.5 Workflow Documentation Status
 
-| Workflow                           | Documented | Quality                | Recommendation        |
-| ---------------------------------- | ---------- | ---------------------- | --------------------- |
-| **MQL5→Python Migration (MASTER)** | ✅ YES     | Excellent              | Complete              |
-| **Wine Python Execution**          | ✅ YES     | Excellent              | Complete              |
-| **CLI Compilation**                | ✅ YES     | Good (see duplication) | Needs consolidation   |
-| **Indicator Validation**           | ✅ YES     | Excellent              | Complete              |
-| **File-based Config (v4.0.0)**     | ✅ YES     | Good                   | Complete in CLAUDE.md |
-| **Headless Execution (v3.0.0)**    | ✅ YES     | Excellent              | Complete              |
-| **Temporal Leakage Audit**         | ✅ YES     | Excellent              | Complete              |
+| Workflow | Documented | Quality | Recommendation |
+| --- | --- | --- | --- |
+| **MQL5→Python Migration (MASTER)** | ✅ YES | Excellent | Complete |
+| **Wine Python Execution** | ✅ YES | Excellent | Complete |
+| **CLI Compilation** | ✅ YES | Good (see duplication) | Needs consolidation |
+| **Indicator Validation** | ✅ YES | Excellent | Complete |
+| **File-based Config (v4.0.0)** | ✅ YES | Good | Complete in CLAUDE.md |
+| **Headless Execution (v3.0.0)** | ✅ YES | Excellent | Complete |
+| **Temporal Leakage Audit** | ✅ YES | Excellent | Complete |
 
 **Priority**: **COMPLETE**
 
@@ -581,37 +581,37 @@ mv "Program Files/MetaTrader 5/MQL5/Include/DataExport/modules/LaguerreRSIModule
 
 ### 8.1 Documentation Volume
 
-| Category              | Count              | Total Lines (est.)        |
-| --------------------- | ------------------ | ------------------------- |
-| **Active Guides**     | 21                 | ~6,500                    |
-| **Active Reports**    | 9                  | ~2,800                    |
-| **Active Plans**      | 2                  | ~1,200                    |
-| **CLAUDE.md**         | 1                  | ~584                      |
-| **Archive Docs**      | 2 + historical.txt | ~450,000 (historical.txt) |
-| **Total Active Docs** | 33                 | ~11,084                   |
+| Category | Count | Total Lines (est.) |
+| --- | --- | --- |
+| **Active Guides** | 21 | ~6,500 |
+| **Active Reports** | 9 | ~2,800 |
+| **Active Plans** | 2 | ~1,200 |
+| **CLAUDE.md** | 1 | ~584 |
+| **Archive Docs** | 2 + historical.txt | ~450,000 (historical.txt) |
+| **Total Active Docs** | 33 | ~11,084 |
 
 ### 8.2 Documentation Coverage
 
-| Aspect                   | Coverage       | Score        |
-| ------------------------ | -------------- | ------------ |
-| **Core Workflows**       | 100% (7/7)     | ✅ Excellent |
-| **Python Scripts**       | 71% (5/7)      | ⚠️ Good      |
-| **MQL5 Scripts**         | 67% (2/3)      | ⚠️ Good      |
-| **MQL5 Modules**         | 60% (3/5)      | ⚠️ Fair      |
-| **Link Integrity**       | 99% (1 broken) | ✅ Excellent |
-| **Version Markers**      | 100%           | ✅ Excellent |
-| **Archive Organization** | 95%            | ✅ Excellent |
+| Aspect | Coverage | Score |
+| --- | --- | --- |
+| **Core Workflows** | 100% (7/7) | ✅ Excellent |
+| **Python Scripts** | 71% (5/7) | ⚠️ Good |
+| **MQL5 Scripts** | 67% (2/3) | ⚠️ Good |
+| **MQL5 Modules** | 60% (3/5) | ⚠️ Fair |
+| **Link Integrity** | 99% (1 broken) | ✅ Excellent |
+| **Version Markers** | 100% | ✅ Excellent |
+| **Archive Organization** | 95% | ✅ Excellent |
 
 **Overall Score**: **92/100** - Excellent documentation with minor gaps
 
 ### 8.3 Documentation Freshness
 
-| Period             | Files Updated | Major Changes                                     |
-| ------------------ | ------------- | ------------------------------------------------- |
-| **2025-10-17**     | 8 files       | v4.0.0 completion, LESSONS_LEARNED_PLAYBOOK added |
-| **2025-10-16-17**  | 12 files      | v4.0.0 development, pruning phases 1-2            |
-| **2025-10-13-15**  | 18 files      | v3.0.0 validation, CLI compilation, refactoring   |
-| **Pre-2025-10-13** | 5 files       | Historical, inherited from repo                   |
+| Period | Files Updated | Major Changes |
+| --- | --- | --- |
+| **2025-10-17** | 8 files | v4.0.0 completion, LESSONS_LEARNED_PLAYBOOK added |
+| **2025-10-16-17** | 12 files | v4.0.0 development, pruning phases 1-2 |
+| **2025-10-13-15** | 18 files | v3.0.0 validation, CLI compilation, refactoring |
+| **Pre-2025-10-13** | 5 files | Historical, inherited from repo |
 
 **Analysis**: 94% of documentation updated in last 5 days - extremely current
 

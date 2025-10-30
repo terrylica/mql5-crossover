@@ -1104,27 +1104,27 @@ Files are archived (not deleted) when:
 
 ### Python Scripts (7 files, 2,405 LOC)
 
-| File                         | LOC | Type Hints | Docstrings   | Issues                                                 | Priority |
-| ---------------------------- | --- | ---------- | ------------ | ------------------------------------------------------ | -------- |
-| `export_aligned.py`          | 318 | ❌ 0%      | ⚠️ Partial   | Duplicated MT5 connection, RSI calc, timeframe parsing | HIGH     |
-| `validate_indicator.py`      | 359 | ⚠️ 10%     | ✅ Good      | Minor exception handling                               | MEDIUM   |
-| `validate_export.py`         | 276 | ⚠️ 30%     | ✅ Good      | DEPRECATED (keep with warning)                         | LOW      |
-| `test_mt5_connection.py`     | 102 | ❌ 0%      | ❌ None      | Duplicated MT5 connection                              | MEDIUM   |
-| `test_xauusd_info.py`        | 92  | ❌ 0%      | ❌ None      | Should merge with test_mt5_connection                  | MEDIUM   |
-| `generate_mt5_config.py`     | 309 | ⚠️ 50%     | ✅ Good      | Hardcoded timeframe list                               | MEDIUM   |
-| `run_validation.py`          | 427 | ⚠️ 30%     | ✅ Good      | Duplicated Wine path detection                         | HIGH     |
-| `indicators/laguerre_rsi.py` | 486 | ✅ 100%    | ✅ Excellent | None (reference implementation)                        | N/A      |
-| `indicators/simple_sma.py`   | 44  | ❌ 0%      | ⚠️ Minimal   | Need proper docstrings                                 | LOW      |
+| File | LOC | Type Hints | Docstrings | Issues | Priority |
+| --- | --- | --- | --- | --- | --- |
+| `export_aligned.py` | 318 | ❌ 0% | ⚠️ Partial | Duplicated MT5 connection, RSI calc, timeframe parsing | HIGH |
+| `validate_indicator.py` | 359 | ⚠️ 10% | ✅ Good | Minor exception handling | MEDIUM |
+| `validate_export.py` | 276 | ⚠️ 30% | ✅ Good | DEPRECATED (keep with warning) | LOW |
+| `test_mt5_connection.py` | 102 | ❌ 0% | ❌ None | Duplicated MT5 connection | MEDIUM |
+| `test_xauusd_info.py` | 92 | ❌ 0% | ❌ None | Should merge with test_mt5_connection | MEDIUM |
+| `generate_mt5_config.py` | 309 | ⚠️ 50% | ✅ Good | Hardcoded timeframe list | MEDIUM |
+| `run_validation.py` | 427 | ⚠️ 30% | ✅ Good | Duplicated Wine path detection | HIGH |
+| `indicators/laguerre_rsi.py` | 486 | ✅ 100% | ✅ Excellent | None (reference implementation) | N/A |
+| `indicators/simple_sma.py` | 44 | ❌ 0% | ⚠️ Minimal | Need proper docstrings | LOW |
 
 ### MQL5 Files (5 files, ~500 LOC estimated)
 
-| File                    | Pattern         | Issues                                | Recommendation   |
-| ----------------------- | --------------- | ------------------------------------- | ---------------- |
-| `ExportAligned.mq5`     | Main script     | File-based config pattern (excellent) | Document pattern |
-| `DataExportCore.mqh`    | Core structures | Not reviewed in detail                | No action        |
-| `RSIModule.mqh`         | Module pattern  | Minor duplication (acceptable)        | No action        |
-| `SMAModule.mqh`         | Module pattern  | Minor duplication (acceptable)        | No action        |
-| `LaguerreRSIModule.mqh` | Module pattern  | Not reviewed                          | No action        |
+| File | Pattern | Issues | Recommendation |
+| --- | --- | --- | --- |
+| `ExportAligned.mq5` | Main script | File-based config pattern (excellent) | Document pattern |
+| `DataExportCore.mqh` | Core structures | Not reviewed in detail | No action |
+| `RSIModule.mqh` | Module pattern | Minor duplication (acceptable) | No action |
+| `SMAModule.mqh` | Module pattern | Minor duplication (acceptable) | No action |
+| `LaguerreRSIModule.mqh` | Module pattern | Not reviewed | No action |
 
 ---
 

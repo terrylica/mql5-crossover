@@ -215,21 +215,21 @@ Test on:
 
 ### Native MQL5 Implementation
 
-| Metric         | Value    | Notes                         |
-| -------------- | -------- | ----------------------------- |
-| Per-bar calc   | ~0.001ms | Negligible overhead           |
-| Full 200k bars | ~200ms   | 0.2 seconds total             |
-| Memory         | ~1KB     | 120 doubles × 8 bytes         |
-| GREEN bars     | 30%      | Was 0.1% (300x improvement)   |
-| Color split    | 30-40-30 | Consistent across all regimes |
+| Metric | Value | Notes |
+| --- | --- | --- |
+| Per-bar calc | ~0.001ms | Negligible overhead |
+| Full 200k bars | ~200ms | 0.2 seconds total |
+| Memory | ~1KB | 120 doubles × 8 bytes |
+| GREEN bars | 30% | Was 0.1% (300x improvement) |
+| Color split | 30-40-30 | Consistent across all regimes |
 
 ### Python Integration (NOT RECOMMENDED)
 
-| Method      | Per-bar   | Full 200k bars  | vs Native |
-| ----------- | --------- | --------------- | --------- |
-| DLL Bridge  | 1-5ms     | 200-1000s       | 1000x     |
-| Named Pipes | 10-50ms   | 2000-10000s     | 10,000x   |
-| File-Based  | 100-500ms | 20,000-100,000s | 100,000x  |
+| Method | Per-bar | Full 200k bars | vs Native |
+| --- | --- | --- | --- |
+| DLL Bridge | 1-5ms | 200-1000s | 1000x |
+| Named Pipes | 10-50ms | 2000-10000s | 10,000x |
+| File-Based | 100-500ms | 20,000-100,000s | 100,000x |
 
 ---
 

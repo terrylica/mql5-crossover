@@ -62,13 +62,13 @@ wine "C:\\Program Files\\Python312\\python.exe" \
 
 **Operations Requiring Each Context**:
 
-| Operation                    | Path Type    | Example                                                       |
-| ---------------------------- | ------------ | ------------------------------------------------------------- |
-| Execute wine command         | macOS Native | `wine "C:\\Program Files\\Python312\\python.exe" ...`         |
-| Python script argument       | Wine Windows | `"C:\\users\\crossover\\export_aligned.py"`                   |
-| Edit script on macOS         | macOS Native | `vim ~/Library/.../drive_c/users/crossover/export_aligned.py` |
-| Copy CSV to repo             | macOS Native | `cp ~/Library/.../exports/*.csv ./exports/`                   |
-| Output directory (in Python) | Wine Windows | `OUTPUT_DIR = "C:\\Users\\crossover\\exports"`                |
+| Operation | Path Type | Example |
+| --- | --- | --- |
+| Execute wine command | macOS Native | `wine "C:\\Program Files\\Python312\\python.exe" ...` |
+| Python script argument | Wine Windows | `"C:\\users\\crossover\\export_aligned.py"` |
+| Edit script on macOS | macOS Native | `vim ~/Library/.../drive_c/users/crossover/export_aligned.py` |
+| Copy CSV to repo | macOS Native | `cp ~/Library/.../exports/*.csv ./exports/` |
+| Output directory (in Python) | Wine Windows | `OUTPUT_DIR = "C:\\Users\\crossover\\exports"` |
 
 **Critical Gotcha**: When passing paths to Wine executables, use Windows-style paths with backslashes. When accessing files from macOS, use macOS paths with forward slashes.
 
@@ -367,16 +367,16 @@ open "/Users/terryli/Applications/CrossOver/MetaTrader 5/MetaTrader 5.app"
 
 ## Comparison: v3.0.0 vs v2.0.0
 
-| Aspect              | v2.0.0 (startup.ini)             | v3.0.0 (Python API) |
-| ------------------- | -------------------------------- | ------------------- |
-| **GUI Requirement** | ❌ Required per symbol/timeframe | ✅ None             |
-| **Cold Start**      | ❌ Fails                         | ✅ Works            |
-| **Complexity**      | Medium (config generation)       | Low (direct API)    |
-| **Reliability**     | Conditional                      | High                |
-| **Execution Time**  | 8-10 seconds                     | 6-8 seconds         |
-| **Debugging**       | MT5 logs + config issues         | Python exceptions   |
-| **Correlation**     | 0.999902 (EURUSD)                | 0.999920 (USDJPY)   |
-| **Column Names**    | lowercase                        | Capitalized         |
+| Aspect | v2.0.0 (startup.ini) | v3.0.0 (Python API) |
+| --- | --- | --- |
+| **GUI Requirement** | ❌ Required per symbol/timeframe | ✅ None |
+| **Cold Start** | ❌ Fails | ✅ Works |
+| **Complexity** | Medium (config generation) | Low (direct API) |
+| **Reliability** | Conditional | High |
+| **Execution Time** | 8-10 seconds | 6-8 seconds |
+| **Debugging** | MT5 logs + config issues | Python exceptions |
+| **Correlation** | 0.999902 (EURUSD) | 0.999920 (USDJPY) |
+| **Column Names** | lowercase | Capitalized |
 
 **Recommendation**: Use v3.0.0 for all new development. v2.0.0 is legacy only.
 

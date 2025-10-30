@@ -102,24 +102,24 @@ InpOutputName=Export_EURUSD_M1_Custom.csv  # Custom filename
 
 ## Timeframe Values
 
-| Period | Value | Example Config      |
-| ------ | ----- | ------------------- |
-| M1     | 1     | `InpTimeframe=1`    |
-| M5     | 5     | `InpTimeframe=5`    |
-| M15    | 15    | `InpTimeframe=15`   |
-| M30    | 30    | `InpTimeframe=30`   |
-| H1     | 60    | `InpTimeframe=60`   |
-| H4     | 240   | `InpTimeframe=240`  |
-| D1     | 1440  | `InpTimeframe=1440` |
+| Period | Value | Example Config |
+| --- | --- | --- |
+| M1 | 1 | `InpTimeframe=1` |
+| M5 | 5 | `InpTimeframe=5` |
+| M15 | 15 | `InpTimeframe=15` |
+| M30 | 30 | `InpTimeframe=30` |
+| H1 | 60 | `InpTimeframe=60` |
+| H4 | 240 | `InpTimeframe=240` |
+| D1 | 1440 | `InpTimeframe=1440` |
 
 ## Smooth Method Values
 
-| Method | Value | Description                    |
-| ------ | ----- | ------------------------------ |
-| SMA    | 0     | Simple Moving Average          |
-| EMA    | 1     | Exponential Moving Average     |
-| SMMA   | 2     | Smoothed Moving Average        |
-| LWMA   | 3     | Linear Weighted Moving Average |
+| Method | Value | Description |
+| --- | --- | --- |
+| SMA | 0 | Simple Moving Average |
+| EMA | 1 | Exponential Moving Average |
+| SMMA | 2 | Smoothed Moving Average |
+| LWMA | 3 | Linear Weighted Moving Average |
 
 ## Tips
 

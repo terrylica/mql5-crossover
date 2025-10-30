@@ -58,12 +58,12 @@ Combine one-time GUI setup (dummy chart) with programmatic symbol loading via MQ
 
 ## Service Level Objectives
 
-| Metric              | Target              | Measurement Method                                               |
-| ------------------- | ------------------- | ---------------------------------------------------------------- |
-| **Availability**    | 100%                | Script executes for any symbol without prior GUI setup           |
-| **Correctness**     | ≥ 0.999 correlation | Python validation vs MQL5 export (SMA test case)                 |
-| **Observability**   | 100%                | MT5 logs confirm symbol loading, iCustom success, CSV creation   |
-| **Maintainability** | ≥ 90%               | Single dummy chart survives MT5 updates, no profile accumulation |
+| Metric | Target | Measurement Method |
+| --- | --- | --- |
+| **Availability** | 100% | Script executes for any symbol without prior GUI setup |
+| **Correctness** | ≥ 0.999 correlation | Python validation vs MQL5 export (SMA test case) |
+| **Observability** | 100% | MT5 logs confirm symbol loading, iCustom success, CSV creation |
+| **Maintainability** | ≥ 90% | Single dummy chart survives MT5 updates, no profile accumulation |
 
 **Excluded**: Performance/speed (startup time acceptable), security (out of scope)
 
@@ -739,11 +739,11 @@ If Solution A fails to meet SLOs:
 
 ## Version History
 
-| Version | Date       | Changes                                                                                                                                              | Author |
-| ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1.0.0   | 2025-10-17 | Initial plan based on external research Solution A                                                                                                   | Claude |
-| 1.1.0   | 2025-10-17 | Phase 1 rectification - ExportAligned.mq5 already had Solution A pattern (only history wait loop missing)                                            | Claude |
-| 1.2.0   | 2025-10-17 | Phase 4 test results - BLOCKED by [Inputs] parameter passing issue. RefreshRates() removed (MQL4-only). Config location and script path discoveries. | Claude |
+| Version | Date | Changes | Author |
+| --- | --- | --- | --- |
+| 1.0.0 | 2025-10-17 | Initial plan based on external research Solution A | Claude |
+| 1.1.0 | 2025-10-17 | Phase 1 rectification - ExportAligned.mq5 already had Solution A pattern (only history wait loop missing) | Claude |
+| 1.2.0 | 2025-10-17 | Phase 4 test results - BLOCKED by [Inputs] parameter passing issue. RefreshRates() removed (MQL4-only). Config location and script path discoveries. | Claude |
 
 ---
 

@@ -335,13 +335,13 @@ def calculate_adaptive_cci_score(symbol="EURUSD", timeframe=mt5.TIMEFRAME_M12, w
 
 ## Performance Comparison
 
-| Method             | Per-Call Latency | Complexity | Production-Ready  |
-| ------------------ | ---------------- | ---------- | ----------------- |
-| **Native MQL5**    | ~0.001ms         | Low        | ✅ YES            |
-| DLL + Python C API | ~1-5ms           | Very High  | ⚠️ Maybe          |
-| Named Pipes        | ~10-50ms         | High       | ❌ NO             |
-| File-Based         | ~100-500ms       | Low        | ❌ NO             |
-| MT5 Python Package | N/A              | Medium     | ❌ NO (wrong dir) |
+| Method | Per-Call Latency | Complexity | Production-Ready |
+| --- | --- | --- | --- |
+| **Native MQL5** | ~0.001ms | Low | ✅ YES |
+| DLL + Python C API | ~1-5ms | Very High | ⚠️ Maybe |
+| Named Pipes | ~10-50ms | High | ❌ NO |
+| File-Based | ~100-500ms | Low | ❌ NO |
+| MT5 Python Package | N/A | Medium | ❌ NO (wrong dir) |
 
 **Baseline**: Native MQL5 percentile rank loop = **~0.001ms per calculation**
 

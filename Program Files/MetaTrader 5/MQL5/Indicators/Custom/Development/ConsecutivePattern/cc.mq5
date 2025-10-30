@@ -4,11 +4,11 @@
 //|                                                                 |
 //+------------------------------------------------------------------+
 #property copyright "Terry Li"
-#property version   "1.10"
-#property description "Detects consecutive expansions/contractions in bar body size with both dots and colored bars"
+#property version   "1.20"
+#property description "Detects consecutive expansions/contractions in bar body size (inside bars removed)"
 #property indicator_chart_window
-#property indicator_buffers 15
-#property indicator_plots   5
+#property indicator_buffers 13
+#property indicator_plots   3
 
 //--- plot ColorCandles
 #property indicator_label1  "ColorCandles"
@@ -30,20 +30,6 @@
 #property indicator_style3  STYLE_SOLID
 #property indicator_width3  2
 
-//--- plot InsideBarBearish Signal
-#property indicator_label4  "InsideBarBearishSignal"
-#property indicator_type4   DRAW_ARROW
-#property indicator_color4  clrOrange
-#property indicator_style4  STYLE_SOLID
-#property indicator_width4  2
-
-//--- plot InsideBarBullish Signal
-#property indicator_label5  "InsideBarBullishSignal"
-#property indicator_type5   DRAW_ARROW
-#property indicator_color5  clrYellow
-#property indicator_style5  STYLE_SOLID
-#property indicator_width5  2
-
 //--- color constants
 #define COLOR_NONE 0     // Default color (no signal)
 #define CLR_BULLISH 1    // Bullish signal color index
@@ -56,19 +42,16 @@
 input group "Pattern Detection Settings"
 input int                 InpConsecutiveCount = 3;          // Number of consecutive patterns
 input bool                InpSameDirection    = true;       // Require same direction for all bars
-input int                 InpInsideBarThreshold = 2;        // Nth inside bar to color (relative to mother bar)
 
 // Pattern type selection
 input group "Pattern Types"
 input bool                InpShowExpansions   = true;       // Detect expansion patterns
 input bool                InpShowContractions = true;       // Detect contraction patterns
-input bool                InpShowInsideBars   = true;       // Detect inside bar patterns
 
 // Visualization settings
 input group "Display Settings"
 input bool                InpShowDots         = true;       // Show dot signals
 input bool                InpShowColorBars    = true;       // Show colored bars
-input bool                InpShowInsideBarDots = true;      // Show inside bar dots
 
 // Color settings
 input group "Color Settings"
@@ -94,10 +77,6 @@ double         BufferColorIndex[];      // Color index buffer
 double         BufferExpBearishSignal[];  // Expansion bearish signal buffer
 double         BufferExpBullishSignal[];  // Expansion bullish signal buffer
 
-// Signal buffers for inside bar dots
-double         BufferInsideBarBearishSignal[];  // Inside bar bearish signal buffer
-double         BufferInsideBarBullishSignal[];  // Inside bar bullish signal buffer
-
 // Calculation buffers
 double         BufferBodySizes[];       // Body sizes for calculations
 double         BufferConsecutiveBullish[]; // Count of consecutive bullish signals
@@ -109,7 +88,7 @@ double         BufferSignalBar[];       // Buffer to mark signal bars
 //--- Include helper functions (after variable declarations)
 #include "lib/PatternHelpers.mqh"
 #include "lib/BodySizePatterns.mqh"
-#include "lib/CandlePatterns.mqh"
+// #include "lib/CandlePatterns.mqh"  // Removed: inside bar patterns disabled
 
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
@@ -127,17 +106,13 @@ int OnInit()
    SetIndexBuffer(5, BufferExpBearishSignal, INDICATOR_DATA);
    SetIndexBuffer(6, BufferExpBullishSignal, INDICATOR_DATA);
 
-   //--- indicator buffers for inside bar signals
-   SetIndexBuffer(7, BufferInsideBarBearishSignal, INDICATOR_DATA);
-   SetIndexBuffer(8, BufferInsideBarBullishSignal, INDICATOR_DATA);
-
    //--- indicator buffers for calculations
-   SetIndexBuffer(9, BufferBodySizes, INDICATOR_CALCULATIONS);
-   SetIndexBuffer(10, BufferConsecutiveBullish, INDICATOR_CALCULATIONS);
-   SetIndexBuffer(11, BufferConsecutiveBearish, INDICATOR_CALCULATIONS);
-   SetIndexBuffer(12, BufferExpConsecutiveBullish, INDICATOR_CALCULATIONS);
-   SetIndexBuffer(13, BufferExpConsecutiveBearish, INDICATOR_CALCULATIONS);
-   SetIndexBuffer(14, BufferSignalBar, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(7, BufferBodySizes, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(8, BufferConsecutiveBullish, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(9, BufferConsecutiveBearish, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(10, BufferExpConsecutiveBullish, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(11, BufferExpConsecutiveBearish, INDICATOR_CALCULATIONS);
+   SetIndexBuffer(12, BufferSignalBar, INDICATOR_CALCULATIONS);
    
    //--- setting indicator parameters
    IndicatorSetString(INDICATOR_SHORTNAME, "Consecutive Pattern Combined (" + string(InpConsecutiveCount) + ")");
@@ -172,28 +147,10 @@ int OnInit()
    PlotIndexSetInteger(2, PLOT_LINE_COLOR, InpBullishColor);
    PlotIndexSetInteger(2, PLOT_LINE_WIDTH, InpArrowSize);
 
-   //--- Set arrow properties for bearish inside bar signals
-   PlotIndexSetInteger(3, PLOT_ARROW, InpArrowCode);
-   PlotIndexSetInteger(3, PLOT_ARROW_SHIFT, 0);
-   PlotIndexSetInteger(3, PLOT_DRAW_BEGIN, 1);
-   PlotIndexSetInteger(3, PLOT_SHIFT, 0);
-   PlotIndexSetInteger(3, PLOT_LINE_COLOR, clrOrange);
-   PlotIndexSetInteger(3, PLOT_LINE_WIDTH, InpArrowSize);
-
-   //--- Set arrow properties for bullish inside bar signals
-   PlotIndexSetInteger(4, PLOT_ARROW, InpArrowCode);
-   PlotIndexSetInteger(4, PLOT_ARROW_SHIFT, 0);
-   PlotIndexSetInteger(4, PLOT_DRAW_BEGIN, 1);
-   PlotIndexSetInteger(4, PLOT_SHIFT, 0);
-   PlotIndexSetInteger(4, PLOT_LINE_COLOR, clrYellow);
-   PlotIndexSetInteger(4, PLOT_LINE_WIDTH, InpArrowSize);
-
    //--- Enable/disable plots based on input settings
    PlotIndexSetInteger(0, PLOT_DRAW_TYPE, InpShowColorBars ? DRAW_COLOR_CANDLES : DRAW_NONE);
    PlotIndexSetInteger(1, PLOT_DRAW_TYPE, InpShowDots ? DRAW_ARROW : DRAW_NONE);
    PlotIndexSetInteger(2, PLOT_DRAW_TYPE, InpShowDots ? DRAW_ARROW : DRAW_NONE);
-   PlotIndexSetInteger(3, PLOT_DRAW_TYPE, DRAW_NONE);  // Inside bar dots disabled (using colored bars instead)
-   PlotIndexSetInteger(4, PLOT_DRAW_TYPE, DRAW_NONE);  // Inside bar dots disabled (using colored bars instead)
    
    //--- Set buffer as timeseries (newest bars at the lowest indices)
    ArraySetAsSeries(BufferOpen, true);
@@ -203,8 +160,6 @@ int OnInit()
    ArraySetAsSeries(BufferColorIndex, true);
    ArraySetAsSeries(BufferExpBearishSignal, true);
    ArraySetAsSeries(BufferExpBullishSignal, true);
-   ArraySetAsSeries(BufferInsideBarBearishSignal, true);
-   ArraySetAsSeries(BufferInsideBarBullishSignal, true);
    ArraySetAsSeries(BufferBodySizes, true);
    ArraySetAsSeries(BufferConsecutiveBullish, true);
    ArraySetAsSeries(BufferConsecutiveBearish, true);
@@ -215,8 +170,6 @@ int OnInit()
    //--- Initialize buffers with empty values
    ArrayInitialize(BufferExpBearishSignal, EMPTY_VALUE);
    ArrayInitialize(BufferExpBullishSignal, EMPTY_VALUE);
-   ArrayInitialize(BufferInsideBarBearishSignal, EMPTY_VALUE);
-   ArrayInitialize(BufferInsideBarBullishSignal, EMPTY_VALUE);
    ArrayInitialize(BufferConsecutiveBullish, 0);
    ArrayInitialize(BufferConsecutiveBearish, 0);
    ArrayInitialize(BufferExpConsecutiveBullish, 0);
@@ -261,8 +214,6 @@ int OnCalculate(const int rates_total,
    {
       ArrayInitialize(BufferExpBearishSignal, EMPTY_VALUE);
       ArrayInitialize(BufferExpBullishSignal, EMPTY_VALUE);
-      ArrayInitialize(BufferInsideBarBearishSignal, EMPTY_VALUE);
-      ArrayInitialize(BufferInsideBarBullishSignal, EMPTY_VALUE);
       ArrayInitialize(BufferBodySizes, 0.0);
       ArrayInitialize(BufferConsecutiveBullish, 0);
       ArrayInitialize(BufferConsecutiveBearish, 0);
@@ -287,8 +238,6 @@ int OnCalculate(const int rates_total,
       //--- Reset signals and colors
       BufferExpBearishSignal[i] = EMPTY_VALUE;
       BufferExpBullishSignal[i] = EMPTY_VALUE;
-      BufferInsideBarBearishSignal[i] = EMPTY_VALUE;
-      BufferInsideBarBullishSignal[i] = EMPTY_VALUE;
       BufferColorIndex[i] = COLOR_NONE; // Default color
       
       // Reset consecutive counters and signal markers for this bar
@@ -346,23 +295,6 @@ int OnCalculate(const int rates_total,
          
          // We have a valid expansion pattern, mark the signal
          SetExpansionSignal(i, isPatternBullish, high, low, rates_total);
-      }
-   }
-
-   //--- Check for inside bar patterns if enabled
-   if(InpShowInsideBars)
-   {
-      for(int i = 0; i < rates_total - 1; i++)
-      {
-         //--- Skip bars that don't have a previous bar
-         if(i >= rates_total - 1)
-            continue;
-
-         // Determine pattern direction based on the current bar
-         bool isPatternBullish = close[i] > open[i];
-
-         // We have a valid inside bar pattern, mark the signal
-         SetInsideBarSignal(i, isPatternBullish, high, low, rates_total);
       }
    }
 

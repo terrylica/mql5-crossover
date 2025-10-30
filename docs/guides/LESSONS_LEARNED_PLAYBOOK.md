@@ -1212,9 +1212,9 @@ ps aux | grep -E "terminal64|wineserver" | grep -v grep || echo "✅ All killed"
 
 ## Version History
 
-| Version | Date       | Changes                                                                                     |
-| ------- | ---------- | ------------------------------------------------------------------------------------------- |
-| 1.0.0   | 2025-10-17 | Initial playbook - consolidated from 15+ docs, 4 bug reports, 5 spikes, 3 research sessions |
+| Version | Date | Changes |
+| --- | --- | --- |
+| 1.0.0 | 2025-10-17 | Initial playbook - consolidated from 15+ docs, 4 bug reports, 5 spikes, 3 research sessions |
 
 ---
 

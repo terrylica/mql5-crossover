@@ -11,10 +11,10 @@
 
 **BOTH documented MT5 automation approaches FAIL on CrossOver/Wine with identical symptoms:**
 
-| Version | Approach          | Config Section | Result                                   |
-| ------- | ----------------- | -------------- | ---------------------------------------- |
-| v1.2.0  | Strategy Tester   | `[Tester]`     | Config loads ✓ Tester doesn't start ❌   |
-| v1.3.0  | Script Automation | `[StartUp]`    | Config loads ✓ Script doesn't execute ❌ |
+| Version | Approach | Config Section | Result |
+| --- | --- | --- | --- |
+| v1.2.0 | Strategy Tester | `[Tester]` | Config loads ✓ Tester doesn't start ❌ |
+| v1.3.0 | Script Automation | `[StartUp]` | Config loads ✓ Script doesn't execute ❌ |
 
 ---
 
@@ -108,12 +108,12 @@ The `/config` parameter successfully loads INI files, but CrossOver/Wine does **
 
 From cci-neutrality-indicator.yaml v1.3.0:
 
-| SLO                 | Target | Actual | Status     |
-| ------------------- | ------ | ------ | ---------- |
-| **Availability**    | 100%   | 100%   | ✅ MET     |
-| **Correctness**     | 100%   | 0%     | ❌ NOT MET |
-| **Observability**   | 100%   | 100%   | ✅ MET     |
-| **Maintainability** | 100%   | 100%   | ✅ MET     |
+| SLO | Target | Actual | Status |
+| --- | --- | --- | --- |
+| **Availability** | 100% | 100% | ✅ MET |
+| **Correctness** | 100% | 0% | ❌ NOT MET |
+| **Observability** | 100% | 100% | ✅ MET |
+| **Maintainability** | 100% | 100% | ✅ MET |
 
 **Correctness blocked**: Cannot validate calculations without CSV output from automated execution.
 
@@ -143,14 +143,14 @@ From cci-neutrality-indicator.yaml v1.3.0:
 
 ## Alternative Approaches (Status)
 
-| Approach               | Viability     | Status                      |
-| ---------------------- | ------------- | --------------------------- |
-| [Tester] automation    | ❌ BLOCKED    | v1.2.0 failed               |
-| [StartUp] automation   | ❌ BLOCKED    | v1.3.0 failed               |
-| Python MT5 API         | ❌ NOT VIABLE | No indicator buffer access  |
-| GUI workflow (manual)  | ✅ VIABLE     | Requires user action        |
-| AppleScript automation | ❓ UNKNOWN    | Not explored                |
-| Native Windows MT5     | ❓ UNKNOWN    | May confirm Wine hypothesis |
+| Approach | Viability | Status |
+| --- | --- | --- |
+| [Tester] automation | ❌ BLOCKED | v1.2.0 failed |
+| [StartUp] automation | ❌ BLOCKED | v1.3.0 failed |
+| Python MT5 API | ❌ NOT VIABLE | No indicator buffer access |
+| GUI workflow (manual) | ✅ VIABLE | Requires user action |
+| AppleScript automation | ❓ UNKNOWN | Not explored |
+| Native Windows MT5 | ❓ UNKNOWN | May confirm Wine hypothesis |
 
 ---
 

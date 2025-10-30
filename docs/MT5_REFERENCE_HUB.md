@@ -80,17 +80,17 @@ Quick index by concern:
 
 ## Automation Matrix
 
-| Task                   | Document                                | Automation Level | Manual Steps              |
-| ---------------------- | --------------------------------------- | ---------------- | ------------------------- |
-| Export OHLCV           | WINE_PYTHON_EXECUTION                   | FULLY AUTOMATED  | None                      |
-| Export with indicators | V4_FILE_BASED_CONFIG_WORKFLOW           | SEMI-AUTOMATED   | Open symbol in GUI once   |
-| Compile MQL5           | MQL5_CLI_COMPILATION_SUCCESS            | FULLY AUTOMATED  | None                      |
-| Validate indicator     | LAGUERRE_RSI_VALIDATION_SUCCESS         | FULLY AUTOMATED  | None                      |
-| Find file paths        | MT5_FILE_LOCATIONS                      | N/A (reference)  | None                      |
-| Read MQL5 encoding     | MQL5_ENCODING_SOLUTIONS                 | FULLY AUTOMATED  | None (chardet)            |
-| Kill MT5 processes     | CROSSOVER_MQ5, LESSONS_LEARNED_PLAYBOOK | MANUAL           | 3-step process            |
-| Create .set file       | MQL5_PRESET_FILES_RESEARCH              | MANUAL GUI       | Generate via MT5 GUI      |
-| Migrate indicator      | MQL5_TO_PYTHON_MIGRATION_GUIDE          | SEMI-AUTOMATED   | Manual algorithm analysis |
+| Task | Document | Automation Level | Manual Steps |
+| --- | --- | --- | --- |
+| Export OHLCV | WINE_PYTHON_EXECUTION | FULLY AUTOMATED | None |
+| Export with indicators | V4_FILE_BASED_CONFIG_WORKFLOW | SEMI-AUTOMATED | Open symbol in GUI once |
+| Compile MQL5 | MQL5_CLI_COMPILATION_SUCCESS | FULLY AUTOMATED | None |
+| Validate indicator | LAGUERRE_RSI_VALIDATION_SUCCESS | FULLY AUTOMATED | None |
+| Find file paths | MT5_FILE_LOCATIONS | N/A (reference) | None |
+| Read MQL5 encoding | MQL5_ENCODING_SOLUTIONS | FULLY AUTOMATED | None (chardet) |
+| Kill MT5 processes | CROSSOVER_MQ5, LESSONS_LEARNED_PLAYBOOK | MANUAL | 3-step process |
+| Create .set file | MQL5_PRESET_FILES_RESEARCH | MANUAL GUI | Generate via MT5 GUI |
+| Migrate indicator | MQL5_TO_PYTHON_MIGRATION_GUIDE | SEMI-AUTOMATED | Manual algorithm analysis |
 
 ---
 
@@ -186,15 +186,15 @@ $BOTTLE_ROOT/drive_c/Program Files/MetaTrader 5/MQL5/Logs/
 
 ## Time Estimates
 
-| Task                 | First Time       | Subsequent  |
-| -------------------- | ---------------- | ----------- |
-| Migrate indicator    | 2-4 hours        | 1-2 hours   |
-| Export data (v3.0.0) | 6-8 seconds      | 6-8 seconds |
-| Export data (v4.0.0) | 8 seconds        | 8 seconds   |
-| Compile MQL5         | ~1 second        | ~1 second   |
-| Validate indicator   | 5-10 min         | 5-10 min    |
-| Find file paths      | <1 min           | <1 min      |
-| Read gotchas         | 5 min (critical) | -           |
+| Task | First Time | Subsequent |
+| --- | --- | --- |
+| Migrate indicator | 2-4 hours | 1-2 hours |
+| Export data (v3.0.0) | 6-8 seconds | 6-8 seconds |
+| Export data (v4.0.0) | 8 seconds | 8 seconds |
+| Compile MQL5 | ~1 second | ~1 second |
+| Validate indicator | 5-10 min | 5-10 min |
+| Find file paths | <1 min | <1 min |
+| Read gotchas | 5 min (critical) | - |
 
 ---
 
