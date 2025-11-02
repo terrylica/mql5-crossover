@@ -4,7 +4,7 @@
 //+------------------------------------------------------------------+
 #property copyright   "Terry Li"
 #property link        "https://github.com/terrylica/mql5-crossover"
-#property version     "4.20"
+#property version     "4.21"
 #property description "CCI Neutrality Score - Adaptive Percentile Rank with Timeframe Conversion (Red=Volatile/Extreme, Yellow=Normal, Green=Calm/Neutral)"
 
 #property indicator_separate_window
@@ -19,9 +19,19 @@
 #property indicator_type1     DRAW_COLOR_HISTOGRAM
 #property indicator_width1    3
 
+//--- Calculation method enum
+enum ENUM_CALC_METHOD
+{
+   METHOD_RESAMPLE = 0,    // Method 1: Resample (use reference TF CCI, exact window)
+   METHOD_SCALE    = 1     // Method 2: Scale window (use current TF CCI, scaled window)
+};
+
 //--- Input parameters
 input group "=== CCI Parameters ==="
 input int              InpCCILength           = 20;             // CCI period
+
+input group "=== Calculation Method ==="
+input ENUM_CALC_METHOD InpCalcMethod          = METHOD_RESAMPLE; // Calculation method (DEFAULT: Resample)
 
 input group "=== Adaptive Window Parameters ==="
 input ENUM_TIMEFRAMES  InpReferenceTimeframe  = PERIOD_CURRENT; // Reference timeframe
@@ -97,8 +107,17 @@ int OnInit()
       return INIT_PARAMETERS_INCORRECT;
      }
 
-//--- Calculate adaptive window size for current chart timeframe
-   g_AdaptiveWindow = CalculateAdaptiveWindow(InpReferenceTimeframe, InpReferenceWindowBars);
+//--- Calculate adaptive window size (depends on calculation method)
+   if(InpCalcMethod == METHOD_RESAMPLE)
+     {
+      // Method 1: Use reference timeframe directly, exact window size
+      g_AdaptiveWindow = InpReferenceWindowBars;
+     }
+   else // METHOD_SCALE
+     {
+      // Method 2: Scale window to current chart timeframe
+      g_AdaptiveWindow = CalculateAdaptiveWindow(InpReferenceTimeframe, InpReferenceWindowBars);
+     }
 
    if(g_AdaptiveWindow < 2)
      {
@@ -138,23 +157,69 @@ int OnInit()
                                    InpCCILength, ref_tf_str,
                                    InpReferenceWindowBars, g_AdaptiveWindow));
 
+//--- Determine CCI timeframe based on calculation method
+   ENUM_TIMEFRAMES cci_timeframe;
+   if(InpCalcMethod == METHOD_RESAMPLE)
+     {
+      // Method 1: Use reference timeframe for CCI calculation
+      cci_timeframe = (InpReferenceTimeframe == PERIOD_CURRENT) ? _Period : InpReferenceTimeframe;
+     }
+   else // METHOD_SCALE
+     {
+      // Method 2: Use current chart timeframe for CCI calculation
+      cci_timeframe = _Period;
+     }
+
 //--- Create CCI indicator handle
-   hCCI = iCCI(_Symbol, _Period, InpCCILength, PRICE_TYPICAL);
+   hCCI = iCCI(_Symbol, cci_timeframe, InpCCILength, PRICE_TYPICAL);
    if(hCCI == INVALID_HANDLE)
      {
       PrintFormat("ERROR: Failed to create CCI handle, error %d", GetLastError());
       return INIT_FAILED;
      }
 
-   PrintFormat("CCI Adaptive v4.10 initialized:");
+//--- For Method 1: Trigger reference timeframe data loading (non-blocking)
+   if(InpCalcMethod == METHOD_RESAMPLE && cci_timeframe != _Period)
+     {
+      // Trigger data loading (non-blocking - MT5 will load asynchronously)
+      int ref_bars = Bars(_Symbol, cci_timeframe);
+      PrintFormat("  Reference TF: Triggered data load, %d bars currently available", ref_bars);
+      PrintFormat("  Note: Data readiness will be checked in OnCalculate()");
+     }
+
+//--- Set 1ms timer to trigger OnTimer after first OnCalculate pass
+//    This is the community-proven workaround for MTF data synchronization
+   EventSetMillisecondTimer(1);
+   PrintFormat("  Timer set: OnTimer will refresh chart after first OnCalculate pass");
+
+   PrintFormat("CCI Adaptive v4.21 initialized:");
+   PrintFormat("  Method: %s", (InpCalcMethod == METHOD_RESAMPLE) ? "Resample (use ref TF CCI)" : "Scale (scale window size)");
    PrintFormat("  CCI Period: %d", InpCCILength);
-   PrintFormat("  Reference Timeframe: %s (%d seconds/bar)", ref_tf_str, PeriodSeconds(InpReferenceTimeframe));
+   PrintFormat("  CCI Timeframe: %s (%d seconds/bar)", EnumToString(cci_timeframe), PeriodSeconds(cci_timeframe));
+   PrintFormat("  Reference Timeframe: %s (%d seconds/bar)", ref_tf_str, PeriodSeconds((InpReferenceTimeframe == PERIOD_CURRENT) ? _Period : InpReferenceTimeframe));
    PrintFormat("  Reference Window: %d bars", InpReferenceWindowBars);
    PrintFormat("  Current Chart: %s (%d seconds/bar)", EnumToString(_Period), PeriodSeconds(_Period));
-   PrintFormat("  Adaptive Window: %d bars (scaled for current timeframe)", g_AdaptiveWindow);
+   PrintFormat("  Window Size: %d bars (%s)", g_AdaptiveWindow, (InpCalcMethod == METHOD_RESAMPLE) ? "exact ref TF" : "scaled to current TF");
    PrintFormat("  Colors: Green(Calm)<30%%<Yellow<70%%<Red(Volatile)");
 
    return INIT_SUCCEEDED;
+  }
+
+//+------------------------------------------------------------------+
+//| Timer event handler - triggers chart refresh for MTF data sync  |
+//+------------------------------------------------------------------+
+void OnTimer()
+  {
+//--- Kill timer immediately (only need one event)
+   EventKillTimer();
+
+//--- Force chart refresh to ensure reference TF data is loaded
+//    This mimics the "manual chart switch" that makes bars appear
+   PrintFormat("OnTimer: Forcing chart refresh to synchronize reference TF data...");
+   ChartSetSymbolPeriod(0, _Symbol, _Period);
+
+//--- Optional: Trigger chart redraw
+   ChartRedraw(0);
   }
 
 //+------------------------------------------------------------------+
@@ -162,6 +227,9 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
   {
+//--- Clean up timer (if still running)
+   EventKillTimer();
+
 //--- Release CCI handle
    if(hCCI != INVALID_HANDLE)
      {
@@ -186,30 +254,71 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])
   {
-//--- Calculate warmup requirement
-   int StartCalcPosition = InpCCILength + g_AdaptiveWindow - 1;
+//--- Calculate warmup requirement (varies by method)
+   int StartCalcPosition_Chart = InpCCILength + g_AdaptiveWindow - 1;  // For current chart
+   int StartCalcPosition_CCI;  // For CCI indicator
 
-//--- Check if we have enough bars
-   if(rates_total <= StartCalcPosition)
-      return 0;
-
-//--- Check CCI indicator readiness
-   int ready = BarsCalculated(hCCI);
-   if(ready < StartCalcPosition)
+   if(InpCalcMethod == METHOD_RESAMPLE)
      {
-      return 0;
+      // Method 1: CCI is on reference TF, needs fewer bars (exact window size)
+      StartCalcPosition_CCI = InpCCILength + InpReferenceWindowBars - 1;
+     }
+   else // METHOD_SCALE
+     {
+      // Method 2: CCI is on current TF, same warmup as chart
+      StartCalcPosition_CCI = StartCalcPosition_Chart;
      }
 
-//--- Get CCI data
+//--- Check if we have enough bars on current chart
+   if(rates_total <= StartCalcPosition_Chart)
+      return 0;
+
+//--- Get CCI data (simplified pattern from MTF_MA.mq5)
    static double cci[];
-   ArrayResize(cci, rates_total);
+   int cci_bars;
+
+   if(InpCalcMethod == METHOD_RESAMPLE)
+     {
+      // Method 1: CCI is on reference timeframe, get available bars from that TF
+      cci_bars = BarsCalculated(hCCI);
+      if(cci_bars <= 0)
+        {
+         PrintFormat("INFO: CCI not ready yet, BarsCalculated returned %d (waiting...)", cci_bars);
+         return(0);  // Reset - timer will trigger refresh
+        }
+      ArrayResize(cci, cci_bars);
+     }
+   else // METHOD_SCALE
+     {
+      // Method 2: CCI is on current timeframe, same as rates_total
+      cci_bars = rates_total;
+      ArrayResize(cci, rates_total);
+     }
+
    ArraySetAsSeries(cci, false);
 
-   int copied = CopyBuffer(hCCI, 0, 0, rates_total, cci);
-   if(copied < rates_total)
+//--- ✅ CHECK COPYBUFFER DIRECTLY - this is the actual validation
+   int copied = CopyBuffer(hCCI, 0, 0, cci_bars, cci);
+   if(copied != cci_bars)
      {
-      PrintFormat("ERROR: CopyBuffer failed, copied %d of %d bars", copied, rates_total);
-      return prev_calculated;
+      // Data not ready - this is NORMAL on first call
+      int error = GetLastError();
+      if(error == 4806)
+        {
+         PrintFormat("INFO: CCI data not accessible yet (error 4806), waiting for next tick...");
+        }
+      else
+        {
+         PrintFormat("ERROR: CopyBuffer failed, copied %d of %d bars, error %d", copied, cci_bars, error);
+        }
+      return(0);  // Reset calculation - let timer trigger refresh
+     }
+
+//--- Verify we have minimum warmup bars
+   if(cci_bars < StartCalcPosition_CCI)
+     {
+      PrintFormat("INFO: Need more data for warmup: have %d bars, need %d minimum", cci_bars, StartCalcPosition_CCI);
+      return(0);  // Reset - need more historical data
      }
 
 //--- Set arrays as forward-indexed
@@ -221,7 +330,7 @@ int OnCalculate(const int rates_total,
    int start;
    if(prev_calculated == 0)
      {
-      start = StartCalcPosition;
+      start = StartCalcPosition_Chart;
 
       // Initialize early bars (before warmup complete)
       for(int i = 0; i < start; i++)
@@ -234,8 +343,8 @@ int OnCalculate(const int rates_total,
    else
      {
       start = prev_calculated - 1;
-      if(start < StartCalcPosition)
-         start = StartCalcPosition;
+      if(start < StartCalcPosition_Chart)
+         start = StartCalcPosition_Chart;
      }
 
 //--- Rolling window for percentile rank calculation
@@ -245,15 +354,80 @@ int OnCalculate(const int rates_total,
 //--- Main calculation loop
    for(int i = start; i < rates_total && !IsStopped(); i++)
      {
-         //--- Build rolling window [i - g_AdaptiveWindow + 1, i]
-      int window_start = i - g_AdaptiveWindow + 1;
+      //--- Determine CCI index and window start based on calculation method
+      int cci_index;
+      int window_start_cci;
+
+      if(InpCalcMethod == METHOD_RESAMPLE)
+        {
+         // Method 1: Map current chart bar to reference TF bar using iBarShift
+         ENUM_TIMEFRAMES ref_tf = (InpReferenceTimeframe == PERIOD_CURRENT) ? _Period : InpReferenceTimeframe;
+
+         // Special case: if reference TF == current TF, use direct 1:1 mapping
+         if(ref_tf == _Period)
+           {
+            // No resampling needed, 1:1 mapping
+            cci_index = i;
+            window_start_cci = i - g_AdaptiveWindow + 1;
+           }
+         else
+           {
+            // Map current chart bar to reference TF bar
+            // iBarShift returns series-indexed position, convert to forward index
+            int ref_bar_series = iBarShift(_Symbol, ref_tf, time[i], true);  // exact=true
+            if(ref_bar_series < 0)
+              {
+               // Can't find exact corresponding bar, skip this bar
+               continue;
+              }
+
+            // Validate returned index by checking actual bar time
+            datetime ref_bar_time[1];
+            if(CopyTime(_Symbol, ref_tf, ref_bar_series, 1, ref_bar_time) <= 0)
+              {
+               // Can't read bar time, data not synchronized
+               continue;
+              }
+
+            // Allow tolerance of 1 reference TF period (bars may not align perfectly)
+            int time_delta = (int)MathAbs(ref_bar_time[0] - time[i]);
+            int max_delta = PeriodSeconds(ref_tf);
+            if(time_delta > max_delta)
+              {
+               // Time mismatch too large, wrong bar returned
+               PrintFormat("WARNING: iBarShift returned wrong bar at i=%d: requested=%s, got=%s, delta=%d sec",
+                          i, TimeToString(time[i]), TimeToString(ref_bar_time[0]), time_delta);
+               continue;
+              }
+
+            // Convert series index to forward index: forward = total_bars - series - 1
+            cci_index = cci_bars - ref_bar_series - 1;
+            if(cci_index < 0 || cci_index >= cci_bars)
+              {
+               continue;
+              }
+            window_start_cci = cci_index - g_AdaptiveWindow + 1;
+           }
+        }
+      else // METHOD_SCALE
+        {
+         // Method 2: Direct 1:1 mapping
+         cci_index = i;
+         window_start_cci = i - g_AdaptiveWindow + 1;
+        }
+
+      //--- Skip if window would go before data starts
+      if(window_start_cci < 0)
+         continue;
+
+      //--- Build rolling window [window_start_cci, cci_index]
       for(int j = 0; j < g_AdaptiveWindow; j++)
         {
-         cci_window[j] = MathAbs(cci[window_start + j]);
+         cci_window[j] = MathAbs(cci[window_start_cci + j]);
         }
 
       //--- Get current CCI value (use absolute value for volatility measurement)
-      double current_cci = cci[i];
+      double current_cci = cci[cci_index];
       double current_cci_abs = MathAbs(current_cci);
 
       //--- Calculate percentile rank using absolute CCI (measures extremity, not direction)
