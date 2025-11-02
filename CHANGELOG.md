@@ -5,6 +5,60 @@ All notable changes to the project indicators will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## CCI Neutrality Bars Indicator
+
+### [1.0.1] - 2025-11-02
+
+#### Fixed
+
+- **Multi-Timeframe Data Synchronization**: Fixed critical issue where M1 chart with M12 CCI reference showed no white bars on initial load
+  - Removed blocking OnInit with 30-second Sleep() loops that froze UI
+  - Replaced BarsCalculated() pre-check with direct CopyBuffer() validation
+  - Changed return value from `prev_calculated` to `return 0` on data not ready
+
+#### Added
+
+- **EventSetMillisecondTimer(1)**: Community-proven pattern for deferred MTF initialization
+- **OnTimer() Event Handler**: Triggers ChartSetSymbolPeriod() to force chart refresh
+- **Error 4806 Handling**: Proper handling of "Indicator data not accessible" as INFO (normal on first call)
+- **EventKillTimer() in OnDeinit**: Cleanup timer on indicator removal
+
+#### Changed
+
+- **OnInit Behavior**: Now returns immediately instead of blocking for 30 seconds
+- **CopyBuffer Check**: Moved from pre-condition to actual validation
+- **Failure Mode**: Returns 0 to reset calculation (lets timer trigger refresh)
+
+#### Technical Details
+
+- Research: 4 parallel agents analyzed MQL5 forums and working MTF indicators
+- Pattern based on: MTF_MA.mq5 (GitHub EarnForex), UseWPRMTF.mq5 (MQL5 Book)
+- References: MQL5 Forum threads 168437, 445696, 211536, 487682
+- Tested: M1 chart + M12 reference → white bars appear within 1-5 seconds
+- Platform: MetaTrader 5 via CrossOver on macOS
+
+### [1.0.0] - 2025-11-02
+
+#### Added
+
+- **Initial Release**: Price bar coloring based on CCI Neutrality state
+- **Two Calculation Methods**:
+  - METHOD_RESAMPLE: Uses reference timeframe CCI directly (exact window)
+  - METHOD_SCALE: Uses current timeframe CCI with scaled window size
+- **Three Color States**:
+  - White (Calm/Neutral): CCI < 30% percentile
+  - Default (Normal): CCI 30-70% percentile
+  - Default (Volatile/Extreme): CCI > 70% percentile
+- **DRAW_COLOR_CANDLES**: Chart window indicator with colored price bars
+- **Multi-Timeframe Support**: Reference timeframe configurable (PERIOD_CURRENT to PERIOD_MN1)
+- **Adaptive Window**: Automatic scaling for METHOD_SCALE (e.g., 120 M12 bars → 1440 M1 bars)
+
+#### Known Issues (Fixed in v1.0.1)
+
+- M1 chart with M12 reference requires manual chart timeframe switching to display white bars
+
+---
+
 ## Consecutive Pattern Indicator
 
 ### [1.40.0] - 2025-10-30
@@ -221,10 +275,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version Comparison
 
-| Version | Key Feature | Window Behavior | Compilation Size |
-| --- | --- | --- | --- |
-| v4.10 | Timeframe-aware adaptive window | Scales automatically across timeframes | 17KB |
-| v4.0.0 | Single-window percentile rank | Fixed 120 bars on current timeframe | 10KB |
+| Version | Key Feature                     | Window Behavior                        | Compilation Size |
+| ------- | ------------------------------- | -------------------------------------- | ---------------- |
+| v4.10   | Timeframe-aware adaptive window | Scales automatically across timeframes | 17KB             |
+| v4.0.0  | Single-window percentile rank   | Fixed 120 bars on current timeframe    | 10KB             |
 
 ## Documentation
 
