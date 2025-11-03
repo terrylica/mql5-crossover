@@ -1,0 +1,352 @@
+openapi: 3.1.0
+info:
+  title: CCI Rising Pattern Marker
+  version: 0.1.0
+  description: |
+    Visual marker for 4 consecutive rising CCI Neutrality histogram bars.
+    Ultra-incremental implementation with validation gates at each phase.
+
+x-version-control:
+  current: v0.1.0
+  tags:
+    - v0.1.0: Nuclear cleanup (manual)
+    - v0.2.0: Baseline histogram
+    - v0.3.0: Single test arrow
+    - v0.4.0: Detection + logging
+    - v0.5.0: CSV audit
+    - v0.6.0: Arrows connected
+    - v0.7.0: Recalculation test
+    - v1.0.0: Production release
+
+x-slos:
+  availability:
+    target: 100%
+    definition: Indicator loads/unloads without errors, objects cleanup correctly
+  correctness:
+    target: 100%
+    definition: Markers appear only where 4 consecutive bars rise, CSV matches visual
+  observability:
+    target: 100%
+    definition: Logs show detection events, CSV provides complete audit trail
+  maintainability:
+    target: 90%
+    definition: Code is documented, no promotional language, follows abstractions
+
+x-implementation-findings:
+  persistent-objects-bug:
+    discovered: 2025-11-02
+    description: Graphical objects persist after indicator removal, survive MT5 restart
+    impact: Cleanup code in OnInit/OnDeinit insufficient for objects saved in chart file
+    resolution: Manual deletion via MT5 GUI required for nuclear cleanup
+
+  draw-arrow-unreliable:
+    discovered: 2025-11-02
+    description: DRAW_ARROW buffer plots don't render reliably in separate windows
+    impact: Markers invisible despite buffer values set correctly
+    resolution: Use ObjectCreate with OBJ_ARROW instead of buffer plots
+
+  bar-shift-issue:
+    discovered: 2025-11-02
+    description: Bar indexes shift during recalculation, markers appear at wrong times
+    impact: Marker at bar[93110] time=19:39 shifts to bar[93109] after history update
+    resolution: Use time-based object naming, force full recalculation from start
+
+paths:
+  /phase-0-nuclear-cleanup:
+    get:
+      summary: Phase 0 - Nuclear Cleanup (v0.1.0)
+      description: |
+        Manual deletion of all objects via MT5 GUI to ensure clean slate.
+
+        **User Actions**:
+        1. Right-click chart → Objects → Objects List
+        2. Delete ALL objects manually
+        3. Close and reopen MT5
+        4. Verify no yellow dots visible
+
+        **SLOs**:
+        - Availability: 100% (clean slate achieved)
+        - Correctness: 100% (zero objects remain)
+
+        **Success Gate**: User confirms zero yellow dots on chart
+
+      responses:
+        '200':
+          description: Phase 0 complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhaseResult'
+
+  /phase-1-baseline-histogram:
+    post:
+      summary: Phase 1 - Baseline Histogram (v0.2.0)
+      description: |
+        Create new indicator with M1 CCI histogram only, no arrows.
+
+        **Implementation**:
+        - File: CCI_Rising_Test.mq5
+        - M1 chart, M1 CCI (no MTF)
+        - 120-bar adaptive window
+        - RED/YELLOW/GREEN histogram (0-1 range)
+        - 5x canvas (0-5 scale) for future arrows
+        - NO arrow code
+        - NO CSV logging
+
+        **SLOs**:
+        - Correctness: 100% (histogram displays correctly)
+        - Observability: 100% (init message confirms version)
+
+        **Success Gate**: User sees RED/YELLOW/GREEN bars, Y-axis shows 0-5
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HistogramConfig'
+
+      responses:
+        '200':
+          description: Phase 1 complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhaseResult'
+
+  /phase-2-test-arrow:
+    post:
+      summary: Phase 2 - Single Hard-Coded Arrow (v0.3.0)
+      description: |
+        Add ONE test arrow to prove object creation/deletion works.
+
+        **Implementation**:
+        - Create arrow in OnInit: "TESTMARKER_2025.11.03_04:00:00"
+        - Position: time=2025.11.03 04:00:00, Y=1.1
+        - Arrow code: 108 (bullet), color: yellow, width: 1
+        - Delete in OnDeinit
+
+        **SLOs**:
+        - Availability: 100% (add/remove/restart cycle works)
+        - Observability: 100% (logs confirm creation/deletion)
+
+        **Success Gate**: Arrow appears/disappears/stays gone through restart
+
+      responses:
+        '200':
+          description: Phase 2 complete
+        '500':
+          description: Object creation/deletion broken - chart file may be corrupted
+
+  /phase-3-detection-logging:
+    post:
+      summary: Phase 3 - Detection Logic + Logging (v0.4.0)
+      description: |
+        Add 4-consecutive-rise detection with Print() logging.
+
+        **Implementation**:
+        - Detection: BufScore[i-3] < [i-2] < [i-1] < [i]
+        - Log to Experts: bar index, time, 4 values
+        - CSV: rising_test_audit.csv with ALL bars
+        - Columns: BarIndex, Time, Val[i-3], Val[i-2], Val[i-1], Val[i],
+                   Check1, Check2, Check3, ShouldMark
+
+        **SLOs**:
+        - Correctness: 100% (spot check: 5 logged patterns match visual)
+        - Observability: 100% (every bar logged to CSV)
+
+        **Success Gate**: User validates 5 random logged patterns visually
+
+      responses:
+        '200':
+          description: Phase 3 complete
+        '400':
+          description: Detection logic incorrect - fix before proceeding
+
+  /phase-4-csv-audit:
+    post:
+      summary: Phase 4 - CSV Audit Validation (v0.5.0)
+      description: |
+        Complete verification of CSV audit trail accuracy.
+
+        **User Verification**:
+        1. Filter CSV: ShouldMark=YES, pick 5 random times
+        2. Visually verify those 5 have rising patterns
+        3. Filter CSV: ShouldMark=NO, pick 5 random times
+        4. Visually verify those 5 do NOT have rising patterns
+
+        **SLOs**:
+        - Correctness: 100% (10/10 manual checks match CSV)
+        - Observability: 100% (complete audit trail)
+
+        **Success Gate**: User confirms 10/10 accuracy
+
+      responses:
+        '200':
+          description: Phase 4 complete
+        '400':
+          description: CSV data mismatches visual - debug detection or interpretation
+
+  /phase-5-connect-arrows:
+    post:
+      summary: Phase 5 - Connect Arrows (v0.6.0)
+      description: |
+        Create arrows at detected pattern locations.
+
+        **Implementation**:
+        - Object name: "PATTERN_" + TimeToString(time[i], TIME_DATE|TIME_SECONDS)
+        - Create when: detection succeeds
+        - OnInit cleanup: delete all PATTERN_* and TESTMARKER_* objects
+        - OnDeinit cleanup: delete all PATTERN_* objects
+
+        **SLOs**:
+        - Correctness: 100% (arrows match CSV ShouldMark=YES)
+        - Availability: 100% (cleanup works on remove/restart)
+
+        **Success Gate**:
+        - 5 CSV YES rows have arrows
+        - 5 CSV NO rows have no arrows
+        - Remove indicator → all arrows gone
+        - Restart MT5 → arrows stay gone
+        - Re-add → arrows reappear correctly
+
+      responses:
+        '200':
+          description: Phase 5 complete
+        '500':
+          description: Object persistence broken - investigate actual object names
+
+  /phase-6-recalculation-test:
+    post:
+      summary: Phase 6 - Recalculation Stress Test (v0.7.0)
+      description: |
+        Verify arrows survive bar shifts and recalculations.
+
+        **User Verification**:
+        1. Note exact times of 3 current arrows
+        2. Scroll chart far left (load 10k+ bars history)
+        3. Scroll back to present
+        4. Verify same 3 times still have arrows
+        5. Remove/re-add indicator
+        6. Verify same 3 times have arrows
+
+        **SLOs**:
+        - Correctness: 100% (arrows locked to TIME not bar index)
+
+        **Success Gate**: 3/3 arrows survive scroll + reload
+
+      responses:
+        '200':
+          description: Phase 6 complete
+        '400':
+          description: Bar shift bug - arrows moving with indexes instead of times
+
+  /phase-7-production:
+    post:
+      summary: Phase 7 - Production Release (v1.0.0)
+      description: |
+        Finalize for production use.
+
+        **Implementation**:
+        - Remove debug Print() statements
+        - CSV logging: optional input parameter (default: false)
+        - Add inputs: ArrowColor, ArrowSize
+        - Rename file: CCI_Rising_Pattern.mq5
+        - Add proper comments and documentation
+        - Clean code (no promotional language)
+
+        **SLOs**:
+        - Maintainability: 90% (clean, documented code)
+        - All previous SLOs maintained
+
+        **Success Gate**: User acceptance for production
+
+      responses:
+        '200':
+          description: Production release v1.0.0
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductionRelease'
+
+components:
+  schemas:
+    PhaseResult:
+      type: object
+      required:
+        - phase
+        - version
+        - status
+        - slos
+      properties:
+        phase:
+          type: integer
+          minimum: 0
+          maximum: 7
+        version:
+          type: string
+          pattern: '^v\d+\.\d+\.\d+$'
+        status:
+          type: string
+          enum: [complete, failed]
+        slos:
+          $ref: '#/components/schemas/SLOResults'
+        notes:
+          type: string
+
+    SLOResults:
+      type: object
+      properties:
+        availability:
+          type: number
+          minimum: 0
+          maximum: 100
+        correctness:
+          type: number
+          minimum: 0
+          maximum: 100
+        observability:
+          type: number
+          minimum: 0
+          maximum: 100
+        maintainability:
+          type: number
+          minimum: 0
+          maximum: 100
+
+    HistogramConfig:
+      type: object
+      required:
+        - timeframe
+        - cci_period
+        - window_bars
+      properties:
+        timeframe:
+          type: string
+          enum: [M1]
+        cci_period:
+          type: integer
+          default: 20
+        window_bars:
+          type: integer
+          default: 120
+
+    ProductionRelease:
+      type: object:
+      required:
+        - version
+        - file
+        - features
+      properties:
+        version:
+          type: string
+          const: v1.0.0
+        file:
+          type: string
+          const: CCI_Rising_Pattern.mq5
+        features:
+          type: array
+          items:
+            type: string
+        slos:
+          $ref: '#/components/schemas/SLOResults'
