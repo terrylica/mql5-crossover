@@ -7,7 +7,7 @@ info:
     Ultra-incremental implementation with validation gates at each phase.
 
 x-version-control:
-  current: v0.2.2-wip
+  current: v0.2.2
   tags:
     - v0.1.0: Nuclear cleanup (manual)
     - v0.2.0: Baseline histogram

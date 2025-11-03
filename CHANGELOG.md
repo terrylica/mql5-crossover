@@ -61,6 +61,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## CCI Rising Pattern Marker
 
+### [0.2.2] - 2025-11-03
+
+#### Added
+
+- **Library Architecture** - Extracted logic into .mqh libraries for separation of concerns
+  - lib/PatternDetector.mqh: DetectRisingPattern(), GetDetectionDetails(), pure functions
+  - lib/ArrowManager.mqh: CreateArrow(), DeleteArrow(), DeleteAllArrows(), CountArrows()
+  - lib/CSVLogger.mqh: CSVLogger class (Open/WriteHeader/WriteDetectionRow/Close)
+  - Unit test scripts: Test_PatternDetector.mq5 (12 tests), Test_ArrowManager.mq5 (12 tests)
+  - Commented library includes in CCI_Rising_Test.mq5 (ready for Phase 2+)
+
+#### Changed
+
+- Version: 0.2.1 → 0.2.2
+- Libraries not yet used in Phase 1 (histogram only), will be used in Phase 2+ (arrows/detection)
+
+#### Technical Details
+
+- PatternDetector: Testable detection logic, DetectionDetails struct for debugging
+- ArrowManager: Window-aware arrow creation, time-based naming, bulk cleanup
+- CSVLogger: Class-based API, file handle management, structured logging
+- Plan file: Added Phase 1.5 (library extraction), x-implementation-findings entry
+- Compilation: 9.2KB .ex5, 0 errors, 0 warnings
+
+#### SLOs (Phase 1.5)
+
+- Availability: 100% (all libraries compile without errors)
+- Correctness: Pending (unit tests not yet validated by user)
+- Maintainability: 100% (libraries testable in isolation, clear interfaces)
+
+#### Rationale
+
+User requested maximum separation of concerns for incremental testing and problem isolation
+
+#### CSV vs SQLite Decision
+
+- CSV chosen for Phase 2-7 (Claude Code CLI integration, debugging simplicity)
+- SQLite available if needed for future analysis (>100k bars, complex queries)
+- MQL5 native SQLite support confirmed, DuckDB not supported
+
 ### [0.2.1] - 2025-11-02
 
 #### Fixed
