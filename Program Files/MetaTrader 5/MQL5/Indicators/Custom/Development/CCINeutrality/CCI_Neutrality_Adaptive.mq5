@@ -4,12 +4,12 @@
 //+------------------------------------------------------------------+
 #property copyright   "Terry Li"
 #property link        "https://github.com/terrylica/mql5-crossover"
-#property version     "4.21"
+#property version     "4.22"
 #property description "CCI Neutrality Score - Adaptive Percentile Rank with Timeframe Conversion (Red=Volatile/Extreme, Yellow=Normal, Green=Calm/Neutral)"
 
 #property indicator_separate_window
-#property indicator_buffers 3  // 3 buffers: Score (visible) + CCI (hidden) + Color (index)
-#property indicator_plots   1  // Only 1 visible plot
+#property indicator_buffers 4  // 4 buffers: Score + CCI + Color + Arrows
+#property indicator_plots   2  // 2 visible plots: histogram + arrows
 
 // Force recalculation in Strategy Tester
 #property tester_everytick_calculate
@@ -18,6 +18,12 @@
 #property indicator_label1    "Percentile Rank"
 #property indicator_type1     DRAW_COLOR_HISTOGRAM
 #property indicator_width1    3
+
+// Plot 2: Signal Arrows (4 consecutive rising bars)
+#property indicator_label2    "Rising Signal"
+#property indicator_type2     DRAW_ARROW
+#property indicator_color2    clrDodgerBlue
+#property indicator_width2    3
 
 //--- Calculation method enum
 enum ENUM_CALC_METHOD
@@ -41,6 +47,7 @@ input int              InpReferenceWindowBars = 120;            // Window size (
 double BufScore[];  // Visible: Percentile rank values (0-1)
 double BufCCI[];    // Hidden: CCI (for recalculation handling)
 double BufColor[];  // Color index: 0=Red, 1=Yellow, 2=Green
+double BufArrows[]; // Visible: Arrow positions (EMPTY_VALUE when no signal)
 
 //--- Indicator handle
 int hCCI = INVALID_HANDLE;
@@ -129,6 +136,13 @@ int OnInit()
    SetIndexBuffer(0, BufScore, INDICATOR_DATA);       // Buffer 0: Visible Score
    SetIndexBuffer(1, BufColor, INDICATOR_COLOR_INDEX); // Buffer 1: Color indices
    SetIndexBuffer(2, BufCCI, INDICATOR_CALCULATIONS);  // Buffer 2: Hidden CCI
+   SetIndexBuffer(3, BufArrows, INDICATOR_DATA);      // Buffer 3: Visible Arrows
+
+//--- Configure arrow plot
+   PlotIndexSetInteger(1, PLOT_ARROW, 159);           // Arrow code 159 = filled circle
+   PlotIndexSetInteger(1, PLOT_ARROW_SHIFT, -15);     // Shift 15 points UP above histogram
+   PlotIndexSetDouble(1, PLOT_EMPTY_VALUE, EMPTY_VALUE); // Use EMPTY_VALUE for gaps
+   PlotIndexSetString(1, PLOT_LABEL, "Rising Signal"); // Data window label
 
 //--- Set draw begin (CCI warmup + adaptive window warmup)
    int StartCalcPosition = InpCCILength + g_AdaptiveWindow - 1;
@@ -192,7 +206,7 @@ int OnInit()
    EventSetMillisecondTimer(1);
    PrintFormat("  Timer set: OnTimer will refresh chart after first OnCalculate pass");
 
-   PrintFormat("CCI Adaptive v4.21 initialized:");
+   PrintFormat("CCI Adaptive v4.22 initialized:");
    PrintFormat("  Method: %s", (InpCalcMethod == METHOD_RESAMPLE) ? "Resample (use ref TF CCI)" : "Scale (scale window size)");
    PrintFormat("  CCI Period: %d", InpCCILength);
    PrintFormat("  CCI Timeframe: %s (%d seconds/bar)", EnumToString(cci_timeframe), PeriodSeconds(cci_timeframe));
@@ -325,6 +339,7 @@ int OnCalculate(const int rates_total,
    ArraySetAsSeries(BufScore, false);
    ArraySetAsSeries(BufColor, false);
    ArraySetAsSeries(BufCCI, false);
+   ArraySetAsSeries(BufArrows, false);
 
 //--- Calculate start position
    int start;
@@ -338,6 +353,7 @@ int OnCalculate(const int rates_total,
          BufScore[i] = EMPTY_VALUE;
          BufColor[i] = 0;
          BufCCI[i] = EMPTY_VALUE;
+         BufArrows[i] = EMPTY_VALUE;
         }
      }
    else
@@ -446,6 +462,32 @@ int OnCalculate(const int rates_total,
       BufCCI[i] = current_cci;      // Hidden buffer
       BufScore[i] = score;          // Visible buffer: percentile rank (0-1)
       BufColor[i] = color_index;    // Color index: 0/1/2
+
+      //--- ✅ Detect 4 consecutive rising histogram bars
+      bool is_rising_pattern = false;
+      if(i >= 3)  // Need 3 previous bars to check
+        {
+         // Check if each bar is higher than the previous: [i-3] < [i-2] < [i-1] < [i]
+         if(BufScore[i-3] < BufScore[i-2] &&
+            BufScore[i-2] < BufScore[i-1] &&
+            BufScore[i-1] < BufScore[i])
+           {
+            is_rising_pattern = true;
+           }
+        }
+
+      //--- Set arrow position
+      if(is_rising_pattern)
+        {
+         // Position arrow at top of histogram bar
+         // PLOT_ARROW_SHIFT (-15) will shift it upward automatically
+         BufArrows[i] = score;
+        }
+      else
+        {
+         // No arrow on this bar
+         BufArrows[i] = EMPTY_VALUE;
+        }
      }
 
 //--- Return value for next call
