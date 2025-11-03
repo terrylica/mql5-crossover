@@ -7,10 +7,11 @@ info:
     Ultra-incremental implementation with validation gates at each phase.
 
 x-version-control:
-  current: v0.1.0
+  current: v0.2.1
   tags:
     - v0.1.0: Nuclear cleanup (manual)
     - v0.2.0: Baseline histogram
+    - v0.2.1: Fix color mapping (align with v5.0.0)
     - v0.3.0: Single test arrow
     - v0.4.0: Detection + logging
     - v0.5.0: CSV audit
@@ -50,6 +51,12 @@ x-implementation-findings:
     description: Bar indexes shift during recalculation, markers appear at wrong times
     impact: Marker at bar[93110] time=19:39 shifts to bar[93109] after history update
     resolution: Use time-based object naming, force full recalculation from start
+
+  color-mapping-inverted:
+    discovered: 2025-11-02
+    description: Initial color mapping was inverted compared to CCI_Neutrality_Adaptive v5.0.0
+    impact: Colors did not align with existing histogram (user comparison failed)
+    resolution: Changed to match v5.0.0 logic - HIGH score (>0.7)=RED, LOW score (<0.3)=GREEN
 
 paths:
   /phase-0-nuclear-cleanup:

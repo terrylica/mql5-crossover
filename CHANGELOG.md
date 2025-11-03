@@ -61,6 +61,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## CCI Rising Pattern Marker
 
+### [0.2.1] - 2025-11-02
+
+#### Fixed
+
+- **Color Mapping Inverted** - Colors did not align with existing CCI_Neutrality_Adaptive indicator
+  - HIGH score (>0.7) now maps to RED (volatile/extreme) - was GREEN
+  - LOW score (<0.3) now maps to GREEN (calm/neutral) - was RED
+  - Middle (0.3-0.7) remains YELLOW
+  - Now matches CCI_Neutrality_Adaptive v5.0.0 logic exactly
+
+#### Technical Details
+
+- Lines 147-156: Color index assignment logic corrected
+- Compilation: 9.6KB .ex5 file, 0 errors, 0 warnings (~1 second via X: drive)
+
 ### [0.2.0] - 2025-11-02
 
 #### Added
@@ -97,6 +112,7 @@ User verifies RED/YELLOW/GREEN bars visible, Y-axis shows 0-5 range
 OpenAPI 3.1.0 specification: `docs/plans/cci-rising-pattern-marker.yaml`
 
 **7-Phase Ultra-Incremental Plan**:
+
 - Phase 0 (v0.1.0): Nuclear cleanup - manual GUI object deletion ✅
 - Phase 1 (v0.2.0): Baseline histogram ✅
 - Phase 2 (v0.3.0): Single hard-coded arrow test (pending)
