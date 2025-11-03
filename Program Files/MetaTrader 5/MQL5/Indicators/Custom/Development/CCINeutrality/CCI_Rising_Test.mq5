@@ -144,13 +144,16 @@ int OnCalculate(const int rates_total,
 
       BufScore[i] = score;
 
-      // Assign color: RED (0) < 0.3, YELLOW (1) 0.3-0.7, GREEN (2) > 0.7
-      if(score < 0.3)
-         BufColor[i] = 0;  // RED
-      else if(score < 0.7)
-         BufColor[i] = 1;  // YELLOW
+      // Assign color (matches CCI_Neutrality_Adaptive v5.0.0 logic)
+      int color_index;
+      if(score > 0.7)
+         color_index = 0;  // RED: Top 30% (high extremity, volatile)
+      else if(score > 0.3)
+         color_index = 1;  // YELLOW: Middle 40% (normal)
       else
-         BufColor[i] = 2;  // GREEN
+         color_index = 2;  // GREEN: Bottom 30% (low extremity, calm)
+
+      BufColor[i] = color_index;
      }
 
    return rates_total;
