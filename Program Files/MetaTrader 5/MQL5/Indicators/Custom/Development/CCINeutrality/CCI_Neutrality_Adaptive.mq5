@@ -4,7 +4,7 @@
 //+------------------------------------------------------------------+
 #property copyright   "Terry Li"
 #property link        "https://github.com/terrylica/mql5-crossover"
-#property version     "4.25"
+#property version     "4.26"
 #property description "CCI Neutrality Score - Adaptive Percentile Rank with Timeframe Conversion (Red=Volatile/Extreme, Yellow=Normal, Green=Calm/Neutral)"
 
 #property indicator_separate_window
@@ -209,7 +209,7 @@ int OnInit()
    EventSetMillisecondTimer(1);
    PrintFormat("  Timer set: OnTimer will refresh chart after first OnCalculate pass");
 
-   PrintFormat("CCI Adaptive v4.25 initialized (Yellow arrows, enhanced visibility, all patterns logged):");
+   PrintFormat("CCI Adaptive v4.26 initialized (Debug: detailed comparison logging for 20 bars):");
    PrintFormat("  Method: %s", (InpCalcMethod == METHOD_RESAMPLE) ? "Resample (use ref TF CCI)" : "Scale (scale window size)");
    PrintFormat("  CCI Period: %d", InpCCILength);
    PrintFormat("  CCI Timeframe: %s (%d seconds/bar)", EnumToString(cci_timeframe), PeriodSeconds(cci_timeframe));
@@ -469,22 +469,49 @@ int OnCalculate(const int rates_total,
       //--- ✅ Detect 4 consecutive rising histogram bars
       bool is_rising_pattern = false;
 
+      // Debug: Log last 20 bars to see what's happening
+      static int debug_count = 0;
+      bool should_log = false;
+
       if(i >= 3)  // Need 3 previous bars to check
         {
          // Check if each bar is higher than the previous: [i-3] < [i-2] < [i-1] < [i]
-         if(BufScore[i-3] < BufScore[i-2] &&
-            BufScore[i-2] < BufScore[i-1] &&
-            BufScore[i-1] < BufScore[i])
+         bool check1 = BufScore[i-3] < BufScore[i-2];
+         bool check2 = BufScore[i-2] < BufScore[i-1];
+         bool check3 = BufScore[i-1] < BufScore[i];
+
+         if(check1 && check2 && check3)
            {
             is_rising_pattern = true;
+            should_log = true;
+           }
 
-            // Log every detected pattern (no limit) for debugging
-            PrintFormat("✅ RISING PATTERN at bar %d: [%d]=%.4f < [%d]=%.4f < [%d]=%.4f < [%d]=%.4f",
+         // Log last 20 bars (rising or not) for debugging
+         if(debug_count < 20)
+           {
+            PrintFormat("Bar %d: [%d]=%.4f [%d]=%.4f [%d]=%.4f [%d]=%.4f | Check: %s<%s=%d %s<%s=%d %s<%s=%d | RISING=%s | Arrow=%.4f",
                        i,
                        i-3, BufScore[i-3],
                        i-2, BufScore[i-2],
                        i-1, BufScore[i-1],
-                       i, BufScore[i]);
+                       i, BufScore[i],
+                       DoubleToString(BufScore[i-3],4), DoubleToString(BufScore[i-2],4), check1,
+                       DoubleToString(BufScore[i-2],4), DoubleToString(BufScore[i-1],4), check2,
+                       DoubleToString(BufScore[i-1],4), DoubleToString(BufScore[i],4), check3,
+                       is_rising_pattern ? "YES" : "NO",
+                       is_rising_pattern ? score : EMPTY_VALUE);
+            debug_count++;
+           }
+         else if(should_log)
+           {
+            // Always log detected patterns even after first 20 bars
+            PrintFormat("✅ RISING PATTERN at bar %d: [%d]=%.4f < [%d]=%.4f < [%d]=%.4f < [%d]=%.4f | Arrow=%.4f",
+                       i,
+                       i-3, BufScore[i-3],
+                       i-2, BufScore[i-2],
+                       i-1, BufScore[i-1],
+                       i, BufScore[i],
+                       score);
            }
         }
 
@@ -492,7 +519,7 @@ int OnCalculate(const int rates_total,
       if(is_rising_pattern)
         {
          // Position arrow at top of histogram bar
-         // PLOT_ARROW_SHIFT (-15) will shift it upward automatically
+         // PLOT_ARROW_SHIFT (-30) will shift it upward automatically
          BufArrows[i] = score;
         }
       else
