@@ -1,10 +1,15 @@
 //+------------------------------------------------------------------+
-//| CCI Rising Test - Phase 1: Baseline Histogram                   |
-//| Version: 0.2.0                                                   |
+//| CCI Rising Test - Phase 1.5: Baseline Histogram + Libraries     |
+//| Version: 0.2.2                                                   |
 //+------------------------------------------------------------------+
-#property copyright   "Phase 1: Baseline histogram only"
-#property description "M1 CCI with RED/YELLOW/GREEN histogram, 5x canvas for future arrows"
-#property version     "0.2.0"
+#property copyright   "Phase 1.5: Baseline histogram with library architecture"
+#property description "M1 CCI with RED/YELLOW/GREEN histogram, 5x canvas, libraries ready for Phase 2+"
+#property version     "0.2.2"
+
+// Libraries available for Phase 2+ (not yet used in Phase 1 baseline)
+// #include "lib/PatternDetector.mqh"  // Phase 3: Detection logic
+// #include "lib/ArrowManager.mqh"     // Phase 2: Arrow creation/deletion
+// #include "lib/CSVLogger.mqh"        // Phase 3-4: Audit trail
 #property indicator_separate_window
 #property indicator_buffers 2
 #property indicator_plots   1
@@ -33,7 +38,7 @@ int StartCalcPosition_Chart;
 //+------------------------------------------------------------------+
 int OnInit()
   {
-   Print("=== CCI Rising Test v0.2.0 - Phase 1: Baseline Histogram ===");
+   Print("=== CCI Rising Test v0.2.2 - Phase 1.5: Baseline + Libraries ===");
 
    // Set canvas range: 0-5 (5x height for future arrows at Y=1.1)
    IndicatorSetDouble(INDICATOR_MINIMUM, 0.0);
@@ -69,7 +74,7 @@ void OnDeinit(const int reason)
    if(HandleCCI_Chart != INVALID_HANDLE)
       IndicatorRelease(HandleCCI_Chart);
 
-   Print("CCI Rising Test v0.2.0 removed");
+   Print("CCI Rising Test v0.2.2 removed");
   }
 
 //+------------------------------------------------------------------+
