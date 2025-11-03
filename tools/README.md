@@ -36,6 +36,7 @@ CX="$HOME/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
 ```
 
 **Key points:**
+
 - Use `X:\` prefix (not `C:\Program Files\...`)
 - Escape backslashes: `X:\\Indicators\\...`
 - Use `/inc:"X:"` for include directory
@@ -52,11 +53,13 @@ X:\Include\file.mqh            →  MQL5/Include/file.mqh
 ```
 
 **Verify X: drive exists:**
+
 ```bash
 ls -la "$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/dosdevices/" | grep "x:"
 ```
 
 **If not found, create it:**
+
 ```bash
 cd "$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/dosdevices"
 ln -s "../drive_c/Program Files/MetaTrader 5/MQL5" "x:"
@@ -69,11 +72,13 @@ ln -s "../drive_c/Program Files/MetaTrader 5/MQL5" "x:"
 **Purpose:** Compile MQL5 indicators/scripts via CLI using X: drive
 
 **Usage:**
+
 ```bash
 ./tools/compile_mql5.sh <relative_path_from_MQL5>
 ```
 
 **Examples:**
+
 ```bash
 # Compile CCI Neutrality indicator
 ./tools/compile_mql5.sh "Indicators/Custom/Development/CCINeutrality/CCI_Neutrality_Adaptive.mq5"
@@ -86,6 +91,7 @@ ln -s "../drive_c/Program Files/MetaTrader 5/MQL5" "x:"
 ```
 
 **Features:**
+
 - Auto-converts Unix paths to Windows X: drive format
 - Verifies X: drive mapping exists (creates if missing)
 - Validates source file exists before compilation
@@ -97,12 +103,14 @@ ln -s "../drive_c/Program Files/MetaTrader 5/MQL5" "x:"
 ### Issue: "❌ Compilation failed: .ex5 not created"
 
 **Check compilation log:**
+
 ```bash
 # View the log for your file
 cat "Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/CCI_Neutrality_Adaptive.log"
 ```
 
 Common causes:
+
 - Syntax errors in MQL5 code
 - Missing `#include` dependencies
 - Invalid function calls
@@ -110,6 +118,7 @@ Common causes:
 ### Issue: "X: drive mapping not found"
 
 **Solution:** Run the script anyway - it will auto-create the mapping:
+
 ```bash
 ./tools/compile_mql5.sh "Indicators/Custom/MyIndicator.mq5"
 # Output: ⚠️  X: drive mapping not found, creating...
@@ -121,6 +130,7 @@ Common causes:
 **Cause:** You're using direct paths with spaces (wrong method)
 
 **Solution:** Use X: drive method:
+
 ```bash
 # ❌ WRONG - Silent failure
 /compile:"C:/Program Files/MetaTrader 5/MQL5/Indicators/Custom/file.mq5"
@@ -138,11 +148,11 @@ Common causes:
 
 ## Why X: Drive?
 
-| Method | Path | Result |
-|--------|------|--------|
-| ❌ Direct path | `C:/Program Files/.../file.mq5` | Silent failure (Wine bug) |
-| ✅ X: drive | `X:\Indicators\Custom\file.mq5` | Success (~1s) |
-| ⚠️ Temp file workaround | `C:/TempCompile.mq5` | Works but hacky |
-| ⚠️ GUI compilation | Open MetaEditor, press F7 | Works but not automatable |
+| Method                  | Path                            | Result                    |
+| ----------------------- | ------------------------------- | ------------------------- |
+| ❌ Direct path          | `C:/Program Files/.../file.mq5` | Silent failure (Wine bug) |
+| ✅ X: drive             | `X:\Indicators\Custom\file.mq5` | Success (~1s)             |
+| ⚠️ Temp file workaround | `C:/TempCompile.mq5`            | Works but hacky           |
+| ⚠️ GUI compilation      | Open MetaEditor, press F7       | Works but not automatable |
 
 **Always use X: drive for CLI compilation!**

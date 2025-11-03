@@ -4,7 +4,7 @@
 //+------------------------------------------------------------------+
 #property copyright   "Terry Li"
 #property link        "https://github.com/terrylica/mql5-crossover"
-#property version     "4.24"
+#property version     "4.25"
 #property description "CCI Neutrality Score - Adaptive Percentile Rank with Timeframe Conversion (Red=Volatile/Extreme, Yellow=Normal, Green=Calm/Neutral)"
 
 #property indicator_separate_window
@@ -22,8 +22,8 @@
 // Plot 2: Signal Arrows (4 consecutive rising bars)
 #property indicator_label2    "Rising Signal"
 #property indicator_type2     DRAW_ARROW
-#property indicator_color2    clrDodgerBlue
-#property indicator_width2    3
+#property indicator_color2    clrYellow  // Changed to Yellow for high visibility
+#property indicator_width2    5          // Increased width for visibility
 
 //--- Calculation method enum
 enum ENUM_CALC_METHOD
@@ -139,8 +139,8 @@ int OnInit()
    SetIndexBuffer(3, BufArrows, INDICATOR_DATA);      // Buffer 3: Visible Arrows
 
 //--- Configure arrow plot
-   PlotIndexSetInteger(1, PLOT_ARROW, 159);           // Arrow code 159 = filled circle
-   PlotIndexSetInteger(1, PLOT_ARROW_SHIFT, -15);     // Shift 15 points UP above histogram
+   PlotIndexSetInteger(1, PLOT_ARROW, 217);           // Arrow code 217 = large filled circle (more visible than 159)
+   PlotIndexSetInteger(1, PLOT_ARROW_SHIFT, -30);     // Shift 30 points UP above histogram (increased for visibility)
    PlotIndexSetDouble(1, PLOT_EMPTY_VALUE, EMPTY_VALUE); // Use EMPTY_VALUE for gaps
    PlotIndexSetString(1, PLOT_LABEL, "Rising Signal"); // Data window label
 
@@ -209,7 +209,7 @@ int OnInit()
    EventSetMillisecondTimer(1);
    PrintFormat("  Timer set: OnTimer will refresh chart after first OnCalculate pass");
 
-   PrintFormat("CCI Adaptive v4.24 initialized (with histogram value logging):");
+   PrintFormat("CCI Adaptive v4.25 initialized (Yellow arrows, enhanced visibility, all patterns logged):");
    PrintFormat("  Method: %s", (InpCalcMethod == METHOD_RESAMPLE) ? "Resample (use ref TF CCI)" : "Scale (scale window size)");
    PrintFormat("  CCI Period: %d", InpCCILength);
    PrintFormat("  CCI Timeframe: %s (%d seconds/bar)", EnumToString(cci_timeframe), PeriodSeconds(cci_timeframe));
@@ -469,20 +469,6 @@ int OnCalculate(const int rates_total,
       //--- ✅ Detect 4 consecutive rising histogram bars
       bool is_rising_pattern = false;
 
-      // Debug: Log first 10 bars to verify values
-      static int debug_bars = 0;
-      if(debug_bars < 10 && i >= 3)
-        {
-         PrintFormat("Bar %d: [%d]=%.4f, [%d]=%.4f, [%d]=%.4f, [%d]=%.4f | Rising=%s",
-                    i,
-                    i-3, BufScore[i-3],
-                    i-2, BufScore[i-2],
-                    i-1, BufScore[i-1],
-                    i, BufScore[i],
-                    (BufScore[i-3] < BufScore[i-2] && BufScore[i-2] < BufScore[i-1] && BufScore[i-1] < BufScore[i]) ? "YES" : "NO");
-         debug_bars++;
-        }
-
       if(i >= 3)  // Need 3 previous bars to check
         {
          // Check if each bar is higher than the previous: [i-3] < [i-2] < [i-1] < [i]
@@ -491,18 +477,14 @@ int OnCalculate(const int rates_total,
             BufScore[i-1] < BufScore[i])
            {
             is_rising_pattern = true;
-            // Debug: Log detected patterns
-            static int pattern_count = 0;
-            if(pattern_count < 5)  // Limit debug output to first 5 patterns
-              {
-               PrintFormat("✅ RISING PATTERN DETECTED at bar %d: [%d]=%.4f < [%d]=%.4f < [%d]=%.4f < [%d]=%.4f",
-                          i,
-                          i-3, BufScore[i-3],
-                          i-2, BufScore[i-2],
-                          i-1, BufScore[i-1],
-                          i, BufScore[i]);
-               pattern_count++;
-              }
+
+            // Log every detected pattern (no limit) for debugging
+            PrintFormat("✅ RISING PATTERN at bar %d: [%d]=%.4f < [%d]=%.4f < [%d]=%.4f < [%d]=%.4f",
+                       i,
+                       i-3, BufScore[i-3],
+                       i-2, BufScore[i-2],
+                       i-1, BufScore[i-1],
+                       i, BufScore[i]);
            }
         }
 

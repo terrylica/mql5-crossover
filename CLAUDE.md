@@ -209,49 +209,49 @@ exports/                                   # CSV exports (gitignored)
 
 ### Single Source of Truth
 
-| Topic                                                      | Authoritative Document                                |
-| ---------------------------------------------------------- | ----------------------------------------------------- |
-| **🚀 WORKFLOWS**                                           |                                                       |
-| MQL5→Python Migration Workflow                             | `docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md`       |
-| Lessons Learned (8 gotchas, 185+ hours debugging)          | `docs/guides/LESSONS_LEARNED_PLAYBOOK.md`             |
-| Indicator Migration Checklist                              | `docs/templates/INDICATOR_MIGRATION_CHECKLIST.md`     |
-| Wine Python Execution (v3.0.0)                             | `docs/guides/WINE_PYTHON_EXECUTION.md`                |
-| File-Based Config Workflow (v4.0.0)                        | `docs/guides/V4_FILE_BASED_CONFIG_WORKFLOW.md`        |
-| Headless Execution (v2/v3/v4 evolution)                    | `docs/plans/HEADLESS_EXECUTION_PLAN.md`               |
-| **🗺️ PATHS & INFRASTRUCTURE**                              |                                                       |
-| BOTTLE_ROOT, MT5 Paths, Directory Structure                | `docs/guides/MT5_FILE_LOCATIONS.md`                   |
-| X: Drive Mapping, Git Integration                          | `docs/guides/BOTTLE_TRACKING.md`                      |
-| **🔤 ENCODING**                                            |                                                       |
-| UTF-8/UTF-16LE Detection, chardet, .gitattributes          | `docs/guides/MQL5_ENCODING_SOLUTIONS.md`              |
-| **⚙️ COMPILATION**                                         |                                                       |
+| Topic                                                      | Authoritative Document                                    |
+| ---------------------------------------------------------- | --------------------------------------------------------- |
+| **🚀 WORKFLOWS**                                           |                                                           |
+| MQL5→Python Migration Workflow                             | `docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md`           |
+| Lessons Learned (8 gotchas, 185+ hours debugging)          | `docs/guides/LESSONS_LEARNED_PLAYBOOK.md`                 |
+| Indicator Migration Checklist                              | `docs/templates/INDICATOR_MIGRATION_CHECKLIST.md`         |
+| Wine Python Execution (v3.0.0)                             | `docs/guides/WINE_PYTHON_EXECUTION.md`                    |
+| File-Based Config Workflow (v4.0.0)                        | `docs/guides/V4_FILE_BASED_CONFIG_WORKFLOW.md`            |
+| Headless Execution (v2/v3/v4 evolution)                    | `docs/plans/HEADLESS_EXECUTION_PLAN.md`                   |
+| **🗺️ PATHS & INFRASTRUCTURE**                              |                                                           |
+| BOTTLE_ROOT, MT5 Paths, Directory Structure                | `docs/guides/MT5_FILE_LOCATIONS.md`                       |
+| X: Drive Mapping, Git Integration                          | `docs/guides/BOTTLE_TRACKING.md`                          |
+| **🔤 ENCODING**                                            |                                                           |
+| UTF-8/UTF-16LE Detection, chardet, .gitattributes          | `docs/guides/MQL5_ENCODING_SOLUTIONS.md`                  |
+| **⚙️ COMPILATION**                                         |                                                           |
 | **⚠️ X: Drive CLI Compilation (PRIMARY METHOD)**           | `.claude/skills/mql5-x-compile` + `tools/compile_mql5.sh` |
-| CLI Compilation (--cx-app, ~1s), Troubleshooting           | `docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md`         |
-| /inc Parameter Behavior (overrides, not augments)          | `docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md`      |
-| **🍷 WINE ENVIRONMENT**                                    |                                                       |
-| CrossOver Environment, Wine Builds, Shell Setup            | `docs/guides/CROSSOVER_MQ5.md`                        |
-| **📋 CONFIGURATION**                                       |                                                       |
-| startup.ini Syntax, [StartUp] Section, ShutdownTerminal    | `docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md`    |
-| .set File Format (UCS-2 LE BOM, MQL5/Presets/)             | `docs/guides/MQL5_PRESET_FILES_RESEARCH.md`           |
-| **📊 VALIDATION**                                          |                                                       |
-| Production Methodology (5000-bar warmup, ≥0.999, pitfalls) | `docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md`     |
-| Laguerre RSI Success Case (1.000000 correlation)           | `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md`     |
-| Validation Failures Case (3-hour debugging timeline)       | `docs/guides/PYTHON_INDICATOR_VALIDATION_FAILURES.md` |
-| SLO Metrics, Test Results                                  | `docs/reports/VALIDATION_STATUS.md`                   |
-| **🔬 CASE STUDIES**                                        |                                                       |
-| Laguerre RSI Algorithm Translation                         | `docs/guides/LAGUERRE_RSI_ANALYSIS.md`                |
-| Laguerre RSI Temporal Audit                                | `docs/guides/LAGUERRE_RSI_TEMPORAL_AUDIT.md`          |
-| Laguerre RSI Bug Journey (14 hours, 3 bugs)                | `docs/archive/LAGUERRE_RSI_BUG_JOURNEY.md`            |
-| **🔍 RESEARCH**                                            |                                                       |
-| /inc Trap, Script Automation, Python API Limits            | `docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md`      |
-| Script Parameters (30+ sources, bugs documented)           | `docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md`    |
-| .set Preset Files (encoding, location, #property)          | `docs/guides/MQL5_PRESET_FILES_RESEARCH.md`           |
-| **📋 STATUS**                                              |                                                       |
-| Documentation Readiness (95/100)                           | `docs/reports/DOCUMENTATION_READINESS_ASSESSMENT.md`  |
-| Pruning Assessment                                         | `docs/reports/PRUNING_ASSESSMENT.md`                  |
-| Historical Context (2022-2025)                             | `docs/archive/historical.txt`                         |
-| **🗄️ LEGACY & ARCHIVE**                                    |                                                       |
-| Legacy Code Assessment (70+ items, what NOT to retest)     | `docs/reports/LEGACY_CODE_ASSESSMENT.md`              |
-| Archive Organization (cc indicator fix)                    | Archive reorganized (commit f29149e, 2025-10-18)      |
+| CLI Compilation (--cx-app, ~1s), Troubleshooting           | `docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md`             |
+| /inc Parameter Behavior (overrides, not augments)          | `docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md`          |
+| **🍷 WINE ENVIRONMENT**                                    |                                                           |
+| CrossOver Environment, Wine Builds, Shell Setup            | `docs/guides/CROSSOVER_MQ5.md`                            |
+| **📋 CONFIGURATION**                                       |                                                           |
+| startup.ini Syntax, [StartUp] Section, ShutdownTerminal    | `docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md`        |
+| .set File Format (UCS-2 LE BOM, MQL5/Presets/)             | `docs/guides/MQL5_PRESET_FILES_RESEARCH.md`               |
+| **📊 VALIDATION**                                          |                                                           |
+| Production Methodology (5000-bar warmup, ≥0.999, pitfalls) | `docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md`         |
+| Laguerre RSI Success Case (1.000000 correlation)           | `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md`         |
+| Validation Failures Case (3-hour debugging timeline)       | `docs/guides/PYTHON_INDICATOR_VALIDATION_FAILURES.md`     |
+| SLO Metrics, Test Results                                  | `docs/reports/VALIDATION_STATUS.md`                       |
+| **🔬 CASE STUDIES**                                        |                                                           |
+| Laguerre RSI Algorithm Translation                         | `docs/guides/LAGUERRE_RSI_ANALYSIS.md`                    |
+| Laguerre RSI Temporal Audit                                | `docs/guides/LAGUERRE_RSI_TEMPORAL_AUDIT.md`              |
+| Laguerre RSI Bug Journey (14 hours, 3 bugs)                | `docs/archive/LAGUERRE_RSI_BUG_JOURNEY.md`                |
+| **🔍 RESEARCH**                                            |                                                           |
+| /inc Trap, Script Automation, Python API Limits            | `docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md`          |
+| Script Parameters (30+ sources, bugs documented)           | `docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md`        |
+| .set Preset Files (encoding, location, #property)          | `docs/guides/MQL5_PRESET_FILES_RESEARCH.md`               |
+| **📋 STATUS**                                              |                                                           |
+| Documentation Readiness (95/100)                           | `docs/reports/DOCUMENTATION_READINESS_ASSESSMENT.md`      |
+| Pruning Assessment                                         | `docs/reports/PRUNING_ASSESSMENT.md`                      |
+| Historical Context (2022-2025)                             | `docs/archive/historical.txt`                             |
+| **🗄️ LEGACY & ARCHIVE**                                    |                                                           |
+| Legacy Code Assessment (70+ items, what NOT to retest)     | `docs/reports/LEGACY_CODE_ASSESSMENT.md`                  |
+| Archive Organization (cc indicator fix)                    | Archive reorganized (commit f29149e, 2025-10-18)          |
 
 ## Python Workspace Utilities
 
