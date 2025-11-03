@@ -66,6 +66,8 @@ x-implementation-findings:
     implementation: PatternDetector.mqh (pure functions), ArrowManager.mqh (object lifecycle), CSVLogger.mqh (audit trail)
     testing: Unit test scripts (Test_PatternDetector.mq5, Test_ArrowManager.mq5) validate libraries in isolation
     csv-vs-sqlite: CSV chosen over SQLite for Claude Code CLI integration and debugging simplicity
+    validation: Test_PatternDetector 17/17 passed, Test_ArrowManager functional (cleanup verified)
+    experts-pane: User confirmed Experts pane is correct output location for Print() statements
 
 paths:
   /phase-0-nuclear-cleanup:
