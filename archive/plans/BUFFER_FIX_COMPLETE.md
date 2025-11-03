@@ -239,16 +239,16 @@ python3 validate_indicator.py Export_EURUSD_PERIOD_M1.csv
 
 ## Success Criteria
 
-| Criterion | Target | Actual | Status |
-| --- | --- | --- | --- |
-| **Laguerre RSI values** | Non-empty | 0.423588, 0.525048, ... | ✅ |
-| **Signal values** | 0, 1, or 2 | All 0 (neutral) | ✅ |
-| **Adaptive Period** | [24, 56] | [24.0, 40.76] | ✅ |
-| **ATR values** | > 0 | [0.000080, 0.000085] | ✅ |
-| **Automated execution** | Terminal auto-start/shutdown | Yes | ✅ |
-| **CSV generation** | 100 bars, 12 columns | Yes | ✅ |
-| **SLO: Maintainability** | 100% (single source) | 100% | ✅ |
-| **SLO: Correctness** | ≥ 0.999 correlation | Pending validation | ⏳ |
+| Criterion                | Target                       | Actual                  | Status |
+| ------------------------ | ---------------------------- | ----------------------- | ------ |
+| **Laguerre RSI values**  | Non-empty                    | 0.423588, 0.525048, ... | ✅     |
+| **Signal values**        | 0, 1, or 2                   | All 0 (neutral)         | ✅     |
+| **Adaptive Period**      | [24, 56]                     | [24.0, 40.76]           | ✅     |
+| **ATR values**           | > 0                          | [0.000080, 0.000085]    | ✅     |
+| **Automated execution**  | Terminal auto-start/shutdown | Yes                     | ✅     |
+| **CSV generation**       | 100 bars, 12 columns         | Yes                     | ✅     |
+| **SLO: Maintainability** | 100% (single source)         | 100%                    | ✅     |
+| **SLO: Correctness**     | ≥ 0.999 correlation          | Pending validation      | ⏳     |
 
 ---
 
@@ -307,17 +307,17 @@ python3 validate_indicator.py Export_EURUSD_PERIOD_M1.csv
 
 ## Files Modified
 
-| File | Purpose | Status | Size | Timestamp |
-| --- | --- | --- | --- | --- |
-| ATR_Adaptive_Laguerre_RSI.mq5 | Indicator source | ✅ Modified | 19 KB | 2025-10-16 23:20 |
-| ATR_Adaptive_Laguerre_RSI.ex5 | Indicator compiled | ✅ Updated | 16 KB | 2025-10-16 23:20 |
-| LaguerreRSIModule.mqh | Export module | ✅ Modified | 3.0 KB | 2025-10-16 23:20 |
-| ExportAlignedTest.mq5 | Test script | ✅ Existing | - | - |
-| ExportAlignedTest.ex5 | Test script compiled | ✅ Updated | 23 KB | 2025-10-16 23:32 |
-| Export_EURUSD_PERIOD_M1.csv | Output data | ✅ Generated | 8.8 KB | 2025-10-16 23:35 |
-| BUFFER_ISSUE_ANALYSIS.md | Research | ✅ Complete | - | 2025-10-16 22:00 |
-| BUFFER_FIX_STATUS.md | Interim status | ✅ Complete | - | 2025-10-16 23:26 |
-| BUFFER_FIX_COMPLETE.md | Final report | ✅ This file | - | 2025-10-16 23:35 |
+| File                          | Purpose              | Status       | Size   | Timestamp        |
+| ----------------------------- | -------------------- | ------------ | ------ | ---------------- |
+| ATR_Adaptive_Laguerre_RSI.mq5 | Indicator source     | ✅ Modified  | 19 KB  | 2025-10-16 23:20 |
+| ATR_Adaptive_Laguerre_RSI.ex5 | Indicator compiled   | ✅ Updated   | 16 KB  | 2025-10-16 23:20 |
+| LaguerreRSIModule.mqh         | Export module        | ✅ Modified  | 3.0 KB | 2025-10-16 23:20 |
+| ExportAlignedTest.mq5         | Test script          | ✅ Existing  | -      | -                |
+| ExportAlignedTest.ex5         | Test script compiled | ✅ Updated   | 23 KB  | 2025-10-16 23:32 |
+| Export_EURUSD_PERIOD_M1.csv   | Output data          | ✅ Generated | 8.8 KB | 2025-10-16 23:35 |
+| BUFFER_ISSUE_ANALYSIS.md      | Research             | ✅ Complete  | -      | 2025-10-16 22:00 |
+| BUFFER_FIX_STATUS.md          | Interim status       | ✅ Complete  | -      | 2025-10-16 23:26 |
+| BUFFER_FIX_COMPLETE.md        | Final report         | ✅ This file | -      | 2025-10-16 23:35 |
 
 ---
 
@@ -335,14 +335,14 @@ python3 validate_indicator.py Export_EURUSD_PERIOD_M1.csv
 
 ## Version History
 
-| Version | Date | Milestone | Status |
-| --- | --- | --- | --- |
-| 0.1.0 | 2025-10-16 | Problem identified (empty buffers) | ✅ |
-| 0.2.0 | 2025-10-16 | Research complete (5 approaches) | ✅ |
-| 0.3.0 | 2025-10-16 | Indicator modified (buffers 3-4) | ✅ |
-| 0.4.0 | 2025-10-16 | Module updated (CopyBuffer 3-4) | ✅ |
-| 0.5.0 | 2025-10-16 | Script compiled (GUI method) | ✅ |
-| **1.0.0** | **2025-10-16 23:35** | **Buffer fix complete** | **✅ SUCCESS** |
+| Version   | Date                 | Milestone                          | Status         |
+| --------- | -------------------- | ---------------------------------- | -------------- |
+| 0.1.0     | 2025-10-16           | Problem identified (empty buffers) | ✅             |
+| 0.2.0     | 2025-10-16           | Research complete (5 approaches)   | ✅             |
+| 0.3.0     | 2025-10-16           | Indicator modified (buffers 3-4)   | ✅             |
+| 0.4.0     | 2025-10-16           | Module updated (CopyBuffer 3-4)    | ✅             |
+| 0.5.0     | 2025-10-16           | Script compiled (GUI method)       | ✅             |
+| **1.0.0** | **2025-10-16 23:35** | **Buffer fix complete**            | **✅ SUCCESS** |
 
 ---
 

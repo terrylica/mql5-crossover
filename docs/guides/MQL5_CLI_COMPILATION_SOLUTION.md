@@ -162,13 +162,13 @@ fi
 
 ### Flag Reference
 
-| Flag | Purpose | Example | Notes |
-| --- | --- | --- | --- |
-| `/compile:` | Source file path | `/compile:"C:/Script.mq5"` | Accepts single file or folder |
-| `/include:` | MQL5 base directory | `/include:"C:/MT5/MQL5"` | **NOT** the Include subfolder! |
-| `/log` | Generate detailed log | `/log` or `/log:"C:/output.log"` | Creates `<source>.log` by default |
-| `/log:CON` | Log to console | `/log:CON` | Wine-compatible console output |
-| `/s` | Syntax check only | `/s` | No .ex5 generation |
+| Flag        | Purpose               | Example                          | Notes                             |
+| ----------- | --------------------- | -------------------------------- | --------------------------------- |
+| `/compile:` | Source file path      | `/compile:"C:/Script.mq5"`       | Accepts single file or folder     |
+| `/include:` | MQL5 base directory   | `/include:"C:/MT5/MQL5"`         | **NOT** the Include subfolder!    |
+| `/log`      | Generate detailed log | `/log` or `/log:"C:/output.log"` | Creates `<source>.log` by default |
+| `/log:CON`  | Log to console        | `/log:CON`                       | Wine-compatible console output    |
+| `/s`        | Syntax check only     | `/s`                             | No .ex5 generation                |
 
 ### Include Path Resolution
 
@@ -460,25 +460,25 @@ cp -r ~/custom-includes/* "$BOTTLE/drive_c/MT5_Unified/MQL5/Include/"
 
 ## Success Criteria
 
-| Criterion | Target | Actual | Status |
-| --- | --- | --- | --- |
-| **Compilation Result** | 0 errors | 0 errors | ✅ |
-| **Compilation Speed** | < 1000ms | 887ms | ✅ |
-| **Binary Match** | Byte-identical to GUI | Byte-identical | ✅ |
-| **Automated Workflow** | Config.ini execution | Working | ✅ |
-| **CSV Export** | All buffers populated | All buffers | ✅ |
-| **Production Ready** | No manual steps | Fully automated | ✅ |
+| Criterion              | Target                | Actual          | Status |
+| ---------------------- | --------------------- | --------------- | ------ |
+| **Compilation Result** | 0 errors              | 0 errors        | ✅     |
+| **Compilation Speed**  | < 1000ms              | 887ms           | ✅     |
+| **Binary Match**       | Byte-identical to GUI | Byte-identical  | ✅     |
+| **Automated Workflow** | Config.ini execution  | Working         | ✅     |
+| **CSV Export**         | All buffers populated | All buffers     | ✅     |
+| **Production Ready**   | No manual steps       | Fully automated | ✅     |
 
 ---
 
 ## Version History
 
-| Version | Date | Change | Status |
-| --- | --- | --- | --- |
-| 1.0.0 | 2025-10-16 | Initial CLI attempts (102 errors) | ❌ |
-| 1.1.0 | 2025-10-16 | Discovered `/include:` vs `/inc:` | ⚠️ Still failing |
-| 1.2.0 | 2025-10-16 | Analyzed detailed log (space issue found) | 🔍 Diagnosis |
-| **2.0.0** | **2025-10-16 23:56** | **Symlink solution (0 errors)** | **✅ SUCCESS** |
+| Version   | Date                 | Change                                    | Status           |
+| --------- | -------------------- | ----------------------------------------- | ---------------- |
+| 1.0.0     | 2025-10-16           | Initial CLI attempts (102 errors)         | ❌               |
+| 1.1.0     | 2025-10-16           | Discovered `/include:` vs `/inc:`         | ⚠️ Still failing |
+| 1.2.0     | 2025-10-16           | Analyzed detailed log (space issue found) | 🔍 Diagnosis     |
+| **2.0.0** | **2025-10-16 23:56** | **Symlink solution (0 errors)**           | **✅ SUCCESS**   |
 
 ---
 

@@ -35,24 +35,24 @@
 
 ### Raw CCI Distribution Analysis
 
-| Metric | Value | Interpretation |
-| --- | --- | --- |
-| Mean | 2.47 | Near-zero centered (expected) |
-| Std Dev | 114.05 | **90% higher** than CCI theory assumes (~60) |
-| Range | [-664.14, +602.29] | Wide tail distribution |
-| IQR | 170.39 | **70% wider** than theory (Q1=-82, Q3=+88) |
-| [-100, +100] coverage | 59.2% | **Should be 75%** (16% miss) |
+| Metric                | Value              | Interpretation                               |
+| --------------------- | ------------------ | -------------------------------------------- |
+| Mean                  | 2.47               | Near-zero centered (expected)                |
+| Std Dev               | 114.05             | **90% higher** than CCI theory assumes (~60) |
+| Range                 | [-664.14, +602.29] | Wide tail distribution                       |
+| IQR                   | 170.39             | **70% wider** than theory (Q1=-82, Q3=+88)   |
+| [-100, +100] coverage | 59.2%              | **Should be 75%** (16% miss)                 |
 
 **Critical Finding**: EURUSD M12 is **far more volatile** than CCI's built-in assumptions.
 
 ### Component Bottleneck Analysis
 
-| Component | Mean | Zeros | Near-Zero (<0.001) | Bottleneck Frequency |
-| --- | --- | --- | --- | --- |
-| P (Fraction in channel) | 0.592 | 0.00% | 0.00% | 0.0% |
-| C (Centering 1-\|mean\|/50) | 0.264 | 49.01% | 49.06% | 3.7% |
-| **V (Dispersion 1-stdev/50)** | **0.006** | **96.02%** | **96.04%** | **96.3%** ⚠️ |
-| Q (Breach magnitude) | 0.774 | 0.00% | 0.00% | 0.0% |
+| Component                     | Mean      | Zeros      | Near-Zero (<0.001) | Bottleneck Frequency |
+| ----------------------------- | --------- | ---------- | ------------------ | -------------------- |
+| P (Fraction in channel)       | 0.592     | 0.00%      | 0.00%              | 0.0%                 |
+| C (Centering 1-\|mean\|/50)   | 0.264     | 49.01%     | 49.06%             | 3.7%                 |
+| **V (Dispersion 1-stdev/50)** | **0.006** | **96.02%** | **96.04%**         | **96.3%** ⚠️         |
+| Q (Breach magnitude)          | 0.774     | 0.00%      | 0.00%              | 0.0%                 |
 
 **V is the killer**: Clamps to zero in 96% of bars due to threshold miscalibration (C1=50 vs actual stdev mean=92.5).
 
@@ -80,12 +80,12 @@
 
 **Results**:
 
-| Contamination | RED | YELLOW | GREEN | Deviation from Target |
-| --- | --- | --- | --- | --- |
-| 0% (baseline) | 30.0% | 40.2% | 29.8% | 0.0% |
-| 5% outliers | 28.6% | 39.5% | 32.0% | 2.2% |
-| 10% outliers | 27.1% | 38.7% | 34.2% | 4.3% |
-| 20% outliers | 24.4% | 37.2% | 38.4% | 8.5% |
+| Contamination | RED   | YELLOW | GREEN | Deviation from Target |
+| ------------- | ----- | ------ | ----- | --------------------- |
+| 0% (baseline) | 30.0% | 40.2%  | 29.8% | 0.0%                  |
+| 5% outliers   | 28.6% | 39.5%  | 32.0% | 2.2%                  |
+| 10% outliers  | 27.1% | 38.7%  | 34.2% | 4.3%                  |
+| 20% outliers  | 24.4% | 37.2%  | 38.4% | 8.5%                  |
 
 **Verdict**: ✅ **PASS** - Stable up to 20% contamination (within acceptable range)
 
@@ -97,11 +97,11 @@
 
 **Results**:
 
-| Market Type | RED | YELLOW | GREEN | vs Target |
-| --- | --- | --- | --- | --- |
-| **Trending** | 29.5% | 37.3% | 33.2% | Within ±5% |
-| **Ranging** | 29.8% | 39.7% | 30.6% | Within ±5% |
-| **Target** | 30% | 40% | 30% | - |
+| Market Type  | RED   | YELLOW | GREEN | vs Target  |
+| ------------ | ----- | ------ | ----- | ---------- |
+| **Trending** | 29.5% | 37.3%  | 33.2% | Within ±5% |
+| **Ranging**  | 29.8% | 39.7%  | 30.6% | Within ±5% |
+| **Target**   | 30%   | 40%    | 30%   | -          |
 
 **Verdict**: ✅ **PASS** - Consistent across market regimes
 
@@ -113,11 +113,11 @@
 
 **Results**:
 
-| Window Size | Std Dev | Median | Stability |
-| --- | --- | --- | --- |
-| 10 bars | 0.312 | 0.483 | Volatile |
-| 30 bars | 0.272 | 0.485 | Moderate |
-| 60 bars | 0.260 | 0.486 | Stable |
+| Window Size  | Std Dev   | Median    | Stability      |
+| ------------ | --------- | --------- | -------------- |
+| 10 bars      | 0.312     | 0.483     | Volatile       |
+| 30 bars      | 0.272     | 0.485     | Moderate       |
+| 60 bars      | 0.260     | 0.486     | Stable         |
 | **120 bars** | **0.253** | **0.487** | **Optimal** ✅ |
 
 **Verdict**: ✅ **PASS** - 120 bars is optimal (lowest variance, stable median)
@@ -144,10 +144,10 @@
 
 **Results**:
 
-| Method | Std Dev | Median | Color Distribution |
-| --- | --- | --- | --- |
-| Single (120 bars) | **0.253** | 0.487 | 30.0% / 40.2% / 29.8% |
-| Multi-scale | **0.265** | 0.498 | 30.1% / 40.0% / 29.9% |
+| Method            | Std Dev   | Median | Color Distribution    |
+| ----------------- | --------- | ------ | --------------------- |
+| Single (120 bars) | **0.253** | 0.487  | 30.0% / 40.2% / 29.8% |
+| Multi-scale       | **0.265** | 0.498  | 30.1% / 40.0% / 29.9% |
 
 **Verdict**: ⚠️ **UNEXPECTED** - Single-window **outperforms** multi-scale
 
@@ -161,12 +161,12 @@
 
 Performance on 10,000 percentile rank calculations (200k bar dataset):
 
-| Module | Time | Per-Calc | Speedup | Use Case |
-| --- | --- | --- | --- | --- |
-| **Numba JIT** | 0.000s | 0.00μs | 100x | Python prototyping (compile-once) |
-| **Bottleneck** | 0.001s | 0.10μs | 10x | Built-in rolling operations |
-| NumPy | 0.017s | 1.70μs | 1x | Baseline |
-| Pandas | 0.277s | 27.70μs | 0.1x | High-level API (slow) |
+| Module         | Time   | Per-Calc | Speedup | Use Case                          |
+| -------------- | ------ | -------- | ------- | --------------------------------- |
+| **Numba JIT**  | 0.000s | 0.00μs   | 100x    | Python prototyping (compile-once) |
+| **Bottleneck** | 0.001s | 0.10μs   | 10x     | Built-in rolling operations       |
+| NumPy          | 0.017s | 1.70μs   | 1x      | Baseline                          |
+| Pandas         | 0.277s | 27.70μs  | 0.1x    | High-level API (slow)             |
 
 **Recommendation**: Use Bottleneck for Python prototyping (`bn.move_rank()`)
 
@@ -174,12 +174,12 @@ Performance on 10,000 percentile rank calculations (200k bar dataset):
 
 ## MQL5-Python Integration Analysis
 
-| Integration Method | Latency | vs Native MQL5 | Production Viable |
-| --- | --- | --- | --- |
-| **Native MQL5** | 0.001ms | 1x baseline | ✅ **YES** |
-| DLL + Python C API | 1-5ms | 1,000x slower | ⚠️ Maybe (if absolutely needed) |
-| Named Pipes IPC | 10-50ms | 10,000x slower | ❌ NO |
-| File-Based | 100-500ms | 100,000x slower | ❌ NO |
+| Integration Method | Latency   | vs Native MQL5  | Production Viable               |
+| ------------------ | --------- | --------------- | ------------------------------- |
+| **Native MQL5**    | 0.001ms   | 1x baseline     | ✅ **YES**                      |
+| DLL + Python C API | 1-5ms     | 1,000x slower   | ⚠️ Maybe (if absolutely needed) |
+| Named Pipes IPC    | 10-50ms   | 10,000x slower  | ❌ NO                           |
+| File-Based         | 100-500ms | 100,000x slower | ❌ NO                           |
 
 **Verdict**: ❌ **NOT RECOMMENDED** for real-time indicators
 

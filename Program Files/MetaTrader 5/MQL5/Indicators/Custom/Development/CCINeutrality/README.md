@@ -8,7 +8,7 @@ Quantifies "consecutive CCI bounded near zero with few ±100 breaches" using sta
 **Status**: Development (Community-grade audit compliance)
 **Branch**: feature/cci-neutrality-indicator
 
-______________________________________________________________________
+---
 
 ## Mathematical Foundation
 
@@ -92,44 +92,38 @@ S_t = p_t · c_t · v_t · q_t ∈ [0,1]
 - Prior bar had coil signal
 - |CCI_t| crosses 100 or -100
 
-______________________________________________________________________
+---
 
 ## Audit Compliance (Community-Grade)
 
 ### Issues Fixed from Initial Implementation
 
 1. **prev_calculated Flow** ✅
-
    - Implements incremental calculation
    - Avoids full history recalculation on each tick
    - Recalculates only last bar on new data
 
 1. **BarsCalculated Hygiene** ✅
-
    - Checks indicator readiness before CopyBuffer
    - Handles partial data availability
    - Reports errors with diagnostic messages
 
 1. **O(1) Rolling Window** ✅
-
    - Maintains running sums (sum_b, sum_cci, sum_cci2, sum_excess)
    - Slides window with add/remove operations
    - Replaces O(N·W) nested loops with O(N) single loop
 
 1. **Plot Configuration** ✅
-
    - Sets PLOT_DRAW_BEGIN = W - 1
    - Explicitly defines PLOT_EMPTY_VALUE
    - Configures arrow glyphs (159 = ●, 241 = ▲)
 
 1. **Buffer Management** ✅
-
    - Uses forward indexing (ArraySetAsSeries = false)
    - Separates state tracking (prev_coil_bar) from output buffers
    - Proper buffer initialization with EMPTY_VALUE
 
 1. **Error Handling** ✅
-
    - Validates input parameters
    - Handles CopyBuffer failures
    - Reports errors with context
@@ -143,7 +137,7 @@ ______________________________________________________________________
 | Rolling window slide | O(1)       | Running sum updates      |
 | Memory               | O(N)       | Static arrays reused     |
 
-______________________________________________________________________
+---
 
 ## Installation
 
@@ -188,7 +182,7 @@ tail -1 "$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_
 # Expected: "0 errors, X warnings, YYY msec elapsed"
 ```
 
-______________________________________________________________________
+---
 
 ## Usage
 
@@ -231,7 +225,7 @@ ______________________________________________________________________
 - **Log file prefix** (default: "cci_neutrality"): Filename prefix
 - **Flush interval** (default: 500): Write buffer every N bars
 
-______________________________________________________________________
+---
 
 ## CSV Logging
 
@@ -283,7 +277,7 @@ time;bar;cci;in_channel;p;mu;sd;e;c;v;q;score;streak;coil;expansion
 | coil       | 1 if coil signal, else 0      |
 | expansion  | 1 if expansion signal, else 0 |
 
-______________________________________________________________________
+---
 
 ## Testing
 
@@ -365,7 +359,7 @@ W    = input.int(30, "Window W")
 - Score values (composite calculation)
 - Coil/expansion signals (threshold logic)
 
-______________________________________________________________________
+---
 
 ## Tuning Guidelines
 
@@ -403,7 +397,7 @@ ______________________________________________________________________
 - Reduce `Score threshold` (0.7-0.75)
 - Expect more coil signals
 
-______________________________________________________________________
+---
 
 ## Implementation Notes
 
@@ -452,7 +446,7 @@ bool expansion = (prev_coil_bar == i - 1) &&
 
 **Why Separate State**: Output buffers (BufCoil) use EMPTY_VALUE for non-signals, unsuitable for state tracking.
 
-______________________________________________________________________
+---
 
 ## Troubleshooting
 
@@ -489,7 +483,7 @@ ______________________________________________________________________
 1. Flush interval: Increase to 1000+ for large datasets
 1. CSV logging: Disable if not needed
 
-______________________________________________________________________
+---
 
 ## References
 
@@ -503,11 +497,11 @@ ______________________________________________________________________
 
 ### Project Documentation
 
-- [MQL5_TO_PYTHON_MIGRATION_GUIDE.md](../../../../docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md)
-- [LESSONS_LEARNED_PLAYBOOK.md](../../../../docs/guides/LESSONS_LEARNED_PLAYBOOK.md)
-- [MQL5_CLI_COMPILATION_SUCCESS.md](../../../../docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md)
+- [MQL5_TO_PYTHON_MIGRATION_GUIDE.md](../../../../../../../docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md)
+- [LESSONS_LEARNED_PLAYBOOK.md](../../../../../../../docs/guides/LESSONS_LEARNED_PLAYBOOK.md)
+- [MQL5_CLI_COMPILATION_SUCCESS.md](../../../../../../../docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md)
 
-______________________________________________________________________
+---
 
 ## Version History
 

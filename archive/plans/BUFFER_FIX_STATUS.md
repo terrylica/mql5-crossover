@@ -164,14 +164,14 @@ LaguerreRSIModule.mqh:
 
 ## Files Modified
 
-| File | Status | Timestamp | Size |
-| --- | --- | --- | --- |
-| ATR_Adaptive_Laguerre_RSI.mq5 | ✅ Modified & Compiled | 2025-10-16 23:20 | 19 KB |
-| ATR_Adaptive_Laguerre_RSI.ex5 | ✅ Compiled | 2025-10-16 23:20 | 16 KB |
-| LaguerreRSIModule.mqh | ✅ Modified | 2025-10-16 23:26 | 3.0 KB |
-| LaguerreRSIModule.mqh.with_buffers_34 | ✅ Backup | 2025-10-16 23:26 | 3.0 KB |
-| ExportAlignedTest.mq5 | ⏳ Needs Recompile | - | - |
-| ExportAlignedTest.ex5 | ⚠️ OLD (pre-modification) | 2025-10-16 22:58 | 23 KB |
+| File                                  | Status                    | Timestamp        | Size   |
+| ------------------------------------- | ------------------------- | ---------------- | ------ |
+| ATR_Adaptive_Laguerre_RSI.mq5         | ✅ Modified & Compiled    | 2025-10-16 23:20 | 19 KB  |
+| ATR_Adaptive_Laguerre_RSI.ex5         | ✅ Compiled               | 2025-10-16 23:20 | 16 KB  |
+| LaguerreRSIModule.mqh                 | ✅ Modified               | 2025-10-16 23:26 | 3.0 KB |
+| LaguerreRSIModule.mqh.with_buffers_34 | ✅ Backup                 | 2025-10-16 23:26 | 3.0 KB |
+| ExportAlignedTest.mq5                 | ⏳ Needs Recompile        | -                | -      |
+| ExportAlignedTest.ex5                 | ⚠️ OLD (pre-modification) | 2025-10-16 22:58 | 23 KB  |
 
 ---
 

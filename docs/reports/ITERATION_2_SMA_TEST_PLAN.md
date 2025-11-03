@@ -152,18 +152,18 @@ int OnCalculate(const int rates_total,
 
 ## Deviations to Track
 
-| Step | Expected (from guide) | Actual | Deviation? |
-| --- | --- | --- | --- |
-| Prerequisites | 5 min |  |  |
-| Find indicator | N/A (creating new) |  |  |
-| Analyze | 5 min (simple) |  |  |
-| Modify/Create | 10 min |  |  |
-| Compile | 5 min |  |  |
-| Fetch Data | 5 min |  |  |
-| Export MQL5 | 10 min |  |  |
-| Implement Python | 15 min |  |  |
-| Validate | 10 min |  |  |
-| **Total** | **1 hour** |  |  |
+| Step             | Expected (from guide) | Actual | Deviation? |
+| ---------------- | --------------------- | ------ | ---------- |
+| Prerequisites    | 5 min                 |        |            |
+| Find indicator   | N/A (creating new)    |        |            |
+| Analyze          | 5 min (simple)        |        |            |
+| Modify/Create    | 10 min                |        |            |
+| Compile          | 5 min                 |        |            |
+| Fetch Data       | 5 min                 |        |            |
+| Export MQL5      | 10 min                |        |            |
+| Implement Python | 15 min                |        |            |
+| Validate         | 10 min                |        |            |
+| **Total**        | **1 hour**            |        |            |
 
 ---
 

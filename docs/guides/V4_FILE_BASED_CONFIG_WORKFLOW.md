@@ -111,35 +111,35 @@ InpOutputName=Export_EURUSD_M1.csv
 
 ### All Parameters
 
-| Parameter | Type | Default | Description |
-| --- | --- | --- | --- |
-| `InpSymbol` | string | "EURUSD" | Trading symbol |
-| `InpTimeframe` | int | 1 | Timeframe (1=M1, 5=M5, 60=H1, etc.) |
-| `InpBars` | int | 5000 | Number of bars to export |
-| `InpUseRSI` | bool | true | Enable RSI indicator |
-| `InpRSIPeriod` | int | 14 | RSI period |
-| `InpUseSMA` | bool | false | Enable SMA indicator |
-| `InpSMAPeriod` | int | 14 | SMA period |
-| `InpUseLaguerreRSI` | bool | false | Enable Laguerre RSI custom indicator |
-| `InpLaguerreInstanceID` | string | "A" | Laguerre instance ID (A-Z) |
-| `InpLaguerreAtrPeriod` | int | 32 | Laguerre ATR period |
-| `InpLaguerreSmoothPeriod` | int | 5 | Laguerre price smoothing period |
-| `InpLaguerreSmoothMethod` | int | 1 | Smoothing method (0=SMA, 1=EMA, 2=SMMA, 3=LWMA) |
-| `InpOutputName` | string | "" | Custom output filename |
+| Parameter                 | Type   | Default  | Description                                     |
+| ------------------------- | ------ | -------- | ----------------------------------------------- |
+| `InpSymbol`               | string | "EURUSD" | Trading symbol                                  |
+| `InpTimeframe`            | int    | 1        | Timeframe (1=M1, 5=M5, 60=H1, etc.)             |
+| `InpBars`                 | int    | 5000     | Number of bars to export                        |
+| `InpUseRSI`               | bool   | true     | Enable RSI indicator                            |
+| `InpRSIPeriod`            | int    | 14       | RSI period                                      |
+| `InpUseSMA`               | bool   | false    | Enable SMA indicator                            |
+| `InpSMAPeriod`            | int    | 14       | SMA period                                      |
+| `InpUseLaguerreRSI`       | bool   | false    | Enable Laguerre RSI custom indicator            |
+| `InpLaguerreInstanceID`   | string | "A"      | Laguerre instance ID (A-Z)                      |
+| `InpLaguerreAtrPeriod`    | int    | 32       | Laguerre ATR period                             |
+| `InpLaguerreSmoothPeriod` | int    | 5        | Laguerre price smoothing period                 |
+| `InpLaguerreSmoothMethod` | int    | 1        | Smoothing method (0=SMA, 1=EMA, 2=SMMA, 3=LWMA) |
+| `InpOutputName`           | string | ""       | Custom output filename                          |
 
 ### Timeframe Values
 
-| Timeframe | Value | Config |
-| --- | --- | --- |
-| M1 | 1 | `InpTimeframe=1` |
-| M5 | 5 | `InpTimeframe=5` |
-| M15 | 15 | `InpTimeframe=15` |
-| M30 | 30 | `InpTimeframe=30` |
-| H1 | 60 | `InpTimeframe=60` |
-| H4 | 240 | `InpTimeframe=240` |
-| D1 | 1440 | `InpTimeframe=1440` |
-| W1 | 10080 | `InpTimeframe=10080` |
-| MN1 | 43200 | `InpTimeframe=43200` |
+| Timeframe | Value | Config               |
+| --------- | ----- | -------------------- |
+| M1        | 1     | `InpTimeframe=1`     |
+| M5        | 5     | `InpTimeframe=5`     |
+| M15       | 15    | `InpTimeframe=15`    |
+| M30       | 30    | `InpTimeframe=30`    |
+| H1        | 60    | `InpTimeframe=60`    |
+| H4        | 240   | `InpTimeframe=240`   |
+| D1        | 1440  | `InpTimeframe=1440`  |
+| W1        | 10080 | `InpTimeframe=10080` |
+| MN1       | 43200 | `InpTimeframe=43200` |
 
 ---
 
@@ -467,39 +467,39 @@ tail -50 "MQL5/Logs/$(date +%Y%m%d).log" | grep -i "error\|laguerre"
 
 ### Execution Time
 
-| Bars | Indicators | Time | Notes |
-| --- | --- | --- | --- |
-| 100 | RSI | ~1s | Quick test |
-| 1000 | RSI + SMA | ~2s | Medium |
-| 5000 | RSI + SMA | ~5s | Standard |
-| 5000 | RSI + SMA + Laguerre | ~8s | With custom indicator |
-| 10000 | All | ~15s | Large dataset |
+| Bars  | Indicators           | Time | Notes                 |
+| ----- | -------------------- | ---- | --------------------- |
+| 100   | RSI                  | ~1s  | Quick test            |
+| 1000  | RSI + SMA            | ~2s  | Medium                |
+| 5000  | RSI + SMA            | ~5s  | Standard              |
+| 5000  | RSI + SMA + Laguerre | ~8s  | With custom indicator |
+| 10000 | All                  | ~15s | Large dataset         |
 
 **Bottleneck**: Custom indicator calculation (Laguerre RSI ~3s overhead)
 
 ### CSV File Sizes
 
-| Bars | Columns | Size | Notes |
-| --- | --- | --- | --- |
-| 100 | 8 (OHLCV) | ~6KB | Market data only |
-| 100 | 9 (+ RSI) | ~7KB | +1 indicator |
-| 5000 | 8 | ~305KB | Standard |
-| 5000 | 11 (+ 3 indicators) | ~385KB | Multi-indicator |
-| 10000 | 8 | ~610KB | Large dataset |
+| Bars  | Columns             | Size   | Notes            |
+| ----- | ------------------- | ------ | ---------------- |
+| 100   | 8 (OHLCV)           | ~6KB   | Market data only |
+| 100   | 9 (+ RSI)           | ~7KB   | +1 indicator     |
+| 5000  | 8                   | ~305KB | Standard         |
+| 5000  | 11 (+ 3 indicators) | ~385KB | Multi-indicator  |
+| 10000 | 8                   | ~610KB | Large dataset    |
 
 ---
 
 ## Comparison: v3.0.0 vs v4.0.0
 
-| Feature | v3.0.0 Python API | v4.0.0 File Config |
-| --- | --- | --- |
-| **Headless** | ✅ True headless | ❌ Requires GUI |
-| **Custom Indicators** | ❌ No access | ✅ Full access via iCustom() |
-| **Parameterization** | ❌ Code editing | ✅ Config file |
-| **Automation** | ✅ CI/CD, scripts | ⚠️ Semi-automated (GUI step) |
-| **Speed** | ~6-8s (5000 bars) | ~5-8s (5000 bars) |
-| **Use Case** | Automated pipelines | Manual validation, testing |
-| **Production Ready** | ✅ Yes | ✅ Yes (GUI mode) |
+| Feature               | v3.0.0 Python API   | v4.0.0 File Config           |
+| --------------------- | ------------------- | ---------------------------- |
+| **Headless**          | ✅ True headless    | ❌ Requires GUI              |
+| **Custom Indicators** | ❌ No access        | ✅ Full access via iCustom() |
+| **Parameterization**  | ❌ Code editing     | ✅ Config file               |
+| **Automation**        | ✅ CI/CD, scripts   | ⚠️ Semi-automated (GUI step) |
+| **Speed**             | ~6-8s (5000 bars)   | ~5-8s (5000 bars)            |
+| **Use Case**          | Automated pipelines | Manual validation, testing   |
+| **Production Ready**  | ✅ Yes              | ✅ Yes (GUI mode)            |
 
 **Recommendation**: Use both approaches complementarily
 

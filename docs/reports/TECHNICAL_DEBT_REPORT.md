@@ -1090,18 +1090,18 @@ except Exception as e:
 
 ### Top 10 Improvements (Effort/Impact Matrix)
 
-| Priority | Item | Impact | Effort | ROI | Timeline |
-| --- | --- | --- | --- | --- | --- |
-| **1** | Add unit tests for Laguerre RSI | HIGH | Medium | 🟢 Very High | 2-4 hours |
-| **2** | Batch validation automation | HIGH | Low | 🟢 Very High | 1-2 hours |
-| **3** | Complete DuckDB schema | LOW | Low | 🟡 Quick Win | 1 hour |
-| **4** | MQL5 module integration tests | MEDIUM | Medium | 🟢 High | 3-5 hours |
-| **5** | CI/CD pipeline (GitHub Actions) | MEDIUM | Medium | 🟢 High | 3-5 hours |
-| **6** | Dependency version pinning | LOW | Low | 🟡 Quick Win | 15 min |
-| **7** | Compilation automation script | LOW | Low | 🟡 Quick Win | 30 min |
-| **8** | Performance benchmarking | LOW | Low | 🟡 Medium | 2 hours |
-| **9** | Class-based indicator API | MEDIUM | High | 🟡 Medium | 6-10 hours |
-| **10** | Type hints (incremental) | LOW | High | 🟣 Long-term | 8-12 hours |
+| Priority | Item                            | Impact | Effort | ROI          | Timeline   |
+| -------- | ------------------------------- | ------ | ------ | ------------ | ---------- |
+| **1**    | Add unit tests for Laguerre RSI | HIGH   | Medium | 🟢 Very High | 2-4 hours  |
+| **2**    | Batch validation automation     | HIGH   | Low    | 🟢 Very High | 1-2 hours  |
+| **3**    | Complete DuckDB schema          | LOW    | Low    | 🟡 Quick Win | 1 hour     |
+| **4**    | MQL5 module integration tests   | MEDIUM | Medium | 🟢 High      | 3-5 hours  |
+| **5**    | CI/CD pipeline (GitHub Actions) | MEDIUM | Medium | 🟢 High      | 3-5 hours  |
+| **6**    | Dependency version pinning      | LOW    | Low    | 🟡 Quick Win | 15 min     |
+| **7**    | Compilation automation script   | LOW    | Low    | 🟡 Quick Win | 30 min     |
+| **8**    | Performance benchmarking        | LOW    | Low    | 🟡 Medium    | 2 hours    |
+| **9**    | Class-based indicator API       | MEDIUM | High   | 🟡 Medium    | 6-10 hours |
+| **10**   | Type hints (incremental)        | LOW    | High   | 🟣 Long-term | 8-12 hours |
 
 ### Quick Wins (< 2 hours)
 

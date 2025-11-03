@@ -168,20 +168,20 @@ else:
 - Production trading requires 99.9%+ accuracy
 - Small errors compound in live trading
 
-| Criterion | Target |
-| --- | --- |
+| Criterion                | Target  |
+| ------------------------ | ------- |
 | Correlation (per buffer) | ≥ 0.999 |
-| MAE | < 0.001 |
-| NaN count (after warmup) | 0 |
+| MAE                      | < 0.001 |
+| NaN count (after warmup) | 0       |
 
 ### Troubleshooting
 
-| Correlation | Likely Cause | Solution |
-| --- | --- | --- |
-| ~0.95 | Missing warmup | Fetch 5000 bars, calculate on all |
-| ~0.85-0.95 | NaN values | Check pandas behavior, use manual loops |
-| ~0.70-0.85 | Algorithm mismatch | Verify EMA/SMA/SMMA formulas |
-| < 0.70 | Major error | Restart with algorithm analysis |
+| Correlation | Likely Cause       | Solution                                |
+| ----------- | ------------------ | --------------------------------------- |
+| ~0.95       | Missing warmup     | Fetch 5000 bars, calculate on all       |
+| ~0.85-0.95  | NaN values         | Check pandas behavior, use manual loops |
+| ~0.70-0.85  | Algorithm mismatch | Verify EMA/SMA/SMMA formulas            |
+| < 0.70      | Major error        | Restart with algorithm analysis         |
 
 **Debug Steps**:
 
@@ -344,13 +344,13 @@ plt.show()
 
 ## Time Estimates
 
-| Phase | First Time | Subsequent |
-| --- | --- | --- |
-| Fetch data | 5-10 min | 2-3 min |
-| Implement | 1-2 hours | 30-60 min |
-| Validate | 15-30 min | 5-10 min |
-| Debug | 1-3 hours | 15-30 min |
-| **Total** | **2-5 hours** | **1-2 hours** |
+| Phase      | First Time    | Subsequent    |
+| ---------- | ------------- | ------------- |
+| Fetch data | 5-10 min      | 2-3 min       |
+| Implement  | 1-2 hours     | 30-60 min     |
+| Validate   | 15-30 min     | 5-10 min      |
+| Debug      | 1-3 hours     | 15-30 min     |
+| **Total**  | **2-5 hours** | **1-2 hours** |
 
 ---
 

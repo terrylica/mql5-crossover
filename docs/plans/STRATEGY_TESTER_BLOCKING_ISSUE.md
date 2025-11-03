@@ -163,12 +163,12 @@ Strategy Tester automation may require:
 
 ### Alternative Approaches Evaluated
 
-| Approach | Viability | Reason |
-| --- | --- | --- |
-| Strategy Tester CLI | ❌ BLOCKED | This document |
-| Python MT5 API | ❌ NOT VIABLE | No indicator buffer access (copy_buffer() requires running indicator) |
-| GUI workflow (manual) | ✅ VIABLE | Requires user to attach indicator to chart |
-| AppleScript/GUI automation | ❓ NOT EXPLORED | May work but adds complexity |
+| Approach                   | Viability       | Reason                                                                |
+| -------------------------- | --------------- | --------------------------------------------------------------------- |
+| Strategy Tester CLI        | ❌ BLOCKED      | This document                                                         |
+| Python MT5 API             | ❌ NOT VIABLE   | No indicator buffer access (copy_buffer() requires running indicator) |
+| GUI workflow (manual)      | ✅ VIABLE       | Requires user to attach indicator to chart                            |
+| AppleScript/GUI automation | ❓ NOT EXPLORED | May work but adds complexity                                          |
 
 ## Error Propagation (No Workarounds)
 

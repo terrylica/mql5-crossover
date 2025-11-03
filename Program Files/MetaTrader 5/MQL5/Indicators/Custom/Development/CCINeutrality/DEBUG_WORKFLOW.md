@@ -10,7 +10,7 @@ Debug version strips all visual complexity and outputs full calculation data to 
 **Analyzer**: `/users/crossover/analyze_cci_debug.py`
 **Output**: `MQL5/Files/cci_debug_SYMBOL_PERIOD_DATE.csv`
 
-______________________________________________________________________
+---
 
 ## Quick Start
 
@@ -48,7 +48,7 @@ python3 analyze_cci_debug.py
 
 The script automatically finds the most recent `cci_debug_*.csv` file and analyzes it.
 
-______________________________________________________________________
+---
 
 ## CSV Output Columns
 
@@ -74,7 +74,7 @@ ______________________________________________________________________
 | sum_cci2   | Rolling sum of CCI² values (debug)       |
 | sum_excess | Rolling sum of breach magnitudes (debug) |
 
-______________________________________________________________________
+---
 
 ## Python Analyzer Output
 
@@ -128,7 +128,7 @@ The `analyze_cci_debug.py` script performs **7 diagnostic checks**:
 - Pass/fail for each diagnostic
 - Overall health assessment
 
-______________________________________________________________________
+---
 
 ## Example Output
 
@@ -230,7 +230,7 @@ Summary
 ================================================================================
 ```
 
-______________________________________________________________________
+---
 
 ## Debugging Workflow
 
@@ -298,7 +298,7 @@ ______________________________________________________________________
 - Incorrect threshold comparisons
 - Logic error in multi-condition AND
 
-______________________________________________________________________
+---
 
 ## Manual CSV Inspection
 
@@ -318,7 +318,7 @@ grep ";1$" "/path/to/cci_debug_*.csv"
 # File → Open → Select CSV → Delimiter: semicolon (;)
 ```
 
-______________________________________________________________________
+---
 
 ## Parameters Reference
 
@@ -348,7 +348,7 @@ All debug parameters match the main indicator:
 - Enable CSV: true (default)
 - Flush interval: 100 bars
 
-______________________________________________________________________
+---
 
 ## Cleanup
 
@@ -364,7 +364,7 @@ ls -lh cci_debug_*.csv
 ls -t cci_debug_*.csv | tail -n +4 | xargs rm -f
 ```
 
-______________________________________________________________________
+---
 
 ## Next Steps After Validation
 
@@ -381,7 +381,7 @@ Then you can:
 - Backtest signal effectiveness
 - Tune parameters for specific markets
 
-______________________________________________________________________
+---
 
 ## Support
 

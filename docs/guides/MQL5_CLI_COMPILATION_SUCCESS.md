@@ -207,9 +207,9 @@ If command times out without producing output:
 
 ## Performance Metrics
 
-| Indicator | Size (.mq5) | Size (.ex5) | Compile Time | Errors | Warnings |
-| --- | --- | --- | --- | --- | --- |
-| LaguerreRSI_Fixed | 58 KB | 25 KB | 1.08s | 0 | 1 |
+| Indicator                                                                  | Size (.mq5) | Size (.ex5) | Compile Time | Errors | Warnings |
+| -------------------------------------------------------------------------- | ----------- | ----------- | ------------ | ------ | -------- |
+| LaguerreRSI_Fixed                                                          | 58 KB       | 25 KB       | 1.08s        | 0      | 1        |
 | (Previous compilations were showing errors due to missing implementations) |
 
 ---

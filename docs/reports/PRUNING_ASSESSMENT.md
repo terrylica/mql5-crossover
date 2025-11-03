@@ -562,20 +562,20 @@ archive/
 
 ### File Count Reduction
 
-| Category | Before | After | Reduction |
-| --- | --- | --- | --- |
-| docs/guides/ | 18 | 13 | -5 files (-28%) |
-| docs/plans/ | 11 | 1 | -10 files (-91%) |
-| users/crossover/\*.py | 12 | 7 | -5 files (-42%) |
-| **TOTAL** | **41** | **21** | **-20 files (-49%)** |
+| Category              | Before | After  | Reduction            |
+| --------------------- | ------ | ------ | -------------------- |
+| docs/guides/          | 18     | 13     | -5 files (-28%)      |
+| docs/plans/           | 11     | 1      | -10 files (-91%)     |
+| users/crossover/\*.py | 12     | 7      | -5 files (-42%)      |
+| **TOTAL**             | **41** | **21** | **-20 files (-49%)** |
 
 ### Size Impact
 
-| Category | Before | After | Reduction |
-| --- | --- | --- | --- |
-| Documentation | ~220KB | ~140KB | -80KB (-36%) |
-| Python scripts | ~110KB | ~55KB | -55KB (-50%) |
-| **TOTAL** | **~330KB** | **~195KB** | **-135KB (-41%)** |
+| Category       | Before     | After      | Reduction         |
+| -------------- | ---------- | ---------- | ----------------- |
+| Documentation  | ~220KB     | ~140KB     | -80KB (-36%)      |
+| Python scripts | ~110KB     | ~55KB      | -55KB (-50%)      |
+| **TOTAL**      | **~330KB** | **~195KB** | **-135KB (-41%)** |
 
 ### Navigation Impact
 

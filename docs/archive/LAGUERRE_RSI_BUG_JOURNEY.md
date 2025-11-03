@@ -22,15 +22,15 @@
 
 ## Timeline Overview
 
-| Time | Event | Status |
-| --- | --- | --- |
-| 09:00 | Bug #1 Discovered: Price smoothing inconsistency | 🔴 BUG |
-| 15:00 | Fix #1 Implemented: All MA methods in custom path | ✅ FIXED |
-| 22:00 | User Testing: Screenshot shows values still different | 🔴 BUG |
-| 22:34 | Bug #2 Discovered: Array indexing direction inverted | 🔴 BUG |
-| 22:34 | Fix #2 Implemented: Reverse loop direction | ✅ FIXED |
-| 22:44 | Bug #3 Discovered: Shared static array (ROOT CAUSE) | 🔴 BUG |
-| 22:44 | Fix #3 Implemented: Separate instances | ✅ FIXED |
+| Time  | Event                                                 | Status   |
+| ----- | ----------------------------------------------------- | -------- |
+| 09:00 | Bug #1 Discovered: Price smoothing inconsistency      | 🔴 BUG   |
+| 15:00 | Fix #1 Implemented: All MA methods in custom path     | ✅ FIXED |
+| 22:00 | User Testing: Screenshot shows values still different | 🔴 BUG   |
+| 22:34 | Bug #2 Discovered: Array indexing direction inverted  | 🔴 BUG   |
+| 22:34 | Fix #2 Implemented: Reverse loop direction            | ✅ FIXED |
+| 22:44 | Bug #3 Discovered: Shared static array (ROOT CAUSE)   | 🔴 BUG   |
+| 22:44 | Fix #3 Implemented: Separate instances                | ✅ FIXED |
 
 ---
 

@@ -38,12 +38,12 @@ Actual [-150, +150]:    82.5% coverage (P10-P90)
 
 ### Rolling Window Analysis
 
-| Window Size | Time Horizon | Avg IQR | Adaptive Bounds | Use Case |
-| --- | --- | --- | --- | --- |
-| 30 bars | 6 hours | 198 | [-196, +201] | Recent regime |
-| 120 bars | 1 day | 256 | [-254, +259] | Daily cycle |
-| 500 bars | 4 days | 297 | [-292, +301] | Weekly trend |
-| 1440 bars | 12 days | 337 | [-332, +343] | Long-term baseline |
+| Window Size | Time Horizon | Avg IQR | Adaptive Bounds | Use Case           |
+| ----------- | ------------ | ------- | --------------- | ------------------ |
+| 30 bars     | 6 hours      | 198     | [-196, +201]    | Recent regime      |
+| 120 bars    | 1 day        | 256     | [-254, +259]    | Daily cycle        |
+| 500 bars    | 4 days       | 297     | [-292, +301]    | Weekly trend       |
+| 1440 bars   | 12 days      | 337     | [-332, +343]    | Long-term baseline |
 
 ---
 
@@ -232,12 +232,12 @@ double score = 0.5*pr_short + 0.3*pr_med + 0.2*pr_long;
 
 ## 📈 Comparison: Fixed vs Adaptive
 
-| Approach | Channel Bounds | Score Distribution | Spike Frequency | Regime Robustness |
-| --- | --- | --- | --- | --- |
-| **Current** | Fixed [-100,+100] | 99.9% RED, 0.1% GREEN | 0.1% | ❌ Poor |
-| **Fixed Recalibrated** | Fixed [-150,+150] | ~90% RED, ~10% GREEN | ~10% | ⚠️ Better |
-| **Adaptive Percentile** | Adaptive (P10-P90) | 30% RED, 40% YELLOW, 30% GREEN | ~30% | ✅ Excellent |
-| **Multi-Scale Ensemble** | Multi-window adaptive | 30% RED, 40% YELLOW, 30% GREEN | ~30% | ✅✅ Best |
+| Approach                 | Channel Bounds        | Score Distribution             | Spike Frequency | Regime Robustness |
+| ------------------------ | --------------------- | ------------------------------ | --------------- | ----------------- |
+| **Current**              | Fixed [-100,+100]     | 99.9% RED, 0.1% GREEN          | 0.1%            | ❌ Poor           |
+| **Fixed Recalibrated**   | Fixed [-150,+150]     | ~90% RED, ~10% GREEN           | ~10%            | ⚠️ Better         |
+| **Adaptive Percentile**  | Adaptive (P10-P90)    | 30% RED, 40% YELLOW, 30% GREEN | ~30%            | ✅ Excellent      |
+| **Multi-Scale Ensemble** | Multi-window adaptive | 30% RED, 40% YELLOW, 30% GREEN | ~30%            | ✅✅ Best         |
 
 ---
 

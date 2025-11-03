@@ -22,13 +22,13 @@ Comprehensive validation of the mql5-crossover project confirmed that all produc
 
 ## Test Results Summary
 
-| Priority | Total | Passed | Failed | Skipped | Pass Rate |
-| --- | --- | --- | --- | --- | --- |
-| **P0 - Critical** | 10 | 9 | 0 | 1 | 100% |
-| **P1 - Core** | 12 | 12 | 0 | 0 | 100% |
-| **P2 - Documentation** | 5 | 5 | 0 | 0 | 100% |
-| **P3 - Edge Cases** | 5 | 5 | 0 | 0 | 100% |
-| **TOTAL** | **32** | **31** | **0** | **1** | **100%** |
+| Priority               | Total  | Passed | Failed | Skipped | Pass Rate |
+| ---------------------- | ------ | ------ | ------ | ------- | --------- |
+| **P0 - Critical**      | 10     | 9      | 0      | 1       | 100%      |
+| **P1 - Core**          | 12     | 12     | 0      | 0       | 100%      |
+| **P2 - Documentation** | 5      | 5      | 0      | 0       | 100%      |
+| **P3 - Edge Cases**    | 5      | 5      | 0      | 0       | 100%      |
+| **TOTAL**              | **32** | **31** | **0**  | **1**   | **100%**  |
 
 ---
 
@@ -395,16 +395,16 @@ if path.startswith('http') or path.startswith('#'):
 
 ## Performance Metrics
 
-| Metric | Value |
-| --- | --- |
-| **Total Duration** | 0.61 seconds |
-| **Average Test Time** | 19ms |
-| **Fastest Test** | 0.01ms (P3:28, P3:29, P1:20) |
-| **Slowest Test** | 54ms (P2:23, CLAUDE.md links) |
-| **P0 Duration** | ~200ms |
-| **P1 Duration** | ~150ms |
-| **P2 Duration** | ~110ms |
-| **P3 Duration** | ~40ms |
+| Metric                | Value                         |
+| --------------------- | ----------------------------- |
+| **Total Duration**    | 0.61 seconds                  |
+| **Average Test Time** | 19ms                          |
+| **Fastest Test**      | 0.01ms (P3:28, P3:29, P1:20)  |
+| **Slowest Test**      | 54ms (P2:23, CLAUDE.md links) |
+| **P0 Duration**       | ~200ms                        |
+| **P1 Duration**       | ~150ms                        |
+| **P2 Duration**       | ~110ms                        |
+| **P3 Duration**       | ~40ms                         |
 
 ---
 

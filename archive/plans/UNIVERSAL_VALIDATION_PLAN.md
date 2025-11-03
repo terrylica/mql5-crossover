@@ -61,12 +61,12 @@ Query results via SQL views
 
 ## Service Level Objectives
 
-| SLO | Target | Measurement |
-| --- | --- | --- |
-| **Availability** | 100% | All 20 workspace files accessible |
-| **Correctness** | 100% | Correlation ≥ 0.999 between MQL5 and Python |
-| **Observability** | 100% | All validation runs tracked in DuckDB |
-| **Maintainability** | 100% | Single registry.yaml, no indicator-specific scripts |
+| SLO                 | Target | Measurement                                         |
+| ------------------- | ------ | --------------------------------------------------- |
+| **Availability**    | 100%   | All 20 workspace files accessible                   |
+| **Correctness**     | 100%   | Correlation ≥ 0.999 between MQL5 and Python         |
+| **Observability**   | 100%   | All validation runs tracked in DuckDB               |
+| **Maintainability** | 100%   | Single registry.yaml, no indicator-specific scripts |
 
 ---
 
@@ -213,12 +213,12 @@ wine "C:\\Program Files\\Python312\\python.exe" -m pip install duckdb pyyaml
 
 ## Version History
 
-| Version | Date | Changes | Author |
-| --- | --- | --- | --- |
-| 1.0.0 | 2025-10-16 | Initial plan | AI Agent |
-| 1.1.0 | 2025-10-16 | Spike 1 failure, architecture revised to MQL5 CSV export | AI Agent |
-| 1.2.0 | 2025-10-16 | Phase 1 complete, CLI compilation discovery, dependencies installed | AI Agent |
-| 1.3.0 | 2025-10-16 | Script automation discovery via research audit, fully automated workflow | AI Agent |
+| Version | Date       | Changes                                                                  | Author   |
+| ------- | ---------- | ------------------------------------------------------------------------ | -------- |
+| 1.0.0   | 2025-10-16 | Initial plan                                                             | AI Agent |
+| 1.1.0   | 2025-10-16 | Spike 1 failure, architecture revised to MQL5 CSV export                 | AI Agent |
+| 1.2.0   | 2025-10-16 | Phase 1 complete, CLI compilation discovery, dependencies installed      | AI Agent |
+| 1.3.0   | 2025-10-16 | Script automation discovery via research audit, fully automated workflow | AI Agent |
 
 ---
 

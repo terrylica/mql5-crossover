@@ -8,7 +8,7 @@ This document validates the CCI Neutrality indicator implementation against comm
 **Implementation Version**: 1.00
 **Validation Date**: 2025-10-27
 
-______________________________________________________________________
+---
 
 ## Audit Requirements Checklist
 
@@ -51,7 +51,7 @@ else
 - Subsequent runs: Recalculates only from prev_calculated-1
 - Avoids full history recalculation on each tick
 
-______________________________________________________________________
+---
 
 ### ✅ 2. BarsCalculated Hygiene
 
@@ -91,7 +91,7 @@ if(copied < rates_total)
 - Returns prev_calculated on failure (preserves state)
 - Reports errors with diagnostic context
 
-______________________________________________________________________
+---
 
 ### ✅ 3. O(1) Rolling Window Updates
 
@@ -189,7 +189,7 @@ for(int i = start; i < rates_total && !IsStopped(); i++)
 
 - For N=5000, W=30: Original O(150,000) vs Fixed O(5,000) = **30x speedup**
 
-______________________________________________________________________
+---
 
 ### ✅ 4. Plot Configuration
 
@@ -224,7 +224,7 @@ PlotIndexSetInteger(3, PLOT_ARROW, 241); // ▲ (triangle up)
 - Arrow glyphs explicitly configured (159, 241)
 - Matches MQL5 reference examples
 
-______________________________________________________________________
+---
 
 ### ✅ 5. Buffer State Separation
 
@@ -266,7 +266,7 @@ if(i > 0 && prev_coil_bar == i - 1)
 - Output buffer (BufCoil) only stores display values
 - Clear separation of concerns
 
-______________________________________________________________________
+---
 
 ### ✅ 6. Forward Indexing
 
@@ -291,7 +291,7 @@ ArraySetAsSeries(time, false);
 - Matches prev_calculated semantics (index 0 = oldest bar)
 - Loop indices match array indices directly
 
-______________________________________________________________________
+---
 
 ### ✅ 7. Error Handling
 
@@ -340,7 +340,7 @@ if(copied < rates_total)
 - CopyBuffer failure detection
 - Diagnostic error messages with error codes
 
-______________________________________________________________________
+---
 
 ### ✅ 8. CSV Logging Integration
 
@@ -401,7 +401,7 @@ if(InpLogCSV && g_logger.IsOpen())
 - Comprehensive column set (15 metrics)
 - Proper resource cleanup in OnDeinit
 
-______________________________________________________________________
+---
 
 ## Summary
 
@@ -418,7 +418,7 @@ ______________________________________________________________________
 
 **Overall Compliance**: ✅ **8/8 PASS**
 
-______________________________________________________________________
+---
 
 ## Performance Validation
 
@@ -450,7 +450,7 @@ ______________________________________________________________________
 
 - Total: ~200KB (acceptable for real-time indicator)
 
-______________________________________________________________________
+---
 
 ## Testing Recommendations
 
@@ -507,7 +507,7 @@ Expected score = 0.9 * 0.8 * 0.7 * 0.6 = 0.3024
 - Monitor CPU usage
 - Expected: Minimal CPU spikes on new ticks
 
-______________________________________________________________________
+---
 
 ## Audit Trail
 
@@ -535,7 +535,7 @@ ______________________________________________________________________
 **Date**: 2025-10-27
 **Status**: APPROVED FOR DEVELOPMENT TESTING
 
-______________________________________________________________________
+---
 
 ## Next Steps
 
@@ -546,7 +546,7 @@ ______________________________________________________________________
 1. **Tune parameters** for specific symbol/timeframe
 1. **Move to ProductionIndicators/** after validation
 
-______________________________________________________________________
+---
 
 ## References
 

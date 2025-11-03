@@ -437,10 +437,10 @@ touch docs/reports/INDICATOR_NAME_VALIDATION_SUCCESS.md
 
 ## Validation Results
 
-| Buffer | Correlation | MAE | Result |
-| --- | --- | --- | --- |
-| Buffer1 | 1.000000 | 0.000000 | ✅ PASS |
-| Buffer2 | 0.999987 | 0.000001 | ✅ PASS |
+| Buffer  | Correlation | MAE      | Result  |
+| ------- | ----------- | -------- | ------- |
+| Buffer1 | 1.000000    | 0.000000 | ✅ PASS |
+| Buffer2 | 0.999987    | 0.000001 | ✅ PASS |
 
 ## Implementation Details
 
@@ -520,16 +520,16 @@ Correlation: All buffers ≥0.999"
 
 ## Time Tracking
 
-| Phase | Expected | Actual | Notes |
-| --- | --- | --- | --- |
-| 1. Locate & Analyze | 30-60 min | \_\_\_ |  |
-| 2. Modify MQL5 | 15-30 min | \_\_\_ |  |
-| 3. CLI Compile | 10-20 min | \_\_\_ |  |
-| 4. Fetch Data | 5-10 min | \_\_\_ |  |
-| 5. Python Implementation | 1-2 hours | \_\_\_ |  |
-| 6. Validation | 15-30 min | \_\_\_ |  |
-| 7. Documentation | 20-30 min | \_\_\_ |  |
-| **TOTAL** | **2-4 hours** | **\_\_\_** |  |
+| Phase                    | Expected      | Actual     | Notes |
+| ------------------------ | ------------- | ---------- | ----- |
+| 1. Locate & Analyze      | 30-60 min     | \_\_\_     |       |
+| 2. Modify MQL5           | 15-30 min     | \_\_\_     |       |
+| 3. CLI Compile           | 10-20 min     | \_\_\_     |       |
+| 4. Fetch Data            | 5-10 min      | \_\_\_     |       |
+| 5. Python Implementation | 1-2 hours     | \_\_\_     |       |
+| 6. Validation            | 15-30 min     | \_\_\_     |       |
+| 7. Documentation         | 20-30 min     | \_\_\_     |       |
+| **TOTAL**                | **2-4 hours** | **\_\_\_** |       |
 
 ---
 

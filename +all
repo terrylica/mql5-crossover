@@ -1,0 +1,50 @@
+
+
+***** Sun Nov  2 17:31:23 2025
+Starting: '/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine' '--bottle' 'MetaTrader 5' '--cx-app' 'C:/Program Files/MetaTrader 5/MetaEditor64.exe' '/log' '/compile:C:/Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/CCI_Neutrality_Adaptive.mq5' '/inc:C:/Program Files/MetaTrader 5/MQL5'
+
+60760: Grabbing the '/var/folders/f4/yr36gs0j7gb46m_lcdc6tr2h0000gn/T//.wine-501/bottle-0-0.lock' lock
+60760: Got the '/var/folders/f4/yr36gs0j7gb46m_lcdc6tr2h0000gn/T//.wine-501/bottle-0-0.lock' lock
+CXConfig->read(/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/etc/CrossOver.conf)
+CXConfig->read(/Users/terryli/Library/Application Support/CrossOver/CrossOver.conf)
+Product version=25.1.1.38624
+CXConfig->read(/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/cxbottle.conf)
+Mode = 'private'
+Bottle environment variables:
+ CX_BOTTLE_CREATOR_APPID -> com.codeweavers.c4.8364
+Environment:
+  CX_ROOT = "/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver"
+  CX_BOTTLE = "MetaTrader 5"
+  WINEPREFIX = "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5"
+  CX_WINDOWS_VERSION = <undefined>
+  PATH = "/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin:/Users/terryli/.local/bin:/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin:/Users/terryli/.bun/bin:/Users/terryli/.nvm/versions/node/v22.17.0/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/TeX/texbin:/Applications/quarto/bin:/Users/terryli/.cargo/bin:/Users/terryli/.local/bin:/Users/terryli/bin:/Applications/iTerm.app/Contents/Resources/utilities"
+  LD_LIBRARY_PATH = <undefined>
+  WINEDLLPATH = "/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/lib/wine/x86_64-windows:/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/lib/wine/i386-windows:/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/lib/wine"
+  WINEDLLOVERRIDES = <undefined>
+  LD_PRELOAD = <undefined>
+  LD_ASSUME_KERNEL = <undefined>
+  WINELOADER = "/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wineloader"
+  WINESERVER = "/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wineserver"
+  WINEDEBUG = <undefined>
+  WINEWRAPPER = "/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/lib/wine/x86_64-windows/winewrapper.exe"
+  CX_LOG = "+all"
+  CX_DEBUGMSG = <undefined>
+  DISPLAY = <undefined>
+  VKD3D_DEBUG = <undefined>
+  VKD3D_SHADER_DEBUG = <undefined>
+60760: Releasing the '/var/folders/f4/yr36gs0j7gb46m_lcdc6tr2h0000gn/T//.wine-501/bottle-0-0.lock' lock
+Command:
+/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wineloader /Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/lib/wine/x86_64-windows/winewrapper.exe --run -- C:/Program Files/MetaTrader 5/MetaEditor64.exe /log /compile:C:/Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/CCI_Neutrality_Adaptive.mq5 /inc:C:/Program Files/MetaTrader 5/MQL5
+
+** Sun Nov  2 17:31:23 2025
+Starting '/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wineloader' '/Users/terryli/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/lib/wine/x86_64-windows/winewrapper.exe' '--run' '--'
+'C:/Program Files/MetaTrader 5/MetaEditor64.exe' '/log' '/compile:C:/Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/CCI_Neutrality_Adaptive.mq5' '/inc:C:/Program Files/MetaTrader 5/MQL5'
+
+0234:fixme:font:opentype_enum_font_names handle name format 1
+0234:fixme:font:opentype_enum_font_names handle name format 1
+0234:fixme:font:opentype_enum_font_names handle name format 1
+023c:fixme:font:opentype_enum_font_names handle name format 1
+023c:fixme:font:opentype_enum_font_names handle name format 1
+023c:fixme:font:opentype_enum_font_names handle name format 1
+023c:fixme:thread:get_thread_times not implemented on this platform
+023c:fixme:kernelbase:AppPolicyGetProcessTerminationMethod FFFFFFFFFFFFFFFA, 000000000041FEE0

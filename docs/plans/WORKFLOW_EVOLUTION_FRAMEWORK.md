@@ -104,13 +104,13 @@
 
 **Deliverable**: Reality Check Matrix
 
-| Step | What Guide Says | What We Actually Did | Gap? |
-| --- | --- | --- | --- |
-| Find indicator | `find ... -name "*.mq5"` | Used this command | ✅ OK |
-| Compile | `--cx-app with /inc` | Used --cx-app WITHOUT /inc | ⚠️ GAP |
-| Export | Inline OnCalculate code | Used ExportAligned.mq5 | ⚠️ GAP |
-| Fetch data | Inline Python -c | Used export_aligned.py file | ⚠️ GAP |
-| Validate | validate_indicator.py | Used validate_indicator.py | ✅ OK |
+| Step           | What Guide Says          | What We Actually Did        | Gap?   |
+| -------------- | ------------------------ | --------------------------- | ------ |
+| Find indicator | `find ... -name "*.mq5"` | Used this command           | ✅ OK  |
+| Compile        | `--cx-app with /inc`     | Used --cx-app WITHOUT /inc  | ⚠️ GAP |
+| Export         | Inline OnCalculate code  | Used ExportAligned.mq5      | ⚠️ GAP |
+| Fetch data     | Inline Python -c         | Used export_aligned.py file | ⚠️ GAP |
+| Validate       | validate_indicator.py    | Used validate_indicator.py  | ✅ OK  |
 
 **Action**: Create this matrix for ALL 7 phases
 
@@ -462,20 +462,20 @@ Iteration 10: ❌ NOT STARTED (continuous improvement)
 
 ## Time Investment Required
 
-| Iteration | Time | Cumulative |
-| --- | --- | --- |
-| 0. Audit Reality | 0.5h | 0.5h |
-| 1. Simplify | 1h | 1.5h |
-| 2. SMA Test | 1h | 2.5h |
-| 3. Update | 0.5h | 3h |
-| 4. RSI Test | 1.5h | 4.5h |
-| 5. Convergence | 0.5h | 5h |
-| 6. Automation | 2h | 7h |
-| 7. MACD Test | 1h | 8h |
-| 8. Docs Freeze | 1h | 9h |
-| 9. Peer Validation | 3h | 12h |
-| 10. CI Process | 0.5h | 12.5h |
-| **TOTAL** | **12.5h** | - |
+| Iteration          | Time      | Cumulative |
+| ------------------ | --------- | ---------- |
+| 0. Audit Reality   | 0.5h      | 0.5h       |
+| 1. Simplify        | 1h        | 1.5h       |
+| 2. SMA Test        | 1h        | 2.5h       |
+| 3. Update          | 0.5h      | 3h         |
+| 4. RSI Test        | 1.5h      | 4.5h       |
+| 5. Convergence     | 0.5h      | 5h         |
+| 6. Automation      | 2h        | 7h         |
+| 7. MACD Test       | 1h        | 8h         |
+| 8. Docs Freeze     | 1h        | 9h         |
+| 9. Peer Validation | 3h        | 12h        |
+| 10. CI Process     | 0.5h      | 12.5h      |
+| **TOTAL**          | **12.5h** | -          |
 
 **Investment**: 12.5 hours
 **Payoff**: Rock-solid workflow validated with 4 indicators + peer review

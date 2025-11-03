@@ -8,12 +8,12 @@
 
 ## Service Level Objectives - Current Status
 
-| Metric | Target | Actual | Status |
-| --- | --- | --- | --- |
-| **Availability** | 100% | 80% | 🟡 Partial |
-| **Correctness** | 100% | N/A | ⏸️ Cannot test |
-| **Observability** | 100% | 75% | 🟡 Partial |
-| **Maintainability** | ≥ 90% | 85% | 🟡 Acceptable |
+| Metric              | Target | Actual | Status         |
+| ------------------- | ------ | ------ | -------------- |
+| **Availability**    | 100%   | 80%    | 🟡 Partial     |
+| **Correctness**     | 100%   | N/A    | ⏸️ Cannot test |
+| **Observability**   | 100%   | 75%    | 🟡 Partial     |
+| **Maintainability** | ≥ 90%  | 85%    | 🟡 Acceptable  |
 
 **Root Cause**: Automated script execution via config file not working.
 
@@ -254,15 +254,15 @@ $BOTTLE/drive_c/users/crossover/exports/Export_EURUSD_M1_SMA.csv
 
 ## Updated Reality Check
 
-| Phase | Documented | Actual | Match? |
-| --- | --- | --- | --- |
-| Prerequisites | Missing | N/A | ❌ |
-| Indicator Creation | N/A | SimpleSMA_Test.mq5 created | ✅ |
-| Compilation | "Use /inc flag" | "/inc OVERRIDES, omit it" | ❌ |
-| Module Creation | Not documented | SMAModule.mqh pattern | ❌ |
-| Export Script Update | Not documented | Updated ExportAligned.mq5 | ❌ |
-| Script Execution | "Use config file" | Config didn't work | ❌ |
-| Python Validation | Generic | Needs SMA support | ⏸️ |
+| Phase                | Documented        | Actual                     | Match? |
+| -------------------- | ----------------- | -------------------------- | ------ |
+| Prerequisites        | Missing           | N/A                        | ❌     |
+| Indicator Creation   | N/A               | SimpleSMA_Test.mq5 created | ✅     |
+| Compilation          | "Use /inc flag"   | "/inc OVERRIDES, omit it"  | ❌     |
+| Module Creation      | Not documented    | SMAModule.mqh pattern      | ❌     |
+| Export Script Update | Not documented    | Updated ExportAligned.mq5  | ❌     |
+| Script Execution     | "Use config file" | Config didn't work         | ❌     |
+| Python Validation    | Generic           | Needs SMA support          | ⏸️     |
 
 **Reality Check Score**: 14% (1/7 phases match)
 

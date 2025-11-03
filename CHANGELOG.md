@@ -59,6 +59,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## CCI Neutrality Adaptive Indicator
+
+### [4.24] - 2025-11-02
+
+#### Added
+
+- **Rising Pattern Detection**: Detects 4 consecutive rising histogram bars and marks the 4th bar with a blue dot
+  - Arrow overlay positioned above histogram (DRAW_ARROW code 159 = filled circle)
+  - Detection logic: BufScore[i-3] < [i-2] < [i-1] < [i]
+  - Arrow shift: -15 points upward from histogram top
+  - Blue color (clrDodgerBlue) for visibility
+  - Debug logging for first 10 bars and first 5 detected patterns
+
+#### Changed
+
+- **Indicator Buffers**: Increased from 3 to 4 (added BufArrows buffer)
+- **Indicator Plots**: Increased from 1 to 2 (histogram + arrows)
+- **PLOT_DRAW_BEGIN**: Set for arrow plot to StartCalcPosition + 3 (needs 3 previous bars)
+
+#### Technical Details
+
+- Compilation: 22KB .ex5 file, 0 errors, 0 warnings
+- Tested: Multiple instances of 4 consecutive rising bars detected (confirmed via user screenshots)
+- CLI Compilation Fix: Must compile from simple path (no spaces) due to Wine/CrossOver limitation
+  - Copy .mq5 to C:/TestIndicator.mq5
+  - Compile with `/compile:"C:/TestIndicator.mq5"`
+  - Copy .ex5 back to target location
+  - Long paths with spaces (e.g., "Program Files/.../CCINeutrality/") cause silent CLI compilation failures
+- Platform: MetaTrader 5 via CrossOver on macOS
+
+---
+
 ## Consecutive Pattern Indicator
 
 ### [1.40.0] - 2025-10-30

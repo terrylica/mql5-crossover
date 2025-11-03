@@ -255,13 +255,13 @@ cmd /c start /min /wait M:\$($folder)\terminal.exe \
 
 **Key Difference**:
 
-| Feature | Expert Advisors | Scripts |
-| --- | --- | --- |
-| Auto-launch via [StartUp] | ✅ Reliable | ✅ Works |
-| Parameter loading via .set | ✅ Usually works | ⚠️ Rarely works |
-| Input dialog | Always shown | Requires #property directive |
-| ShutdownTerminal support | ❌ No | ✅ Yes |
-| Strategy Tester support | ✅ Full | ❌ Limited |
+| Feature                    | Expert Advisors  | Scripts                      |
+| -------------------------- | ---------------- | ---------------------------- |
+| Auto-launch via [StartUp]  | ✅ Reliable      | ✅ Works                     |
+| Parameter loading via .set | ✅ Usually works | ⚠️ Rarely works              |
+| Input dialog               | Always shown     | Requires #property directive |
+| ShutdownTerminal support   | ❌ No            | ✅ Yes                       |
+| Strategy Tester support    | ✅ Full          | ❌ Limited                   |
 
 **From Forum Posts**:
 

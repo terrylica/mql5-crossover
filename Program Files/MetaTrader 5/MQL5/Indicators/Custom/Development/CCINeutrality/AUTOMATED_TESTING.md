@@ -4,12 +4,12 @@
 
 Fast validation using **historical data** instead of waiting for live ticks. Leverages existing project infrastructure documented in:
 
-- **[docs/guides/WINE_PYTHON_EXECUTION.md](../../../../../docs/guides/WINE_PYTHON_EXECUTION.md)** - v3.0.0 Wine Python headless execution
-- **[docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md](../../../../../docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md)** - 5000-bar warmup requirement
-- **[docs/MT5_REFERENCE_HUB.md](../../../../../docs/MT5_REFERENCE_HUB.md)** - Automation matrix and decision trees
+- **[docs/guides/WINE_PYTHON_EXECUTION.md](../../../../../../../docs/guides/WINE_PYTHON_EXECUTION.md)** - v3.0.0 Wine Python headless execution
+- **[docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md](../../../../../../../docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md)** - 5000-bar warmup requirement
+- **[docs/MT5_REFERENCE_HUB.md](../../../../../../../docs/MT5_REFERENCE_HUB.md)** - Automation matrix and decision trees
 - **[README.md](README.md)** - Strategy Tester workflow
 
-______________________________________________________________________
+---
 
 ## Why Historical Data?
 
@@ -28,7 +28,7 @@ ______________________________________________________________________
 - Reproducible test conditions
 - Per **INDICATOR_VALIDATION_METHODOLOGY.md**: 5000-bar minimum for warmup
 
-______________________________________________________________________
+---
 
 ## Quick Start (3 Steps)
 
@@ -77,7 +77,7 @@ python3 analyze_cci_debug.py
 - Validates all calculations
 - Shows ✓ PASS or ✗ FAIL for each
 
-______________________________________________________________________
+---
 
 ## Complete Automated Workflow
 
@@ -98,20 +98,20 @@ cd "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/dr
 
 **Total time**: ~1 minute (vs 20+ hours for live M12 data)
 
-______________________________________________________________________
+---
 
 ## Documentation References
 
 ### Primary Workflows
 
-**[INDICATOR_VALIDATION_METHODOLOGY.md](../../../../../docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md)**:
+**[INDICATOR_VALIDATION_METHODOLOGY.md](../../../../../../../docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md)**:
 
 - Why 5000 bars required (warmup for ATR, adaptive periods)
 - MQL5 expanding window behavior (divides by `period`, not available bars)
 - Two-stage validation (fetch 5000 bars, calculate on all, compare last N)
 - Correlation thresholds (≥0.999 = PASS)
 
-**[WINE_PYTHON_EXECUTION.md](../../../../../docs/guides/WINE_PYTHON_EXECUTION.md)**:
+**[WINE_PYTHON_EXECUTION.md](../../../../../../../docs/guides/WINE_PYTHON_EXECUTION.md)**:
 
 - v3.0.0 Wine Python headless execution
 - CX_BOTTLE + WINEPREFIX environment variables
@@ -119,7 +119,7 @@ ______________________________________________________________________
 - MT5 Python API usage
 - Cold start capability (any symbol/timeframe without GUI)
 
-**[MT5_REFERENCE_HUB.md](../../../../../docs/MT5_REFERENCE_HUB.md)**:
+**[MT5_REFERENCE_HUB.md](../../../../../../../docs/MT5_REFERENCE_HUB.md)**:
 
 - Decision trees (export data, compile, validate, parameters)
 - Automation matrix (FULLY AUTOMATED vs SEMI-AUTOMATED vs MANUAL)
@@ -127,13 +127,13 @@ ______________________________________________________________________
 
 ### Supporting Documentation
 
-**[MQL5_TO_PYTHON_MIGRATION_GUIDE.md](../../../../../docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md)**:
+**[MQL5_TO_PYTHON_MIGRATION_GUIDE.md](../../../../../../../docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md)**:
 
 - 7-phase indicator migration workflow
 - Algorithm analysis patterns
 - Validation procedures
 
-**[LESSONS_LEARNED_PLAYBOOK.md](../../../../../docs/guides/LESSONS_LEARNED_PLAYBOOK.md)**:
+**[LESSONS_LEARNED_PLAYBOOK.md](../../../../../../../docs/guides/LESSONS_LEARNED_PLAYBOOK.md)**:
 
 - 8 critical gotchas (185+ hours of debugging distilled)
 - NaN traps, warmup requirements, pandas pitfalls
@@ -144,7 +144,7 @@ ______________________________________________________________________
 - Custom Symbol creation for synthetic data
 - Parameter tuning guidelines
 
-______________________________________________________________________
+---
 
 ## Test Data Structure
 
@@ -168,7 +168,7 @@ time,open,high,low,close,cci
 
 `generate_test_data.py` generates both formats.
 
-______________________________________________________________________
+---
 
 ## Debugging CSV Output Columns
 
@@ -184,7 +184,7 @@ CCI_Neutrality_Debug outputs **19 columns** for analysis:
 
 See **[DEBUG_WORKFLOW.md](DEBUG_WORKFLOW.md)** for complete column descriptions.
 
-______________________________________________________________________
+---
 
 ## Analysis Diagnostics
 
@@ -200,7 +200,7 @@ ______________________________________________________________________
 
 All should show **✓ PASS** for production readiness.
 
-______________________________________________________________________
+---
 
 ## Comparison to Live Data Testing
 
@@ -213,7 +213,7 @@ ______________________________________________________________________
 | **Validation**         | Manual                 | Automated (Python script)       |
 | **Reference Docs**     | N/A                    | 3+ existing guides              |
 
-______________________________________________________________________
+---
 
 ## Alternative: Strategy Tester (GUI Workflow)
 
@@ -240,7 +240,7 @@ Per **[README.md](README.md)** Section "Testing → Strategy Tester":
 - GUI interaction required
 - More steps than automated workflow
 
-______________________________________________________________________
+---
 
 ## Alternative: Custom Symbol (Synthetic Data)
 
@@ -269,30 +269,30 @@ CustomRatesUpdate(sym, rates);
 
 See **[README.md](README.md)** Section "Testing → Custom Symbol" for complete code.
 
-______________________________________________________________________
+---
 
 ## Files
 
 ### Automation Scripts
 
-**[run_cci_validation.sh](../../../../../users/crossover/run_cci_validation.sh)**:
+**[run_cci_validation.sh](../../../../../../../users/crossover/run_cci_validation.sh)**:
 
 - All-in-one automated workflow
 - Generates data, runs analysis, shows results
 
-**[generate_test_data.py](../../../../../users/crossover/generate_test_data.py)**:
+**[generate_test_data.py](../../../../../../../users/crossover/generate_test_data.py)**:
 
 - Wine Python script to fetch historical data via MT5 API
 - Calculates reference CCI values
 - Fully automated (no GUI)
 
-**[analyze_cci_debug.py](../../../../../users/crossover/analyze_cci_debug.py)**:
+**[analyze_cci_debug.py](../../../../../../../users/crossover/analyze_cci_debug.py)**:
 
 - Python analyzer with 7 diagnostic checks
 - Auto-detects CSV files
 - Validates all calculations
 
-**[test_cci_automated.py](../../../../../users/crossover/test_cci_automated.py)**:
+**[test_cci_automated.py](../../../../../../../users/crossover/test_cci_automated.py)**:
 
 - Alternative workflow using Strategy Tester
 - Includes prerequisites check
@@ -310,7 +310,7 @@ ______________________________________________________________________
 
 **[AUDIT_COMPLIANCE.md](AUDIT_COMPLIANCE.md)**: Implementation validation
 
-______________________________________________________________________
+---
 
 ## Next Steps
 
@@ -327,18 +327,18 @@ Then:
 - Tune parameters for specific markets
 - Use full version with CSV logging for production
 
-______________________________________________________________________
+---
 
 ## References
 
 ### Project Documentation (Canonical Sources)
 
-- **[docs/guides/WINE_PYTHON_EXECUTION.md](../../../../../docs/guides/WINE_PYTHON_EXECUTION.md)** - v3.0.0 Wine Python workflow
-- **[docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md](../../../../../docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md)** - 5000-bar warmup requirement
-- **[docs/MT5_REFERENCE_HUB.md](../../../../../docs/MT5_REFERENCE_HUB.md)** - Decision trees and automation matrix
-- **[docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md](../../../../../docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md)** - Migration workflow
-- **[docs/guides/LESSONS_LEARNED_PLAYBOOK.md](../../../../../docs/guides/LESSONS_LEARNED_PLAYBOOK.md)** - Critical gotchas
-- **[CLAUDE.md](../../../../../CLAUDE.md)** - Single Source of Truth table
+- **[docs/guides/WINE_PYTHON_EXECUTION.md](../../../../../../../docs/guides/WINE_PYTHON_EXECUTION.md)** - v3.0.0 Wine Python workflow
+- **[docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md](../../../../../../../docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md)** - 5000-bar warmup requirement
+- **[docs/MT5_REFERENCE_HUB.md](../../../../../../../docs/MT5_REFERENCE_HUB.md)** - Decision trees and automation matrix
+- **[docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md](../../../../../../../docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md)** - Migration workflow
+- **[docs/guides/LESSONS_LEARNED_PLAYBOOK.md](../../../../../../../docs/guides/LESSONS_LEARNED_PLAYBOOK.md)** - Critical gotchas
+- **[CLAUDE.md](../../../../../../../CLAUDE.md)** - Single Source of Truth table
 
 ### Indicator Documentation
 
@@ -347,7 +347,7 @@ ______________________________________________________________________
 - **[AUDIT_COMPLIANCE.md](AUDIT_COMPLIANCE.md)** - Implementation validation
 - **[VISUAL_SETUP_GUIDE.md](VISUAL_SETUP_GUIDE.md)** - GUI setup steps
 
-______________________________________________________________________
+---
 
 ## Support
 

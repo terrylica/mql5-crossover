@@ -112,12 +112,12 @@ Summary
 
 ## Service Level Objectives
 
-| SLO | Target | Actual | Status | Blocker |
-| --- | --- | --- | --- | --- |
-| **Availability** | 100% | 100% | ✅ MET | None |
-| **Correctness** | 100% | 0% | ⚠️ BLOCKED | GUI attachment required |
-| **Observability** | 100% | 100% | ✅ MET | None |
-| **Maintainability** | 100% | 100% | ✅ MET | None |
+| SLO                 | Target | Actual | Status     | Blocker                 |
+| ------------------- | ------ | ------ | ---------- | ----------------------- |
+| **Availability**    | 100%   | 100%   | ✅ MET     | None                    |
+| **Correctness**     | 100%   | 0%     | ⚠️ BLOCKED | GUI attachment required |
+| **Observability**   | 100%   | 100%   | ✅ MET     | None                    |
+| **Maintainability** | 100%   | 100%   | ✅ MET     | None                    |
 
 **Overall**: 3/4 SLOs met, 1 blocked by platform limitation
 
@@ -125,13 +125,13 @@ Summary
 
 ## Automated Components Status
 
-| Component | Status | Details |
-| --- | --- | --- |
-| Test data generation | ✅ WORKING | Wine Python, 5 seconds |
-| Indicator compilation | ✅ WORKING | 0 errors (debug version) |
-| CSV export | ✅ READY | 19 columns configured |
-| Analysis script | ✅ READY | 7 diagnostic checks |
-| Documentation | ✅ COMPLETE | 5 files with canonical refs |
+| Component             | Status      | Details                     |
+| --------------------- | ----------- | --------------------------- |
+| Test data generation  | ✅ WORKING  | Wine Python, 5 seconds      |
+| Indicator compilation | ✅ WORKING  | 0 errors (debug version)    |
+| CSV export            | ✅ READY    | 19 columns configured       |
+| Analysis script       | ✅ READY    | 7 diagnostic checks         |
+| Documentation         | ✅ COMPLETE | 5 files with canonical refs |
 
 **Blocked by**: Manual GUI step (MT5 platform limitation)
 

@@ -7,14 +7,13 @@
 **Type**: Separate window indicator
 **Plots**: 4 (CCI line, Score line, Coil markers, Expansion markers)
 
-______________________________________________________________________
+---
 
 ## Step 1: Open MT5 and Access Navigator
 
 1. **Launch MetaTrader 5**
 
 1. **Open Navigator** (if not visible):
-
    - Press `Ctrl+N` (Windows/Wine) or `Cmd+N` (Mac)
    - Or: View → Navigator
 
@@ -31,18 +30,16 @@ ______________________________________________________________________
 
 **What to look for**: You should see the indicator listed with a small graph icon.
 
-______________________________________________________________________
+---
 
 ## Step 2: Attach Indicator to Chart
 
 ### Method 1: Drag and Drop (Recommended)
 
 1. **Open a chart** (any symbol, any timeframe)
-
    - Suggested for testing: EURUSD M5 or M15
 
 1. **Drag the indicator** from Navigator onto the chart
-
    - Click and hold `CCI_Neutrality_Simple`
    - Drag to chart window
    - Release mouse button
@@ -55,7 +52,7 @@ ______________________________________________________________________
 1. **Select chart** from dropdown (if multiple charts open)
 1. **Parameters dialog will appear** → Proceed to Step 3
 
-______________________________________________________________________
+---
 
 ## Step 3: Configure Parameters
 
@@ -105,7 +102,7 @@ Expansion marker Y: 140.0   ← Vertical position for ▲ red triangles
 
 The indicator will attach to a **separate window** below your chart.
 
-______________________________________________________________________
+---
 
 ## Step 4: What You Should See
 
@@ -127,28 +124,24 @@ The indicator opens in its own window below the price chart with:
 #### 2 Main Lines
 
 1. **Blue Line (CCI)**: Oscillates around zero
-
    - Normal range: -100 to +100
    - Can breach above/below ±100
 
 1. **Orange Line (Score x100)**: Neutrality score (0-100 scale)
-
    - Higher values = stronger neutrality
    - Threshold at 80 (score ≥ 0.80)
 
 #### 2 Signal Markers
 
 3. **Green Circles (●)**: Coil signals at Y=120
-
    - Appears when all 5 neutrality conditions are met
    - Indicates compression phase
 
 1. **Red Triangles (▲)**: Expansion signals at Y=140
-
    - Appears when CCI breaches ±100 after a coil
    - Indicates breakout from compression
 
-______________________________________________________________________
+---
 
 ## Step 5: Verify Indicator is Working
 
@@ -166,17 +159,15 @@ ______________________________________________________________________
 ### Check 3: No Errors in Journal
 
 1. **Open Terminal** (if not visible):
-
    - Press `Ctrl+T` or View → Terminal
 
 1. **Click "Journal" tab**
 
 1. **Check for messages**:
-
    - ✅ Should see: `"CCI Neutrality initialized: CCI=20, W=30, thresh=..."`
    - ❌ If errors: Check error message and refer to Troubleshooting section
 
-______________________________________________________________________
+---
 
 ## Step 6: Testing Different Scenarios
 
@@ -208,7 +199,7 @@ Score threshold: 0.80 → 0.75
 Min fraction inside: 0.80 → 0.70
 ```
 
-______________________________________________________________________
+---
 
 ## Troubleshooting
 
@@ -255,7 +246,7 @@ ______________________________________________________________________
 1. Ensure CCI period ≥ 1
 1. Check if standard CCI indicator works (Insert → Indicators → Oscillators → Commodity Channel Index)
 
-______________________________________________________________________
+---
 
 ## Parameter Tuning Guide
 
@@ -292,7 +283,7 @@ Max stdev: 20-25
 
 **Why**: Less noise allows tighter thresholds
 
-______________________________________________________________________
+---
 
 ## Understanding the Signals
 
@@ -321,7 +312,7 @@ ______________________________________________________________________
 
 **Trading implication**: Breakout from compression phase
 
-______________________________________________________________________
+---
 
 ## Next Steps
 
@@ -334,7 +325,7 @@ Once you verify the indicator is working correctly:
 
 For CSV logging and advanced features, refer to `README.md` in the CCINeutrality folder.
 
-______________________________________________________________________
+---
 
 ## File Locations Reference
 
@@ -362,7 +353,7 @@ C:/Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/CCINeutrality/C
 C:/Program Files/MetaTrader 5/MQL5/Include/CsvLogger.mqh
 ```
 
-______________________________________________________________________
+---
 
 ## Support
 
