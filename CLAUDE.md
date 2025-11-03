@@ -224,6 +224,7 @@ exports/                                   # CSV exports (gitignored)
 | **🔤 ENCODING**                                            |                                                       |
 | UTF-8/UTF-16LE Detection, chardet, .gitattributes          | `docs/guides/MQL5_ENCODING_SOLUTIONS.md`              |
 | **⚙️ COMPILATION**                                         |                                                       |
+| **⚠️ X: Drive CLI Compilation (PRIMARY METHOD)**           | `.claude/skills/mql5-x-compile` + `tools/compile_mql5.sh` |
 | CLI Compilation (--cx-app, ~1s), Troubleshooting           | `docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md`         |
 | /inc Parameter Behavior (overrides, not augments)          | `docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md`      |
 | **🍷 WINE ENVIRONMENT**                                    |                                                       |
@@ -326,11 +327,20 @@ python validate_indicator.py \
 ## Key Commands
 
 ```bash
-# Compile MQL5 (CLI - production method)
-CX="~/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
-BOTTLE="MetaTrader 5"
-ME="C:/Program Files/MetaTrader 5/MetaEditor64.exe"
-"$CX" --bottle "$BOTTLE" --cx-app "$ME" /log /compile:"C:/YourIndicator.mq5" /inc:"C:/Program Files/MetaTrader 5/MQL5"
+# ⚠️ ALWAYS USE X: DRIVE FOR CLI COMPILATION ⚠️
+# X: drive eliminates "Program Files" path spaces that cause silent failures
+# X:\Indicators\... = MQL5/Indicators/...
+
+# Compile MQL5 (CLI - PRIMARY METHOD using X: drive)
+CX="$HOME/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
+"$CX" --bottle "MetaTrader 5" \
+  --cx-app "C:/Program Files/MetaTrader 5/MetaEditor64.exe" \
+  /log \
+  /compile:"X:\\Indicators\\Custom\\Development\\CCINeutrality\\CCI_Neutrality_Adaptive.mq5" \
+  /inc:"X:"
+
+# OR use the helper script (auto-converts to X: drive):
+./tools/compile_mql5.sh "Indicators/Custom/Development/CCINeutrality/CCI_Neutrality_Adaptive.mq5"
 
 # Compile MQL5 (GUI fallback - open in MetaEditor, press F7)
 # File → Open → Program Files/MetaTrader 5/MQL5/Scripts/DataExport/ExportAligned.mq5

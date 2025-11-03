@@ -2,18 +2,15 @@
 #
 # MQL5 CLI Compilation Helper for Wine/CrossOver
 #
-# Usage: ./compile_mql5.sh <source.mq5> [target_directory]
+# Usage: ./compile_mql5.sh <relative_path_from_MQL5>
 #
-# Workaround for Wine/CrossOver issue: Long paths with spaces cause silent
-# CLI compilation failures. This script:
-# 1. Copies source to simple path (C:/TempCompile.mq5)
-# 2. Compiles from simple path
-# 3. Copies .ex5 back to target location
+# Uses X: drive mapping to avoid "Program Files" path spaces.
+# X: drive maps to MQL5 folder: X:\Indicators\... = MQL5/Indicators/...
 #
-# Example:
-#   ./compile_mql5.sh \
-#     "Program Files/MetaTrader 5/MQL5/Indicators/Custom/MyIndicator.mq5" \
-#     "Program Files/MetaTrader 5/MQL5/Indicators/Custom"
+# Examples:
+#   ./compile_mql5.sh "Indicators/Custom/MyIndicator.mq5"
+#   ./compile_mql5.sh "Scripts/DataExport/ExportAligned.mq5"
+#   ./compile_mql5.sh "Indicators/Custom/Development/CCINeutrality/CCI_Neutrality_Adaptive.mq5"
 #
 
 set -euo pipefail
@@ -23,86 +20,74 @@ BOTTLE_PATH="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5"
 CX="$HOME/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
 BOTTLE="MetaTrader 5"
 ME="C:/Program Files/MetaTrader 5/MetaEditor64.exe"
-INC="C:/Program Files/MetaTrader 5/MQL5"
-
-# Temp paths (simple, no spaces)
-TEMP_SOURCE="$BOTTLE_PATH/drive_c/TempCompile.mq5"
-TEMP_EX5="$BOTTLE_PATH/drive_c/TempCompile.ex5"
 
 # Check arguments
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 <source.mq5> [target_directory]"
+    echo "Usage: $0 <relative_path_from_MQL5>"
     echo ""
-    echo "Example:"
-    echo "  $0 'Program Files/MetaTrader 5/MQL5/Indicators/Custom/MyIndicator.mq5'"
-    echo "  $0 'MyIndicator.mq5' 'Program Files/MetaTrader 5/MQL5/Indicators/Custom'"
+    echo "Path should be relative to MQL5 folder (no MQL5/ prefix needed):"
+    echo "  $0 'Indicators/Custom/MyIndicator.mq5'"
+    echo "  $0 'Scripts/DataExport/ExportAligned.mq5'"
     exit 1
 fi
 
-SOURCE_PATH="$1"
-TARGET_DIR="${2:-}"
+RELATIVE_PATH="$1"
 
-# If source path is relative, prepend bottle drive_c
-if [[ "$SOURCE_PATH" != /* ]]; then
-    SOURCE_PATH="$BOTTLE_PATH/drive_c/$SOURCE_PATH"
-fi
+# Strip leading MQL5/ if present
+RELATIVE_PATH="${RELATIVE_PATH#MQL5/}"
+RELATIVE_PATH="${RELATIVE_PATH#Program Files/MetaTrader 5/MQL5/}"
 
-# If no target directory specified, use source directory
-if [ -z "$TARGET_DIR" ]; then
-    TARGET_DIR=$(dirname "$SOURCE_PATH")
-else
-    # If target is relative, prepend bottle drive_c
-    if [[ "$TARGET_DIR" != /* ]]; then
-        TARGET_DIR="$BOTTLE_PATH/drive_c/$TARGET_DIR"
-    fi
-fi
+# Convert forward slashes to backslashes for Windows path
+X_DRIVE_PATH="X:\\${RELATIVE_PATH//\//\\}"
 
-# Extract filename without extension
-BASENAME=$(basename "$SOURCE_PATH" .mq5)
+# Full filesystem path for verification
+FULL_PATH="$BOTTLE_PATH/drive_c/Program Files/MetaTrader 5/MQL5/$RELATIVE_PATH"
+BASENAME=$(basename "$RELATIVE_PATH" .mq5)
+TARGET_DIR=$(dirname "$FULL_PATH")
+EX5_PATH="$TARGET_DIR/${BASENAME}.ex5"
 
-echo "=== MQL5 CLI Compilation Helper ==="
-echo "Source: $SOURCE_PATH"
-echo "Target: $TARGET_DIR/${BASENAME}.ex5"
+echo "=== MQL5 CLI Compilation Helper (X: Drive) ==="
+echo "Source: $RELATIVE_PATH"
+echo "X: path: $X_DRIVE_PATH"
+echo "Output: $EX5_PATH"
 echo ""
 
-# Step 1: Copy to simple path
-echo "[1/4] Copying source to temp location..."
-cp "$SOURCE_PATH" "$TEMP_SOURCE"
+# Verify source exists
+if [ ! -f "$FULL_PATH" ]; then
+    echo "❌ Source file not found: $FULL_PATH"
+    exit 1
+fi
 
-# Step 2: Compile
-echo "[2/4] Compiling..."
-"$CX" --bottle "$BOTTLE" --cx-app "$ME" \
-    /log \
-    /compile:"C:/TempCompile.mq5" \
-    /inc:"$INC"
+# Verify X: drive mapping exists
+if [ ! -L "$BOTTLE_PATH/dosdevices/x:" ]; then
+    echo "⚠️  X: drive mapping not found, creating..."
+    cd "$BOTTLE_PATH/dosdevices"
+    ln -s "../drive_c/Program Files/MetaTrader 5/MQL5" "x:"
+    echo "✅ X: drive created"
+fi
 
-sleep 1
+# Compile using X: drive path
+echo "[1/2] Compiling..."
+"$CX" --bottle "$BOTTLE" --cx-app "$ME" /log /compile:"$X_DRIVE_PATH" /inc:"X:" || true
 
-# Step 3: Check if compilation succeeded
-if [ ! -f "$TEMP_EX5" ]; then
+sleep 2
+
+# Check if compilation succeeded
+if [ ! -f "$EX5_PATH" ]; then
     echo "❌ Compilation failed: .ex5 not created"
     echo ""
     echo "Check compilation log:"
-    LOG_PATH=$(find "$BOTTLE_PATH/drive_c/Program Files/MetaTrader 5/MQL5" -name "TempCompile.log" 2>/dev/null | head -1)
-    if [ -n "$LOG_PATH" ]; then
-        tail -20 "$LOG_PATH"
+    LOG_FILE="$TARGET_DIR/${BASENAME}.log"
+    if [ -f "$LOG_FILE" ]; then
+        echo "Log: $LOG_FILE"
+        tail -20 "$LOG_FILE" 2>/dev/null || echo "(Unable to read log file)"
+    else
+        echo "No log file found at: $LOG_FILE"
     fi
-    rm -f "$TEMP_SOURCE"
     exit 1
 fi
 
-echo "[3/4] Compilation successful!"
-ls -lh "$TEMP_EX5"
-
-# Step 4: Copy to target
-echo "[4/4] Copying .ex5 to target location..."
-mkdir -p "$TARGET_DIR"
-cp "$TEMP_EX5" "$TARGET_DIR/${BASENAME}.ex5"
-
-# Cleanup
-rm -f "$TEMP_SOURCE" "$TEMP_EX5"
-
+echo "[2/2] Compilation successful!"
 echo ""
 echo "✅ Done!"
-echo "Output: $TARGET_DIR/${BASENAME}.ex5"
-ls -lh "$TARGET_DIR/${BASENAME}.ex5"
+ls -lh "$EX5_PATH"

@@ -80,13 +80,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Technical Details
 
-- Compilation: 22KB .ex5 file, 0 errors, 0 warnings
+- Compilation: 22KB .ex5 file, 0 errors, 0 warnings (~1 second)
 - Tested: Multiple instances of 4 consecutive rising bars detected (confirmed via user screenshots)
-- CLI Compilation Fix: Must compile from simple path (no spaces) due to Wine/CrossOver limitation
-  - Copy .mq5 to C:/TestIndicator.mq5
-  - Compile with `/compile:"C:/TestIndicator.mq5"`
-  - Copy .ex5 back to target location
-  - Long paths with spaces (e.g., "Program Files/.../CCINeutrality/") cause silent CLI compilation failures
+- **CLI Compilation Method: X: Drive (PRIMARY)**
+  - X: drive mapping: `X:\Indicators\...` = `MQL5/Indicators/...`
+  - Eliminates "Program Files" path spaces that cause silent failures
+  - Command: `/compile:"X:\\Indicators\\Custom\\...\\file.mq5" /inc:"X:"`
+  - Helper script: `tools/compile_mql5.sh` (auto-converts paths)
+  - See: `.claude/skills/mql5-x-compile` for complete documentation
 - Platform: MetaTrader 5 via CrossOver on macOS
 
 ---
