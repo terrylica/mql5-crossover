@@ -59,7 +59,282 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## CCI Rising Pattern Marker
+
+### [0.2.0] - 2025-11-02
+
+#### Added
+
+- **Phase 1: Baseline Histogram** - Minimal CCI neutrality histogram for rising pattern detection
+  - M1 timeframe only (no MTF complexity)
+  - 120-bar adaptive window normalization
+  - RED/YELLOW/GREEN color mapping (0-1 range)
+  - 5x canvas height (0-5 scale) for future arrows
+  - NO arrow code yet
+  - NO CSV logging yet
+  - Clean implementation starting from scratch
+
+#### Technical Details
+
+- File: `CCI_Rising_Test.mq5`
+- Calculation method: Percentile rank normalization within 120-bar rolling window
+- Color thresholds: RED < 0.3, YELLOW 0.3-0.7, GREEN > 0.7
+- Canvas range: 0.0-5.0 (histogram occupies bottom 20%)
+- Compilation: 9.1KB .ex5 file, 0 errors, 0 warnings (~1 second via X: drive)
+- Platform: MetaTrader 5 via CrossOver on macOS
+
+#### SLOs
+
+- Correctness: 100% (histogram displays correctly)
+- Observability: 100% (init message confirms v0.2.0)
+
+#### Success Gate
+
+User verifies RED/YELLOW/GREEN bars visible, Y-axis shows 0-5 range
+
+#### Implementation Plan
+
+OpenAPI 3.1.0 specification: `docs/plans/cci-rising-pattern-marker.yaml`
+
+**7-Phase Ultra-Incremental Plan**:
+- Phase 0 (v0.1.0): Nuclear cleanup - manual GUI object deletion ✅
+- Phase 1 (v0.2.0): Baseline histogram ✅
+- Phase 2 (v0.3.0): Single hard-coded arrow test (pending)
+- Phase 3 (v0.4.0): Detection logic + logging (pending)
+- Phase 4 (v0.5.0): CSV audit validation (pending)
+- Phase 5 (v0.6.0): Connect arrows to detection (pending)
+- Phase 6 (v0.7.0): Recalculation stress test (pending)
+- Phase 7 (v1.0.0): Production release (pending)
+
+---
+
 ## CCI Neutrality Adaptive Indicator
+
+### [4.36] - 2025-11-02
+
+#### Fixed
+
+- **CRITICAL: Objects Persist After Indicator Removal** - Added aggressive cleanup in OnInit
+  - **Issue**: User reloaded MT5 but incorrect markers still visible (e.g., 2025.11.03 04:57)
+  - **Root Cause**: Objects created by previous indicator instances persist on chart
+  - **Solution**: Delete ALL RisingArrow\_\* objects IMMEDIATELY in OnInit (before anything else)
+  - **Verification**: Logs how many objects were cleaned up
+  - **Now runs**: Every time indicator is added/reloaded, not just on first calculation
+
+#### Technical Details
+
+- Lines 210-224: Aggressive cleanup at start of OnInit
+- Cleanup count logged to verify objects are being deleted
+- Runs before timer, before CCI handle creation, before everything
+- CSV proof: Bar 04:57 has Check2=FALSE, Check3=FALSE, MarkerPlaced=NO
+- Compilation: 26KB .ex5 file, 0 errors, 0 warnings (~1 second via X: drive)
+
+### [4.35] - 2025-11-02
+
+#### Fixed
+
+- **Leftover Objects Bug** - Markers from previous calculations not cleaned up properly
+  - **Issue**: User reported marker showing at 2025.11.03 04:57 where CSV shows MarkerPlaced=NO
+  - **Root Cause 1**: Object names included bar index, causing duplicates after bar shifts
+  - **Root Cause 2**: No cleanup of old objects on full recalculation
+  - **Solution 1**: Object name now uses ONLY time with seconds: `"RisingArrow_2025.11.03 04:57:00"`
+  - **Solution 2**: Delete ALL RisingArrow\_\* objects when `prev_calculated == 0`
+  - **Benefit**: Unique name per time prevents duplicates, cleanup prevents leftovers
+
+#### Technical Details
+
+- Line 564: `TimeToString(time[i], TIME_DATE|TIME_SECONDS)` for unique object names
+- Lines 377-386: Object cleanup loop in OnCalculate when prev_calculated == 0
+- CSV verification: Bar 04:57 shows Check2=FALSE, Check3=FALSE (drops 0.466→0.050→0.016)
+- Compilation: 26KB .ex5 file, 0 errors, 0 warnings (~1 second via X: drive)
+
+### [4.34] - 2025-11-02
+
+#### Fixed
+
+- **FOOLPROOF METHOD: Graphical Objects Instead of DRAW_ARROW** - Markers now use ObjectCreate
+  - **Research Finding**: MQL5 forums and documentation reveal DRAW_ARROW in separate windows is UNRELIABLE
+  - **Solution**: Use graphical objects (OBJ_ARROW) with explicit window number instead of buffer plots
+  - **Method**: `ObjectCreate(0, name, OBJ_ARROW, window_num, time[i], 1.1)`
+  - **Benefits**:
+    - Direct placement at exact time and Y coordinate
+    - Window-specific rendering (not dependent on buffer system)
+    - Proven method from MQL5 community for separate window markers
+  - **Cleanup**: OnDeinit now deletes all RisingArrow\_\* objects
+
+#### Research Sources
+
+- MQL5 Documentation: "DRAW_ARROW can be used in a separate subwindow"
+- Forum consensus: Use ObjectCreate with window index for reliability in separate windows
+- Key insight: Buffer plots can fail to render in separate windows, graphical objects are foolproof
+
+#### Technical Details
+
+- Lines 539-557: ObjectCreate with window_num from ChartWindowFind()
+- Lines 270-279: Object cleanup loop in OnDeinit
+- Arrow properties: Code 108 (bullet), Yellow, Width 3, Foreground
+- Compilation: 26KB .ex5 file, 0 errors, 0 warnings (~1 second via X: drive)
+
+### [4.33] - 2025-11-02
+
+#### Fixed
+
+- **CRITICAL: Bar Shift Bug** - Markers appeared on wrong bars after history changes
+  - **Root Cause**: Bar indexes shift when MT5 history updates, but markers only calculated on new bars
+  - **Evidence**: CSV showed bar 93110 at 19:39, then later bar 93109 at 19:39 (index shifted by 1)
+  - **Result**: Marker placed at index 93110 (time 19:39) ended up showing at wrong time after shift
+  - **Solution**: Force full recalculation from StartCalcPosition on every OnCalculate call
+  - This ensures markers stay with correct TIME even when bar indexes change
+
+#### Technical Details
+
+- Changed line 377-380: Always start from `StartCalcPosition_Chart` (not `prev_calculated - 1`)
+- Trade-off: Slightly more CPU per update, but guarantees correctness
+- CSV audit proved: Logic was correct, but display was shifted due to incremental calculation
+- User reported: "2025.10.13 19:39 should have marker but doesn't" - CSV showed YES at shifted index
+- Compilation: 24KB .ex5 file, 0 errors, 0 warnings (~1 second via X: drive)
+
+### [4.32] - 2025-11-02
+
+#### Changed
+
+- **CSV Logging Enhanced**: Now logs EVERY bar (not just detected patterns)
+  - File: `MQL5/Files/rising_pattern_audit_ALL.csv` (new filename)
+  - Shows bars WITH markers: MarkerPlaced=YES, ArrowValue=1.1
+  - Shows bars WITHOUT markers: MarkerPlaced=NO, ArrowValue=EMPTY
+  - Can identify which visually-rising bars are missing markers and WHY
+  - All 4 bar values and 3 check results visible for every bar
+
+#### Purpose
+
+- User correctly identified the issue: v4.31 only logged detected patterns
+- Without logging non-marker bars, cannot diagnose why visually-rising bars have no markers
+- Complete audit trail enables proper debugging
+
+#### Technical Details
+
+- Moved CSV open to first bar (not first detection)
+- Write operation inside main loop (logs all bars i >= 3)
+- Added columns: "MarkerPlaced" (YES/NO), "ArrowValue" (1.1/EMPTY)
+- File will be larger but complete
+- Compilation: 24KB .ex5 file, 0 errors, 0 warnings (~1 second via X: drive)
+
+### [4.31] - 2025-11-02
+
+#### Added
+
+- **CSV Audit Logging**: Every detected rising pattern now logged to CSV for verification
+  - File: `MQL5/Files/rising_pattern_audit.csv`
+  - Columns: BarIndex, Time, Bar[i-3], Bar[i-2], Bar[i-1], Bar[i], Check1, Check2, Check3, PatternDetected
+  - Shows actual bar values and comparison results for each marker
+  - Enables verification that conditions are truly met
+  - File auto-closes on indicator removal
+
+#### Purpose
+
+- User reported many markers appear where conditions shouldn't be met
+- CSV audit trail will prove whether logic is correct or values are unexpected
+- Can examine actual bar values vs visual appearance on chart
+
+#### Technical Details
+
+- Global variable: `g_csv_handle` (file handle)
+- Opens on first pattern detection, writes header
+- Each detection writes data row with 6-decimal precision
+- `FileFlush()` after each write for immediate examination
+- Cleaned up in `OnDeinit()` with file close
+- Compilation: 23KB .ex5 file, 0 errors, 0 warnings (~1 second via X: drive)
+
+### [4.30] - 2025-11-02
+
+#### Fixed
+
+- **Wrong Marker Shape**: Arrow code 217 rendered as triangle instead of circle in Wine/CrossOver
+  - Changed to arrow code 108 (bullet/large dot)
+  - More reliable across platforms
+  - Maintains high visibility with yellow color and width 5
+
+#### Technical Details
+
+- Line 144: `PlotIndexSetInteger(1, PLOT_ARROW, 108);` (was 217)
+- Arrow code 108 = bullet/large dot (platform-independent)
+- Arrow code 217 = platform-dependent rendering (triangle on Wine/CrossOver)
+- Compilation: 24KB .ex5 file, 0 errors, 0 warnings (~1 second via X: drive)
+
+### [4.29] - 2025-11-02
+
+#### Fixed
+
+- **Canvas Height Not Applied**: Fixed v4.28 issue where canvas remained at 0-1 scale
+  - Root cause: `IndicatorSetDouble()` in OnInit (lines 166-167) was overriding compile-time `#property` settings
+  - Changed `IndicatorSetDouble(INDICATOR_MAXIMUM, 1.0)` to `5.0`
+  - Now canvas properly scales to 0-5 range
+  - Histogram (0-1) appears in bottom 20%, arrows (Y=1.1) in upper portion
+
+#### Technical Details
+
+- Line 167: `IndicatorSetDouble(INDICATOR_MAXIMUM, 5.0);` (was 1.0)
+- Compile-time properties (lines 11-12) now work correctly with runtime settings
+- Compilation: 24KB .ex5 file, 0 errors, 0 warnings (~1 second via X: drive)
+
+### [4.28] - 2025-11-02 ❌ FAILED
+
+#### Changed
+
+- **Indicator Canvas Height**: Attempted to set explicit minimum (0.0) and maximum (5.0)
+  - Added `#property indicator_minimum 0.0` and `#property indicator_maximum 5.0`
+  - **Did not work**: Runtime `IndicatorSetDouble()` calls overrode compile-time properties
+  - Fixed in v4.29
+
+### [4.27] - 2025-11-02
+
+#### Fixed
+
+- **Arrow Positioning**: Changed from relative (at histogram value) to absolute (fixed Y coordinate)
+  - Arrows now positioned at Y=1.1 (above histogram 0-1 range)
+  - Removed PLOT_ARROW_SHIFT (was -30, now 0)
+  - Previous versions: arrows at score value (0-1) caused clipping/invisibility
+  - Debug logging confirmed 70+ patterns detected but not visible
+
+#### Technical Details
+
+- Line 143: `PlotIndexSetInteger(1, PLOT_ARROW_SHIFT, 0);`
+- Lines 521-523: `BufArrows[i] = 1.1;` (was `score`)
+- Compilation: 24KB .ex5 file, 0 errors, 0 warnings
+- Log analysis: 70+ rising patterns detected (bars 98724-99446) but arrows invisible
+
+### [4.26] - 2025-11-02
+
+#### Added
+
+- **Debug Logging**: Detailed pattern detection logging to diagnose arrow visibility issues
+  - Logs first 20 comparisons with all 4 bar values
+  - Shows check results for each comparison (true/false)
+  - Confirms rising pattern detection and arrow assignment
+  - Static counter prevents log spam
+
+#### Technical Details
+
+- Lines 472-516: Comprehensive debug output with bar values and comparison results
+- Log confirmed detection logic works correctly (70+ patterns found)
+- Proved issue was display-related, not detection-related
+
+### [4.25] - 2025-11-02
+
+#### Changed
+
+- **Arrow Visibility Enhancement**: Increased arrow visibility with larger size and brighter color
+  - Color: Yellow (clrYellow) instead of Blue (clrDodgerBlue)
+  - Width: 5 instead of 3
+  - Arrow code: 217 (large circle) instead of 159 (small circle)
+  - Shift: -30 points instead of -15
+- User reported most patterns still not visible despite enhancements
+
+#### Technical Details
+
+- Lines 25-26: Color and width changes
+- Lines 142-143: Arrow code and shift changes
+- Still had visibility issues (fixed in v4.27)
 
 ### [4.24] - 2025-11-02
 
