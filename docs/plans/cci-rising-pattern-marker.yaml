@@ -7,11 +7,12 @@ info:
     Ultra-incremental implementation with validation gates at each phase.
 
 x-version-control:
-  current: v0.2.1
+  current: v0.2.2-wip
   tags:
     - v0.1.0: Nuclear cleanup (manual)
     - v0.2.0: Baseline histogram
     - v0.2.1: Fix color mapping (align with v5.0.0)
+    - v0.2.2: Library extraction + unit tests
     - v0.3.0: Single test arrow
     - v0.4.0: Detection + logging
     - v0.5.0: CSV audit
@@ -57,6 +58,14 @@ x-implementation-findings:
     description: Initial color mapping was inverted compared to CCI_Neutrality_Adaptive v5.0.0
     impact: Colors did not align with existing histogram (user comparison failed)
     resolution: Changed to match v5.0.0 logic - HIGH score (>0.7)=RED, LOW score (<0.3)=GREEN
+
+  library-extraction-architecture:
+    discovered: 2025-11-03
+    description: Maximum separation of concerns via .mqh libraries before Phase 2
+    rationale: User requested library extraction for incremental testing and problem isolation
+    implementation: PatternDetector.mqh (pure functions), ArrowManager.mqh (object lifecycle), CSVLogger.mqh (audit trail)
+    testing: Unit test scripts (Test_PatternDetector.mq5, Test_ArrowManager.mq5) validate libraries in isolation
+    csv-vs-sqlite: CSV chosen over SQLite for Claude Code CLI integration and debugging simplicity
 
 paths:
   /phase-0-nuclear-cleanup:
@@ -120,6 +129,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PhaseResult'
+
+  /phase-1.5-library-extraction:
+    post:
+      summary: Phase 1.5 - Library Extraction (v0.2.2)
+      description: |
+        Extract logic into .mqh libraries for maximum separation of concerns.
+
+        **Implementation**:
+        - Create lib/PatternDetector.mqh: DetectRisingPattern(), GetDetectionDetails()
+        - Create lib/ArrowManager.mqh: CreateArrow(), DeleteArrow(), DeleteAllArrows()
+        - Create lib/CSVLogger.mqh: CSVLogger class with Open(), WriteHeader(), WriteDetectionRow()
+        - Create Scripts/Test_PatternDetector.mq5: 12 unit test cases
+        - Create Scripts/Test_ArrowManager.mq5: 12 unit test cases
+        - Refactor CCI_Rising_Test.mq5 to use libraries
+
+        **SLOs**:
+        - Availability: 100% (all libraries compile without errors)
+        - Correctness: 100% (unit tests pass, refactored indicator matches baseline)
+        - Maintainability: 100% (libraries testable in isolation, clear interfaces)
+
+        **Success Gate**:
+        - Test_PatternDetector: All 12 tests pass
+        - Test_ArrowManager: All 12 tests pass
+        - CCI_Rising_Test refactored: Histogram still displays correctly
+
+        **Rationale**: User requested maximum separation for incremental testing
+
+      responses:
+        '200':
+          description: Phase 1.5 complete
+        '400':
+          description: Unit tests failed - fix library logic before proceeding
 
   /phase-2-test-arrow:
     post:
