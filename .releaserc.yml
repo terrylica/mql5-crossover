@@ -3,6 +3,8 @@
 
 branches:
   - main
+  - name: feature/cci-neutrality-indicator
+    prerelease: beta
   - name: beta
     prerelease: true
 
