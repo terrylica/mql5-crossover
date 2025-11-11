@@ -4,12 +4,14 @@
 //+------------------------------------------------------------------+
 #property copyright   "Terry Li"
 #property link        "https://github.com/terrylica/mql5-crossover"
-#property version     "4.26"
+#property version     "4.36"
 #property description "CCI Neutrality Score - Adaptive Percentile Rank with Timeframe Conversion (Red=Volatile/Extreme, Yellow=Normal, Green=Calm/Neutral)"
 
 #property indicator_separate_window
-#property indicator_buffers 4  // 4 buffers: Score + CCI + Color + Arrows
-#property indicator_plots   2  // 2 visible plots: histogram + arrows
+#property indicator_minimum 0.0     // Fixed minimum (histogram 0-1, arrows at 1.1)
+#property indicator_maximum 5.0     // 5x canvas height for foolproof visibility
+#property indicator_buffers 4       // 4 buffers: Score + CCI + Color + Arrows
+#property indicator_plots   2       // 2 visible plots: histogram + arrows
 
 // Force recalculation in Strategy Tester
 #property tester_everytick_calculate
@@ -54,6 +56,7 @@ int hCCI = INVALID_HANDLE;
 
 //--- Global variables
 int g_AdaptiveWindow = 0;  // Calculated adaptive window size (in current chart timeframe bars)
+int g_csv_handle = INVALID_HANDLE;  // CSV file handle for audit logging
 
 //+------------------------------------------------------------------+
 //| Percentile Rank Calculation Function                            |
@@ -139,8 +142,8 @@ int OnInit()
    SetIndexBuffer(3, BufArrows, INDICATOR_DATA);      // Buffer 3: Visible Arrows
 
 //--- Configure arrow plot
-   PlotIndexSetInteger(1, PLOT_ARROW, 217);           // Arrow code 217 = large filled circle (more visible than 159)
-   PlotIndexSetInteger(1, PLOT_ARROW_SHIFT, -30);     // Shift 30 points UP above histogram (increased for visibility)
+   PlotIndexSetInteger(1, PLOT_ARROW, 108);           // Arrow code 108 = bullet/large dot (reliable on Wine/CrossOver)
+   PlotIndexSetInteger(1, PLOT_ARROW_SHIFT, 0);       // No shift - arrows positioned at fixed Y=1.1
    PlotIndexSetDouble(1, PLOT_EMPTY_VALUE, EMPTY_VALUE); // Use EMPTY_VALUE for gaps
    PlotIndexSetString(1, PLOT_LABEL, "Rising Signal"); // Data window label
 
@@ -160,9 +163,9 @@ int OnInit()
    PlotIndexSetInteger(0, PLOT_LINE_COLOR, 1, clrYellow);    // Index 1: Normal (30th-70th percentile)
    PlotIndexSetInteger(0, PLOT_LINE_COLOR, 2, clrLime);      // Index 2: Calm/Neutral (|CCI| < 30th percentile)
 
-//--- Set scale range for percentile rank (0.0 - 1.0)
+//--- Set scale range: 5x height for foolproof arrow visibility
    IndicatorSetDouble(INDICATOR_MINIMUM, 0.0);
-   IndicatorSetDouble(INDICATOR_MAXIMUM, 1.0);
+   IndicatorSetDouble(INDICATOR_MAXIMUM, 5.0);  // Arrows at Y=1.1 with 5x canvas
 
 //--- Set indicator name with timeframe info
    string ref_tf_str = EnumToString(InpReferenceTimeframe);
@@ -204,12 +207,30 @@ int OnInit()
       PrintFormat("  Note: Data readiness will be checked in OnCalculate()");
      }
 
+//--- CRITICAL: Delete ALL arrow objects IMMEDIATELY on initialization
+//    This ensures no leftover objects from previous indicator instances
+   int cleanup_count = 0;
+   int total_objects = ObjectsTotal(0, -1, OBJ_ARROW);
+   for(int obj_i = total_objects - 1; obj_i >= 0; obj_i--)
+     {
+      string obj_name = ObjectName(0, obj_i, -1, OBJ_ARROW);
+      if(StringFind(obj_name, "RisingArrow_") == 0)
+        {
+         if(ObjectDelete(0, obj_name))
+            cleanup_count++;
+        }
+     }
+   if(cleanup_count > 0)
+      PrintFormat("  Cleaned up %d leftover arrow objects from previous instances", cleanup_count);
+
 //--- Set 1ms timer to trigger OnTimer after first OnCalculate pass
 //    This is the community-proven workaround for MTF data synchronization
    EventSetMillisecondTimer(1);
    PrintFormat("  Timer set: OnTimer will refresh chart after first OnCalculate pass");
 
-   PrintFormat("CCI Adaptive v4.26 initialized (Debug: detailed comparison logging for 20 bars):");
+   PrintFormat("CCI Adaptive v4.35 initialized (graphical objects + cleanup):");
+   PrintFormat("  Arrow: code 108 bullet, 5x canvas, Y=1.1");
+   PrintFormat("  CSV: MQL5/Files/rising_pattern_audit_ALL.csv (every bar with marker status)");
    PrintFormat("  Method: %s", (InpCalcMethod == METHOD_RESAMPLE) ? "Resample (use ref TF CCI)" : "Scale (scale window size)");
    PrintFormat("  CCI Period: %d", InpCCILength);
    PrintFormat("  CCI Timeframe: %s (%d seconds/bar)", EnumToString(cci_timeframe), PeriodSeconds(cci_timeframe));
@@ -254,7 +275,26 @@ void OnDeinit(const int reason)
       hCCI = INVALID_HANDLE;
      }
 
-   PrintFormat("CCI Adaptive deinitialized, reason: %d", reason);
+//--- Close CSV audit file
+   if(g_csv_handle != INVALID_HANDLE)
+     {
+      FileClose(g_csv_handle);
+      g_csv_handle = INVALID_HANDLE;
+      PrintFormat("CSV audit file closed: MQL5/Files/rising_pattern_audit_ALL.csv");
+     }
+
+//--- Delete all arrow objects created by this indicator
+   int total_objects = ObjectsTotal(0, -1, OBJ_ARROW);
+   for(int i = total_objects - 1; i >= 0; i--)
+     {
+      string obj_name = ObjectName(0, i, -1, OBJ_ARROW);
+      if(StringFind(obj_name, "RisingArrow_") == 0)  // Check if it starts with "RisingArrow_"
+        {
+         ObjectDelete(0, obj_name);
+        }
+     }
+
+   PrintFormat("CCI Adaptive deinitialized, reason: %d (arrow objects cleaned up)", reason);
   }
 
 //+------------------------------------------------------------------+
@@ -350,6 +390,17 @@ int OnCalculate(const int rates_total,
      {
       start = StartCalcPosition_Chart;
 
+      // Delete ALL existing arrow objects to prevent leftovers from previous calculations
+      int total_objects = ObjectsTotal(0, -1, OBJ_ARROW);
+      for(int obj_i = total_objects - 1; obj_i >= 0; obj_i--)
+        {
+         string obj_name = ObjectName(0, obj_i, -1, OBJ_ARROW);
+         if(StringFind(obj_name, "RisingArrow_") == 0)  // Check if it starts with "RisingArrow_"
+           {
+            ObjectDelete(0, obj_name);
+           }
+        }
+
       // Initialize early bars (before warmup complete)
       for(int i = 0; i < start; i++)
         {
@@ -361,9 +412,10 @@ int OnCalculate(const int rates_total,
      }
    else
      {
-      start = prev_calculated - 1;
-      if(start < StartCalcPosition_Chart)
-         start = StartCalcPosition_Chart;
+      // ALWAYS recalculate from StartCalcPosition to fix bar shift issues
+      // Bar indexes can shift when history changes, causing markers to appear on wrong bars
+      // By recalculating all bars, we ensure markers stay with the correct time
+      start = StartCalcPosition_Chart;
      }
 
 //--- Rolling window for percentile rank calculation
@@ -469,9 +521,8 @@ int OnCalculate(const int rates_total,
       //--- ✅ Detect 4 consecutive rising histogram bars
       bool is_rising_pattern = false;
 
-      // Debug: Log last 20 bars to see what's happening
-      static int debug_count = 0;
-      bool should_log = false;
+      // CSV logging for audit trail - LOG EVERY BAR (not just detections)
+      static bool csv_header_written = false;
 
       if(i >= 3)  // Need 3 previous bars to check
         {
@@ -483,44 +534,66 @@ int OnCalculate(const int rates_total,
          if(check1 && check2 && check3)
            {
             is_rising_pattern = true;
-            should_log = true;
            }
 
-         // Log last 20 bars (rising or not) for debugging
-         if(debug_count < 20)
+         // Open CSV file on first bar (not first detection)
+         if(g_csv_handle == INVALID_HANDLE)
            {
-            PrintFormat("Bar %d: [%d]=%.4f [%d]=%.4f [%d]=%.4f [%d]=%.4f | Check: %s<%s=%d %s<%s=%d %s<%s=%d | RISING=%s | Arrow=%.4f",
-                       i,
-                       i-3, BufScore[i-3],
-                       i-2, BufScore[i-2],
-                       i-1, BufScore[i-1],
-                       i, BufScore[i],
-                       DoubleToString(BufScore[i-3],4), DoubleToString(BufScore[i-2],4), check1,
-                       DoubleToString(BufScore[i-2],4), DoubleToString(BufScore[i-1],4), check2,
-                       DoubleToString(BufScore[i-1],4), DoubleToString(BufScore[i],4), check3,
-                       is_rising_pattern ? "YES" : "NO",
-                       is_rising_pattern ? score : EMPTY_VALUE);
-            debug_count++;
+            g_csv_handle = FileOpen("rising_pattern_audit_ALL.csv", FILE_WRITE|FILE_CSV|FILE_ANSI);
+            if(g_csv_handle != INVALID_HANDLE)
+              {
+               // Write header
+               FileWrite(g_csv_handle, "BarIndex", "Time", "Bar[i-3]", "Bar[i-2]", "Bar[i-1]", "Bar[i]",
+                        "Check1(i-3<i-2)", "Check2(i-2<i-1)", "Check3(i-1<i)", "MarkerPlaced", "ArrowValue");
+               csv_header_written = true;
+              }
            }
-         else if(should_log)
+
+         // Write data row for EVERY bar (both with and without markers)
+         if(g_csv_handle != INVALID_HANDLE)
            {
-            // Always log detected patterns even after first 20 bars
-            PrintFormat("✅ RISING PATTERN at bar %d: [%d]=%.4f < [%d]=%.4f < [%d]=%.4f < [%d]=%.4f | Arrow=%.4f",
-                       i,
-                       i-3, BufScore[i-3],
-                       i-2, BufScore[i-2],
-                       i-1, BufScore[i-1],
-                       i, BufScore[i],
-                       score);
+            FileWrite(g_csv_handle,
+                     i,                              // Bar index
+                     TimeToString(time[i]),          // Bar time
+                     DoubleToString(BufScore[i-3],6), // Bar[i-3] value
+                     DoubleToString(BufScore[i-2],6), // Bar[i-2] value
+                     DoubleToString(BufScore[i-1],6), // Bar[i-1] value
+                     DoubleToString(BufScore[i],6),   // Bar[i] value
+                     check1 ? "TRUE" : "FALSE",      // Comparison 1
+                     check2 ? "TRUE" : "FALSE",      // Comparison 2
+                     check3 ? "TRUE" : "FALSE",      // Comparison 3
+                     is_rising_pattern ? "YES" : "NO", // Marker placed?
+                     is_rising_pattern ? "1.1" : "EMPTY"); // Arrow value
+            FileFlush(g_csv_handle);  // Flush immediately so we can examine during calculation
            }
         }
 
-      //--- Set arrow position
+      //--- Set arrow position (buffer method - keep for compatibility)
       if(is_rising_pattern)
         {
-         // Position arrow at top of histogram bar
-         // PLOT_ARROW_SHIFT (-30) will shift it upward automatically
-         BufArrows[i] = score;
+         // Position arrow at 1.1 (above the 0-1 histogram range)
+         BufArrows[i] = 1.1;
+
+         // FOOLPROOF METHOD: Also create graphical object for reliability
+         // Research shows DRAW_ARROW in separate windows can be unreliable
+         // Use ONLY time in name (with seconds) to prevent duplicates after bar shifts
+         string obj_name = "RisingArrow_" + TimeToString(time[i], TIME_DATE|TIME_SECONDS);
+         int window_num = ChartWindowFind();  // Get this indicator's window number
+
+         // Delete if exists (handles bar shift case where time stays same but index changes)
+         if(ObjectFind(0, obj_name) >= 0)
+            ObjectDelete(0, obj_name);
+
+         // Create arrow object at bar time and Y=1.1
+         if(ObjectCreate(0, obj_name, OBJ_ARROW, window_num, time[i], 1.1))
+           {
+            ObjectSetInteger(0, obj_name, OBJPROP_ARROWCODE, 108);  // Bullet
+            ObjectSetInteger(0, obj_name, OBJPROP_COLOR, clrYellow);
+            ObjectSetInteger(0, obj_name, OBJPROP_WIDTH, 3);
+            ObjectSetInteger(0, obj_name, OBJPROP_BACK, false);  // Draw in foreground
+            ObjectSetInteger(0, obj_name, OBJPROP_SELECTABLE, false);
+            ObjectSetInteger(0, obj_name, OBJPROP_HIDDEN, true);
+           }
         }
       else
         {

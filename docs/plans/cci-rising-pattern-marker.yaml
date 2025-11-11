@@ -1,23 +1,24 @@
 openapi: 3.1.0
 info:
   title: CCI Rising Pattern Marker
-  version: 0.1.0
+  version: 0.7.0
   description: |
     Visual marker for 4 consecutive rising CCI Neutrality histogram bars.
     Ultra-incremental implementation with validation gates at each phase.
 
 x-version-control:
-  current: v0.2.2
+  current: v0.7.0
   tags:
     - v0.1.0: Nuclear cleanup (manual)
     - v0.2.0: Baseline histogram
     - v0.2.1: Fix color mapping (align with v5.0.0)
     - v0.2.2: Library extraction + unit tests
-    - v0.3.0: Single test arrow
-    - v0.4.0: Detection + logging
-    - v0.5.0: CSV audit
-    - v0.6.0: Arrows connected
-    - v0.7.0: Recalculation test
+    - v0.3.0: Single test arrow + bugfixes
+    - v0.4.0: Native CCI calculation (iCCI abandoned)
+    - v0.5.0: Detection logic
+    - v0.6.0: CSV audit trail
+    - v0.7.0: Arrow placement
+    - v0.8.0: Recalculation stress test
     - v1.0.0: Production release
 
 x-slos:
@@ -68,6 +69,19 @@ x-implementation-findings:
     csv-vs-sqlite: CSV chosen over SQLite for Claude Code CLI integration and debugging simplicity
     validation: Test_PatternDetector 17/17 passed, Test_ArrowManager functional (cleanup verified)
     experts-pane: User confirmed Experts pane is correct output location for Print() statements
+
+  v0.7.0-arrow-placement:
+    completed: 2025-11-10
+    slos-achieved:
+      availability: 100% (17,905 old arrows cleaned, indicator loads/unloads correctly)
+      correctness: 100% (17,802 detections = 17,802 arrows placed, CSV MarkerPlaced=YES)
+      observability: 100% (logs show "Arrow placed at Y=1.1", CSV tracks all placements)
+      maintainability: 100% (ArrowManager library handles lifecycle, time-based naming)
+    metrics:
+      - M1: 17,802 patterns detected, 17,802 arrows placed (100% success)
+      - Arrow cleanup: 17,905 objects removed on init
+      - CSV: MarkerPlaced=YES, ArrowValue=1.1 for all detections
+    validation: User confirmed arrows visible on M1/M2 timeframes
 
 paths:
   /phase-0-nuclear-cleanup:
@@ -188,9 +202,17 @@ paths:
         '500':
           description: Object creation/deletion broken - chart file may be corrupted
 
-  /phase-3-detection-logging:
+  /phase-3-native-cci:
     post:
-      summary: Phase 3 - Detection Logic + Logging (v0.4.0)
+      summary: Phase 3 - Native CCI Calculation (v0.4.0)
+      description: |
+        Rewrite with direct CCI formula, abandon iCCI() handle.
+
+        **Rationale**: iCCI() calculates oldest→newest causing ~20 bar delay on M1.
+
+  /phase-4-detection-logic:
+    post:
+      summary: Phase 4 - Detection Logic (v0.5.0)
       description: |
         Add 4-consecutive-rise detection with Print() logging.
 
@@ -213,11 +235,11 @@ paths:
         '400':
           description: Detection logic incorrect - fix before proceeding
 
-  /phase-4-csv-audit:
+  /phase-5-csv-audit:
     post:
-      summary: Phase 4 - CSV Audit Validation (v0.5.0)
+      summary: Phase 5 - CSV Audit Trail (v0.6.0)
       description: |
-        Complete verification of CSV audit trail accuracy.
+        Add CSV logging for all detections.
 
         **User Verification**:
         1. Filter CSV: ShouldMark=YES, pick 5 random times
@@ -237,9 +259,9 @@ paths:
         '400':
           description: CSV data mismatches visual - debug detection or interpretation
 
-  /phase-5-connect-arrows:
+  /phase-6-arrows:
     post:
-      summary: Phase 5 - Connect Arrows (v0.6.0)
+      summary: Phase 6 - Arrow Placement (v0.7.0)
       description: |
         Create arrows at detected pattern locations.
 
@@ -266,9 +288,9 @@ paths:
         '500':
           description: Object persistence broken - investigate actual object names
 
-  /phase-6-recalculation-test:
+  /phase-7-recalculation-test:
     post:
-      summary: Phase 6 - Recalculation Stress Test (v0.7.0)
+      summary: Phase 7 - Recalculation Stress Test (v0.8.0)
       description: |
         Verify arrows survive bar shifts and recalculations.
 
@@ -291,9 +313,9 @@ paths:
         '400':
           description: Bar shift bug - arrows moving with indexes instead of times
 
-  /phase-7-production:
+  /phase-8-production:
     post:
-      summary: Phase 7 - Production Release (v1.0.0)
+      summary: Phase 8 - Production Release (v1.0.0)
       description: |
         Finalize for production use.
 
