@@ -1,3 +1,27 @@
+# [2.0.0](https://github.com/terrylica/mql5-crossover/compare/v1.0.1...v2.0.0) (2025-12-25)
+
+
+### Bug Fixes
+
+* correct color mapping to match CCI_Neutrality_Adaptive v5.0.0 (v0.2.1) ([ecb1d3d](https://github.com/terrylica/mql5-crossover/commit/ecb1d3d6e29f7f6ede30c514b419685e23e8b523))
+* **release:** add feature branch to semantic-release branches config ([038188f](https://github.com/terrylica/mql5-crossover/commit/038188fd96e171e74242f930437f58f6d27b6e21))
+* **semantic-release:** revert repository URL to HTTPS (SSH not configured) ([c2d6d8a](https://github.com/terrylica/mql5-crossover/commit/c2d6d8a5dbd275a1d5a3f40bf0c1e9c7882420f4))
+
+
+### Features
+
+* add rising pattern arrow detection to CCI Neutrality Adaptive (v4.24) ([43f2033](https://github.com/terrylica/mql5-crossover/commit/43f2033c749fb3ca1ab626cf06f75c82de55086e))
+* **CCI_Neutrality_Adaptive:** Add arrow markers for 4 consecutive rising bars (v4.22) ([568aca0](https://github.com/terrylica/mql5-crossover/commit/568aca05a707ada8d05cf82093ce2209e2ac708e))
+* **CCI_Neutrality_Adaptive:** Add METHOD_RESAMPLE + MTF sync (v4.21) ([e1427fa](https://github.com/terrylica/mql5-crossover/commit/e1427fa3aac5260fd65cb19c761928f0efadf6cd))
+* **cci-rising:** implement arrow placement (v0.7.0) ([52e0a04](https://github.com/terrylica/mql5-crossover/commit/52e0a04fc12070210d6c817d58691488e4f34403))
+* enhance arrow visibility for rising pattern detection (v4.25) ([cc2ccfd](https://github.com/terrylica/mql5-crossover/commit/cc2ccfd146b31c1cd58c46b82dc2c783bf36a87f))
+* Phase 1 - baseline histogram (v0.2.0) ([77cfaec](https://github.com/terrylica/mql5-crossover/commit/77cfaecadde70692b62e51d73023a656c62a4e4d))
+
+
+### BREAKING CHANGES
+
+* **cci-rising:** Phase numbering changed in plan file. Original Phase 6 Recalculation Test is now Phase 7 (v0.8.0), Original Phase 7 Production is now Phase 8 (v1.0.0) due to v0.4.0 Native CCI insertion.
+
 # Changelog
 
 All notable changes to the project indicators will be documented in this file.
