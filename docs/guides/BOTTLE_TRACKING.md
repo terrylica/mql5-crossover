@@ -8,7 +8,7 @@
 
 ```
 macOS Git Repo                     CrossOver Bottle
-/Users/terryli/eon/mql5-crossover/ → X:\ (mapped drive)
+$MQL5_ROOT/                        → X:\ (mapped drive)
 ├── mql5/                          → X:\mql5\
 ├── python/                        → X:\python\
 ├── scripts/                       → X:\scripts\
@@ -35,7 +35,7 @@ Config templates in:     X:\config\
 4. Go to "Drives" tab
 5. Add new drive mapping:
    - Drive letter: `X:`
-   - Path: `/Users/terryli/eon/mql5-crossover`
+   - Path: `$MQL5_ROOT` (see CLAUDE.md for environment variable setup)
 6. Click "Apply"
 
 **CLI Method** (Alternative):
@@ -59,7 +59,7 @@ sys.path.insert(0, r'X:\python')  # Add mapped repo path
 # import validate_export  # if needed
 ```
 
-### Step 3: Redirect MT5 Exports to X:
+### Step 3: Redirect MT5 Exports to X
 
 Update export script to write directly to mapped drive:
 
@@ -193,7 +193,7 @@ mt5-start cmd /c "dir X:\"
 
 **Solution**: Verify drive letter in CrossOver Configuration → Drives tab.
 
-### Issue: Permission Denied Writing to X:
+### Issue: Permission Denied Writing to X
 
 **Cause**: macOS file permissions on repo directory.
 
@@ -201,11 +201,11 @@ mt5-start cmd /c "dir X:\"
 
 ```bash
 # Ensure bottle user can write
-chmod -R u+w /Users/terryli/eon/mql5-crossover/exports/
-chmod -R u+w /Users/terryli/eon/mql5-crossover/logs/
+chmod -R u+w "$MQL5_ROOT/exports/"
+chmod -R u+w "$MQL5_ROOT/logs/"
 ```
 
-### Issue: Wine Python Can't Import from X:
+### Issue: Wine Python Can't Import from X
 
 **Cause**: Python path not including `X:\python\`.
 
@@ -296,7 +296,7 @@ echo * text=auto > .gitattributes
 
 ## Implementation Checklist
 
-- [ ] Map `/Users/terryli/eon/mql5-crossover/` as `X:` in CrossOver
+- [ ] Map `$MQL5_ROOT` as `X:` in CrossOver (see CLAUDE.md for path)
 - [ ] Add `.gitattributes` for line ending normalization
 - [ ] Update Wine Python scripts to reference `X:\python\`
 - [ ] Update `export_aligned.py` to write to `X:\exports\`

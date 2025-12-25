@@ -360,9 +360,9 @@ jobs:
 
 ## Related Documentation
 
-- [Initial Bug Report](/Users/terryli/eon/mql5-crossover/docs/guides/LAGUERRE_RSI_BUG_REPORT.md)
-- [Bug Fix Summary](/Users/terryli/eon/mql5-crossover/docs/guides/LAGUERRE_RSI_BUG_FIX_SUMMARY.md)
-- [Failed Investigation](/Users/terryli/eon/mql5-crossover/docs/guides/MQL5_CLI_COMPILATION_INVESTIGATION.md)
+- [Initial Bug Report](/docs/archive/LAGUERRE_RSI_BUG_REPORT.archived.md)
+- [Bug Fix Summary](/docs/archive/LAGUERRE_RSI_BUG_FIX_SUMMARY.archived.md)
+- [Failed Investigation](/archive/docs/MQL5_CLI_COMPILATION_INVESTIGATION.md)
 
 ---
 

@@ -1,0 +1,51 @@
+Traceback (most recent call last):
+  File "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/validate_indicator.py", line 317, in main
+    run_id = store_validation_results(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/validate_indicator.py", line 239, in store_validation_results
+    conn.execute("""
+_duckdb.ConstraintException: Constraint Error: NOT NULL constraint failed: validation_runs.run_id
+======================================================================
+Universal Indicator Validation
+======================================================================
+CSV: /Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/MT5/MQL5/Files/Export_EURUSD_PERIOD_M1.csv
+Indicator: laguerre_rsi
+Threshold: 0.999
+Database: validation.ddb
+
+[1/4] Loading MQL5 CSV export...
+  Loaded 100 bars
+  Columns: ['time', 'open', 'high', 'low', 'close', 'tick_volume', 'spread', 'real_volume', 'RSI_14', 'Laguerre_RSI_32', 'Laguerre_Signal', 'Adaptive_Period', 'ATR_32']
+
+[2/4] Calculating Python laguerre_rsi...
+
+Validating Laguerre RSI...
+Parameters: {}
+
+[FAIL] Laguerre_RSI
+  Correlation: 0.951193 (threshold: 0.999)
+  MAE: 0.041918, RMSE: 0.135906, Max Diff: 1.000000
+  MQL5:   min=0.000000, max=1.000000, mean=0.630137
+  Python: min=0.000000, max=1.000000, mean=0.588230
+
+[FAIL] Laguerre_Signal
+  Correlation: 0.911429 (threshold: 0.999)
+  MAE: 0.110000, RMSE: 0.331662, Max Diff: 1.000000
+  MQL5:   min=0.000000, max=2.000000, mean=1.000000
+  Python: min=0.000000, max=2.000000, mean=0.910000
+
+[FAIL] Adaptive_Period
+  Correlation: 0.907871 (threshold: 0.999)
+  MAE: 0.839710, RMSE: 2.675786, Max Diff: 16.000000
+  MQL5:   min=24.000000, max=52.500000, mean=27.208400
+  Python: min=24.000000, max=52.500000, mean=26.689235
+
+[FAIL] ATR
+  Correlation: 0.972931 (threshold: 0.999)
+  MAE: 0.000015, RMSE: 0.000030, Max Diff: 0.000087
+  MQL5:   min=0.000092, max=0.000250, mean=0.000173
+  Python: min=0.000005, max=0.000250, mean=0.000158
+
+[3/4] Storing validation results in DuckDB...
+
+Unexpected Error: Constraint Error: NOT NULL constraint failed: validation_runs.run_id

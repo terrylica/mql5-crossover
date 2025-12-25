@@ -46,7 +46,7 @@
 
 **Files**:
 
-- Export: `/Users/terryli/eon/mql5-crossover/exports/20251013_corrected_Export_USDJPY_PERIOD_M1.csv`
+- Export: `exports/20251013_corrected_Export_USDJPY_PERIOD_M1.csv` (historical validation)
 - Script: `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/export_aligned.py`
 
 **Configuration**:

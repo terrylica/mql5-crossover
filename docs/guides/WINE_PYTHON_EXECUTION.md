@@ -100,7 +100,7 @@ avg_loss = loss.ewm(alpha=1/period, min_periods=period, adjust=False).mean()
 
 **Impact**: After fix, correlation improved to 0.999920 (PASSED validation).
 
-**Location**: `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/export_aligned.py:41-43 `
+**Location**: `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/export_aligned.py:41-43`
 
 **Validation**: Mean absolute error dropped from 5.20 to 0.010, max error from 22.07 to 4.96.
 
@@ -123,7 +123,7 @@ df.columns = df.columns.str.lower()
 - v3.0.0 (Python API): capitalized column names (Time, Open, High...)
 - Validator now handles both formats transparently
 
-**Location**: `/Users/terryli/eon/mql5-crossover/python/validate_export.py:38 `
+**Location**: `users/crossover/validate_export.py:38` (deprecated; now use `validate_indicator.py`)
 
 **Additional Fix**: RSI column detection also updated from `col.startswith("RSI")` to `col.startswith("rsi")` at line 193.
 
@@ -400,11 +400,11 @@ Before deploying v3.0.0 in production:
 
 ## References
 
-- **Implementation Plan**: `../plans/HEADLESS_EXECUTION_PLAN.md ` - Complete v3.0.0 development history
-- **Validation Report**: `../reports/VALIDATION_STATUS.md ` - Test results and SLO metrics
-- **CrossOver Essentials**: `CROSSOVER_MQ5.md ` - MT5/Wine environment fundamentals
-- **Python Script Location**: `~/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/export_aligned.py `
-- **Validator Location**: `python/validate_export.py `
+- **Implementation Plan**: `../plans/HEADLESS_EXECUTION_PLAN.md` - Complete v3.0.0 development history
+- **Validation Report**: `../reports/VALIDATION_STATUS.md` - Test results and SLO metrics
+- **CrossOver Essentials**: `CROSSOVER_MQ5.md` - MT5/Wine environment fundamentals
+- **Python Script Location**: `~/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c/users/crossover/export_aligned.py`
+- **Validator Location**: `python/validate_export.py`
 
 ## Update History
 

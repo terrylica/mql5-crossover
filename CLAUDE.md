@@ -19,9 +19,9 @@
 
 ## Navigation Index
 
-**Current Workspace**: `$MQL5_ROOT` → `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c ` (CrossOver bottle root)
-**Project Documentation**: `docs/README.md ` - Project overview and documentation index
-**🧭 Task Navigator**: `docs/MT5_REFERENCE_HUB.md ` - Decision trees, canonical source map, automation matrix (single navigation point)
+**Current Workspace**: `$MQL5_ROOT` → `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5/drive_c` (CrossOver bottle root)
+**Project Documentation**: `docs/README.md` - Project overview and documentation index
+**🧭 Task Navigator**: `docs/MT5_REFERENCE_HUB.md` - Decision trees, canonical source map, automation matrix (single navigation point)
 
 ## Environment Variables
 
@@ -114,6 +114,14 @@ wine "C:\\Program Files\\Python312\\python.exe" \
   - **Status**: v3.0.0 (headless) + v4.0.0 (GUI) production-ready, all tooling complete
 
 - **[cci-neutrality-indicator.yaml](docs/plans/cci-neutrality-indicator.yaml)** - CCI Neutrality indicator base implementation (v1.3.2, blocked on calculation errors)
+
+- **[cci-rising-pattern-marker.yaml](docs/plans/cci-rising-pattern-marker.yaml)** - CCI Rising pattern marker plan
+
+### Blocking Issues (Active)
+
+- **[MT5_AUTOMATION_BLOCKING_ISSUE_v1.3.0.md](docs/plans/MT5_AUTOMATION_BLOCKING_ISSUE_v1.3.0.md)** - MT5 automation blocking issue documentation (v1.3.0)
+- **[STRATEGY_TESTER_BLOCKING_ISSUE.md](docs/plans/STRATEGY_TESTER_BLOCKING_ISSUE.md)** - Strategy tester blocking issue analysis
+- **[WORKFLOW_EVOLUTION_FRAMEWORK.md](docs/plans/WORKFLOW_EVOLUTION_FRAMEWORK.md)** - Workflow evolution framework for future development
 
 ## Validation Reports
 
@@ -209,49 +217,59 @@ exports/                                   # CSV exports (gitignored)
 
 ### Single Source of Truth
 
-| Topic                                                      | Authoritative Document                                    |
-| ---------------------------------------------------------- | --------------------------------------------------------- |
-| **🚀 WORKFLOWS**                                           |                                                           |
-| MQL5→Python Migration Workflow                             | `docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md`           |
-| Lessons Learned (8 gotchas, 185+ hours debugging)          | `docs/guides/LESSONS_LEARNED_PLAYBOOK.md`                 |
-| Indicator Migration Checklist                              | `docs/templates/INDICATOR_MIGRATION_CHECKLIST.md`         |
-| Wine Python Execution (v3.0.0)                             | `docs/guides/WINE_PYTHON_EXECUTION.md`                    |
-| File-Based Config Workflow (v4.0.0)                        | `docs/guides/V4_FILE_BASED_CONFIG_WORKFLOW.md`            |
-| Headless Execution (v2/v3/v4 evolution)                    | `docs/plans/HEADLESS_EXECUTION_PLAN.md`                   |
-| **🗺️ PATHS & INFRASTRUCTURE**                              |                                                           |
-| BOTTLE_ROOT, MT5 Paths, Directory Structure                | `docs/guides/MT5_FILE_LOCATIONS.md`                       |
-| X: Drive Mapping, Git Integration                          | `docs/guides/BOTTLE_TRACKING.md`                          |
-| **🔤 ENCODING**                                            |                                                           |
-| UTF-8/UTF-16LE Detection, chardet, .gitattributes          | `docs/guides/MQL5_ENCODING_SOLUTIONS.md`                  |
-| **⚙️ COMPILATION**                                         |                                                           |
-| **⚠️ X: Drive CLI Compilation (PRIMARY METHOD)**           | `.claude/skills/mql5-x-compile` + `tools/compile_mql5.sh` |
-| CLI Compilation (--cx-app, ~1s), Troubleshooting           | `docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md`             |
-| /inc Parameter Behavior (overrides, not augments)          | `docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md`          |
-| **🍷 WINE ENVIRONMENT**                                    |                                                           |
-| CrossOver Environment, Wine Builds, Shell Setup            | `docs/guides/CROSSOVER_MQ5.md`                            |
-| **📋 CONFIGURATION**                                       |                                                           |
-| startup.ini Syntax, [StartUp] Section, ShutdownTerminal    | `docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md`        |
-| .set File Format (UCS-2 LE BOM, MQL5/Presets/)             | `docs/guides/MQL5_PRESET_FILES_RESEARCH.md`               |
-| **📊 VALIDATION**                                          |                                                           |
-| Production Methodology (5000-bar warmup, ≥0.999, pitfalls) | `docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md`         |
-| Laguerre RSI Success Case (1.000000 correlation)           | `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md`         |
-| Validation Failures Case (3-hour debugging timeline)       | `docs/guides/PYTHON_INDICATOR_VALIDATION_FAILURES.md`     |
-| SLO Metrics, Test Results                                  | `docs/reports/VALIDATION_STATUS.md`                       |
-| **🔬 CASE STUDIES**                                        |                                                           |
-| Laguerre RSI Algorithm Translation                         | `docs/guides/LAGUERRE_RSI_ANALYSIS.md`                    |
-| Laguerre RSI Temporal Audit                                | `docs/guides/LAGUERRE_RSI_TEMPORAL_AUDIT.md`              |
-| Laguerre RSI Bug Journey (14 hours, 3 bugs)                | `docs/archive/LAGUERRE_RSI_BUG_JOURNEY.md`                |
-| **🔍 RESEARCH**                                            |                                                           |
-| /inc Trap, Script Automation, Python API Limits            | `docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md`          |
-| Script Parameters (30+ sources, bugs documented)           | `docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md`        |
-| .set Preset Files (encoding, location, #property)          | `docs/guides/MQL5_PRESET_FILES_RESEARCH.md`               |
-| **📋 STATUS**                                              |                                                           |
-| Documentation Readiness (95/100)                           | `docs/reports/DOCUMENTATION_READINESS_ASSESSMENT.md`      |
-| Pruning Assessment                                         | `docs/reports/PRUNING_ASSESSMENT.md`                      |
-| Historical Context (2022-2025)                             | `docs/archive/historical.txt`                             |
-| **🗄️ LEGACY & ARCHIVE**                                    |                                                           |
-| Legacy Code Assessment (70+ items, what NOT to retest)     | `docs/reports/LEGACY_CODE_ASSESSMENT.md`                  |
-| Archive Organization (cc indicator fix)                    | Archive reorganized (commit f29149e, 2025-10-18)          |
+| Topic                                                      | Authoritative Document                                       |
+| ---------------------------------------------------------- | ------------------------------------------------------------ |
+| **🚀 WORKFLOWS**                                           |                                                              |
+| MQL5→Python Migration Workflow                             | `docs/guides/MQL5_TO_PYTHON_MIGRATION_GUIDE.md`              |
+| Lessons Learned (8 gotchas, 185+ hours debugging)          | `docs/guides/LESSONS_LEARNED_PLAYBOOK.md`                    |
+| Indicator Migration Checklist                              | `docs/templates/INDICATOR_MIGRATION_CHECKLIST.md`            |
+| Wine Python Execution (v3.0.0)                             | `docs/guides/WINE_PYTHON_EXECUTION.md`                       |
+| File-Based Config Workflow (v4.0.0)                        | `docs/guides/V4_FILE_BASED_CONFIG_WORKFLOW.md`               |
+| Headless Execution (v2/v3/v4 evolution)                    | `docs/plans/HEADLESS_EXECUTION_PLAN.md`                      |
+| **🗺️ PATHS & INFRASTRUCTURE**                              |                                                              |
+| BOTTLE_ROOT, MT5 Paths, Directory Structure                | `docs/guides/MT5_FILE_LOCATIONS.md`                          |
+| X: Drive Mapping, Git Integration                          | `docs/guides/BOTTLE_TRACKING.md`                             |
+| **🔤 ENCODING**                                            |                                                              |
+| UTF-8/UTF-16LE Detection, chardet, .gitattributes          | `docs/guides/MQL5_ENCODING_SOLUTIONS.md`                     |
+| **⚙️ COMPILATION**                                         |                                                              |
+| **⚠️ X: Drive CLI Compilation (PRIMARY METHOD)**           | `.claude/skills/mql5-x-compile` + `tools/compile_mql5.sh`    |
+| CLI Compilation (--cx-app, ~1s), Troubleshooting           | `docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md`                |
+| /inc Parameter Behavior (overrides, not augments)          | `docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md`             |
+| **🍷 WINE ENVIRONMENT**                                    |                                                              |
+| CrossOver Environment, Wine Builds, Shell Setup            | `docs/guides/CROSSOVER_MQ5.md`                               |
+| **📋 CONFIGURATION**                                       |                                                              |
+| startup.ini Syntax, [StartUp] Section, ShutdownTerminal    | `docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md`           |
+| .set File Format (UCS-2 LE BOM, MQL5/Presets/)             | `docs/guides/MQL5_PRESET_FILES_RESEARCH.md`                  |
+| **📊 VALIDATION**                                          |                                                              |
+| Production Methodology (5000-bar warmup, ≥0.999, pitfalls) | `docs/guides/INDICATOR_VALIDATION_METHODOLOGY.md`            |
+| Laguerre RSI Success Case (1.000000 correlation)           | `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md`            |
+| Validation Failures Case (3-hour debugging timeline)       | `docs/guides/PYTHON_INDICATOR_VALIDATION_FAILURES.md`        |
+| SLO Metrics, Test Results                                  | `docs/reports/VALIDATION_STATUS.md`                          |
+| **🔬 CASE STUDIES**                                        |                                                              |
+| Laguerre RSI Algorithm Translation                         | `docs/guides/LAGUERRE_RSI_ANALYSIS.md`                       |
+| Laguerre RSI Temporal Audit                                | `docs/guides/LAGUERRE_RSI_TEMPORAL_AUDIT.md`                 |
+| Laguerre RSI Bug Journey (14 hours, 3 bugs)                | `docs/archive/LAGUERRE_RSI_BUG_JOURNEY.md`                   |
+| **🔍 RESEARCH**                                            |                                                              |
+| /inc Trap, Script Automation, Python API Limits            | `docs/guides/EXTERNAL_RESEARCH_BREAKTHROUGHS.md`             |
+| Script Parameters (30+ sources, bugs documented)           | `docs/guides/SCRIPT_PARAMETER_PASSING_RESEARCH.md`           |
+| .set Preset Files (encoding, location, #property)          | `docs/guides/MQL5_PRESET_FILES_RESEARCH.md`                  |
+| **📋 STATUS**                                              |                                                              |
+| Documentation Readiness (95/100)                           | `docs/reports/DOCUMENTATION_READINESS_ASSESSMENT.md`         |
+| Pruning Assessment                                         | `docs/reports/PRUNING_ASSESSMENT.md`                         |
+| Technical Debt Report                                      | `docs/reports/TECHNICAL_DEBT_REPORT.md`                      |
+| Refactoring Audit                                          | `docs/reports/REFACTORING_AUDIT.md`                          |
+| Consolidation Report                                       | `docs/reports/CONSOLIDATION_REPORT.md`                       |
+| Archive Organization Pruning                               | `docs/reports/ARCHIVE_ORGANIZATION_PRUNING_REPORT.md`        |
+| Documentation Audit (2025-10-17)                           | `docs/reports/DOCUMENTATION_AUDIT_2025-10-17.md`             |
+| Comprehensive Validation (2025-10-18)                      | `docs/reports/COMPREHENSIVE_VALIDATION_REPORT_2025-10-18.md` |
+| Workflow Validation Audit                                  | `docs/reports/WORKFLOW_VALIDATION_AUDIT.md`                  |
+| Reality Check Matrix                                       | `docs/reports/REALITY_CHECK_MATRIX.md`                       |
+| SMA Iteration 2 Test Plan                                  | `docs/reports/ITERATION_2_SMA_TEST_PLAN.md`                  |
+| SMA Iteration 2 Interim Report                             | `docs/reports/ITERATION_2_SMA_INTERIM_REPORT.md`             |
+| Historical Context (2022-2025)                             | `docs/archive/historical.txt`                                |
+| **🗄️ LEGACY & ARCHIVE**                                    |                                                              |
+| Legacy Code Assessment (70+ items, what NOT to retest)     | `docs/reports/LEGACY_CODE_ASSESSMENT.md`                     |
+| Archive Organization (cc indicator fix)                    | Archive reorganized (commit f29149e, 2025-10-18)             |
 
 ## Python Workspace Utilities
 
@@ -415,7 +433,7 @@ timeout 120 "$CROSSOVER_BIN" \
 
 ## MT5 File Locations (CrossOver Bottle)
 
-**Bottle Root**: `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5 `
+**Bottle Root**: `/Users/terryli/Library/Application Support/CrossOver/Bottles/MetaTrader 5`
 
 **Critical Paths**:
 
@@ -467,7 +485,7 @@ find "$BOTTLE_ROOT/drive_c/Program Files/MetaTrader 5/MQL5/Indicators/Custom" -n
 grep "#include" indicator.mq5
 ```
 
-See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicator translation workflow.
+See `docs/guides/MT5_FILE_LOCATIONS.md` for complete path reference and indicator translation workflow.
 
 ## Critical Requirements & Limitations
 
@@ -495,7 +513,7 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
 - macOS → Wine execution: Use `CX_BOTTLE` + `WINEPREFIX` + wine command
 - Python script paths: Windows-style `C:\users\crossover\...`
 - CSV copy: macOS native paths `~/Library/.../drive_c/users/...`
-- See `docs/guides/WINE_PYTHON_EXECUTION.md ` for complete path navigation guide
+- See `docs/guides/WINE_PYTHON_EXECUTION.md` for complete path navigation guide
 
 **Python Indicator Validation Requirements**:
 
@@ -504,7 +522,7 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
 - Solution: Fetch 5000+ bars using Wine Python MT5 API, calculate on all bars, compare last N bars
 - ATR requires 32-bar lookback, Adaptive Period requires 64-bar warmup for stable values
 - MQL5 ATR uses expanding window for first N bars (sum/period), not pandas rolling().mean()
-- See `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md ` for complete methodology
+- See `docs/reports/LAGUERRE_RSI_VALIDATION_SUCCESS.md` for complete methodology
 
 ### v2.0.0 (startup.ini) - LEGACY ⚠️
 
@@ -520,8 +538,8 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
 
 ## Research Context
 
-**Historical Findings**: `docs/archive/historical.txt ` (2022-2025 community research)
-**Archived Plans**: `docs/archive/HEADLESS_EXECUTION_PLAN.v2.0.0.archived.md ` (startup.ini approach)
+**Historical Findings**: `docs/archive/historical.txt` (2022-2025 community research)
+**Archived Plans**: `docs/archive/HEADLESS_EXECUTION_PLAN.v2.0.0.archived.md` (startup.ini approach)
 
 ## Project Status
 
@@ -591,9 +609,9 @@ See `docs/guides/MT5_FILE_LOCATIONS.md ` for complete path reference and indicat
   - **2025-10-13**: CLI compilation via `--cx-app` and `--bottle` flags
   - **2025-10-13**: CrossOver path: `~/Applications/` not `/Applications/`
 - **Documentation**: Complete empirical workflow guides
-  - Production: `WINE_PYTHON_EXECUTION.md ` (v3.0.0 workflow)
-  - File Paths: `MT5_FILE_LOCATIONS.md ` (indicator translation)
-  - Refactoring: `MT5_IDIOMATIC_REFACTORING.md ` (project structure)
+  - Production: `WINE_PYTHON_EXECUTION.md` (v3.0.0 workflow)
+  - File Paths: `MT5_FILE_LOCATIONS.md` (indicator translation)
+  - Refactoring: `MT5_IDIOMATIC_REFACTORING.md` (project structure)
 
 ## Workflow Robustness Status
 
@@ -720,7 +738,7 @@ cp "$BOTTLE/drive_c/Indicator.ex5" \
 - `/compile:"C:/file.mq5"` - Source file (forward slashes, simple path)
 - `/inc:"C:/..."` - Include directory for MQL5 headers
 
-See `docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md ` for complete guide and automation script.
+See `docs/guides/MQL5_CLI_COMPILATION_SUCCESS.md` for complete guide and automation script.
 
 ---
 
