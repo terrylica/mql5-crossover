@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/terrylica/mql5-crossover/compare/v2.0.0...v2.0.1) (2025-12-26)
+
+
+### Bug Fixes
+
+* add lychee config and fix broken anchor link ([5043ab5](https://github.com/terrylica/mql5-crossover/commit/5043ab5c64985b58429e62bffcd38b6e770a9a90)), closes [#quick-start](https://github.com/terrylica/mql5-crossover/issues/quick-start) [#-quick-start](https://github.com/terrylica/mql5-crossover/issues/-quick-start)
+
 # [2.0.0](https://github.com/terrylica/mql5-crossover/compare/v1.0.1...v2.0.0) (2025-12-25)
 
 
