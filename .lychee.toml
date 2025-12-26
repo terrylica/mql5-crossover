@@ -1,0 +1,55 @@
+# Lychee Link Checker Configuration - mql5-crossover
+# Version: 1.0.0
+# Purpose: Project-specific exclusions for MT5/CrossOver bottle structure
+
+############################# Display ###############################
+verbose = "error"
+no_progress = true
+
+############################# Cache #################################
+cache = true
+max_cache_age = "7d"
+
+############################# Runtime ###############################
+timeout = 5
+max_retries = 1
+max_concurrency = 4
+offline = true
+include_fragments = true
+include_verbatim = false
+include_mail = false
+
+############################# Exclusions ############################
+
+# Exclude archived/historical directories (contain intentionally stale links)
+exclude_path = [
+    "node_modules/",
+    "\\.git/",
+    "archive/",                    # Archived files have historical references
+    "docs/archive/",               # Archived docs with legacy paths
+    "experiments/",                # Research experiments
+    "Program Files/",              # MT5 installation (binary/config files)
+    "users/crossover/exports/",    # CSV export data
+    "users/crossover/Downloads/",  # Downloaded files (not project docs)
+    "\\.sessions/",                # Session data
+]
+
+# Exclude URL patterns (regex)
+exclude = [
+    "^mailto:",
+    # Old repository path (migrated from eon/)
+    "^file:///Users/terryli/eon/",
+    "/Users/terryli/eon/",
+    # Bottle path without drive_c (incorrect references in MQL5 docs)
+    "^file:///Users/terryli/Library/Application%20Support/CrossOver/Bottles/MetaTrader%205/docs/",
+    "^file:///Users/terryli/Library/Application%20Support/CrossOver/Bottles/MetaTrader%205/users/",
+    "^file:///Users/terryli/Library/Application%20Support/CrossOver/Bottles/MetaTrader%205/CLAUDE",
+    # External URLs (checked separately if needed)
+    "^https://",
+    "^http://",
+    # GitHub commit/compare links (volatile)
+    "github.com/.*/commit/",
+    "github.com/.*/compare/",
+    # Non-existent migration plan (historical reference)
+    "MIGRATION_PLAN\\.md",
+]
