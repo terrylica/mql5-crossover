@@ -184,9 +184,16 @@ mt5work/staging/
 # ============================================
 # Link Validation & Testing Artifacts
 # ============================================
-# Lychee link checker results
+# Lychee link checker results and cache
 .lychee-results.json
 .lychee-results.txt
+.lycheecache
+.lint-relative-paths-results.txt
+
+# ============================================
+# Claude Code Local Settings
+# ============================================
+.claude/settings.local.json
 
 # MT5 Strategy Tester reports
 Program Files/MetaTrader 5/cci_neutrality_test_report*.png
