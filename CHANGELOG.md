@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/terrylica/mql5-crossover/compare/v2.0.1...v2.0.2) (2025-12-30)
+
+
+### Bug Fixes
+
+* **cc:** resolve DRAW_NONE buffer mapping bug causing dots on all bars ([03d9860](https://github.com/terrylica/mql5-crossover/commit/03d98601afc7f6b3c179818dd82d32c6fe6be504))
+
 ## [2.0.1](https://github.com/terrylica/mql5-crossover/compare/v2.0.0...v2.0.1) (2025-12-26)
 
 
