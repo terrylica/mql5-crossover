@@ -4,7 +4,7 @@
 //|                                                                 |
 //+------------------------------------------------------------------+
 #property copyright "Terry Li"
-#property version   "1.20"
+#property version   "1.27"
 #property description "Detects consecutive expansions/contractions in bar body size (inside bars removed)"
 #property indicator_chart_window
 #property indicator_buffers 13
@@ -51,7 +51,7 @@ input bool                InpShowContractions = true;       // Detect contractio
 // Visualization settings
 input group "Display Settings"
 input bool                InpShowDots         = true;       // Show dot signals
-input bool                InpShowColorBars    = true;       // Show colored bars
+input bool                InpShowColorBars    = false;      // Show colored bars
 
 // Color settings
 input group "Color Settings"
@@ -64,6 +64,10 @@ input group "Dot Signal Settings"
 input int                 InpArrowCode        = 159;         // Arrow code
 input int                 InpArrowSize        = 3;           // Arrow size
 input int                 InpMaxDotSize       = 14;          // Maximum dot size for consecutive signals
+
+// Noise filter settings
+input group "Noise Filter Settings"
+input double              InpMinBodyPips      = 0.0;         // Minimum body size in pips (0=disabled)
 
 //--- indicator buffers
 // Price and color buffers for colored candles
@@ -148,7 +152,19 @@ int OnInit()
    PlotIndexSetInteger(2, PLOT_LINE_WIDTH, InpArrowSize);
 
    //--- Enable/disable plots based on input settings
-   PlotIndexSetInteger(0, PLOT_DRAW_TYPE, InpShowColorBars ? DRAW_COLOR_CANDLES : DRAW_NONE);
+   //--- CRITICAL FIX v1.27: Don't use DRAW_NONE for plot 0 - it breaks buffer mapping for plots 1 & 2
+   //--- Instead, keep DRAW_COLOR_CANDLES but set width to 0 to hide it
+   if(InpShowColorBars)
+   {
+      PlotIndexSetInteger(0, PLOT_DRAW_TYPE, DRAW_COLOR_CANDLES);
+      PlotIndexSetInteger(0, PLOT_LINE_WIDTH, 1);
+   }
+   else
+   {
+      // Keep DRAW_COLOR_CANDLES to preserve buffer mapping, but make invisible
+      PlotIndexSetInteger(0, PLOT_DRAW_TYPE, DRAW_COLOR_CANDLES);
+      PlotIndexSetInteger(0, PLOT_LINE_WIDTH, 0);  // Width 0 = invisible
+   }
    PlotIndexSetInteger(1, PLOT_DRAW_TYPE, InpShowDots ? DRAW_ARROW : DRAW_NONE);
    PlotIndexSetInteger(2, PLOT_DRAW_TYPE, InpShowDots ? DRAW_ARROW : DRAW_NONE);
    
@@ -168,15 +184,21 @@ int OnInit()
    ArraySetAsSeries(BufferSignalBar, true);
    
    //--- Initialize buffers with empty values
-   ArrayInitialize(BufferExpBearishSignal, EMPTY_VALUE);
-   ArrayInitialize(BufferExpBullishSignal, EMPTY_VALUE);
+   //--- CRITICAL: Use 0.0 for arrow buffers (not EMPTY_VALUE/DBL_MAX)
+   //--- 0.0 is more reliable as "no draw" since prices are always positive
+   ArrayInitialize(BufferExpBearishSignal, 0.0);
+   ArrayInitialize(BufferExpBullishSignal, 0.0);
    ArrayInitialize(BufferConsecutiveBullish, 0);
    ArrayInitialize(BufferConsecutiveBearish, 0);
    ArrayInitialize(BufferExpConsecutiveBullish, 0);
    ArrayInitialize(BufferExpConsecutiveBearish, 0);
    ArrayInitialize(BufferSignalBar, 0);
    ArrayInitialize(BufferColorIndex, COLOR_NONE); // Default color index
-   
+
+   //--- Set 0.0 as "no draw" value for arrow plots
+   PlotIndexSetDouble(1, PLOT_EMPTY_VALUE, 0.0);
+   PlotIndexSetDouble(2, PLOT_EMPTY_VALUE, 0.0);
+
    //--- initialization done
    return(INIT_SUCCEEDED);
 }
@@ -212,8 +234,8 @@ int OnCalculate(const int rates_total,
    //--- Initialize buffers if this is the first calculation
    if(prev_calculated == 0)
    {
-      ArrayInitialize(BufferExpBearishSignal, EMPTY_VALUE);
-      ArrayInitialize(BufferExpBullishSignal, EMPTY_VALUE);
+      ArrayInitialize(BufferExpBearishSignal, 0.0);  // Use 0.0, not EMPTY_VALUE
+      ArrayInitialize(BufferExpBullishSignal, 0.0);  // Use 0.0, not EMPTY_VALUE
       ArrayInitialize(BufferBodySizes, 0.0);
       ArrayInitialize(BufferConsecutiveBullish, 0);
       ArrayInitialize(BufferConsecutiveBearish, 0);
@@ -235,9 +257,9 @@ int OnCalculate(const int rates_total,
       //--- Calculate absolute body size
       BufferBodySizes[i] = MathAbs(close[i] - open[i]);
       
-      //--- Reset signals and colors
-      BufferExpBearishSignal[i] = EMPTY_VALUE;
-      BufferExpBullishSignal[i] = EMPTY_VALUE;
+      //--- Reset signals and colors (use 0.0 for arrows)
+      BufferExpBearishSignal[i] = 0.0;
+      BufferExpBullishSignal[i] = 0.0;
       BufferColorIndex[i] = COLOR_NONE; // Default color
       
       // Reset consecutive counters and signal markers for this bar
@@ -248,6 +270,9 @@ int OnCalculate(const int rates_total,
       BufferSignalBar[i] = 0;
    }
    
+   //--- Calculate minimum body size in price units
+   double minBodyPrice = InpMinBodyPips * Point() * 10;  // Convert pips to price
+
    //--- Check for contraction patterns if enabled
    if(InpShowContractions)
    {
@@ -256,46 +281,165 @@ int OnCalculate(const int rates_total,
          //--- Skip bars that don't have enough preceding bars
          if(i + InpConsecutiveCount >= rates_total)
             continue;
-         
+
          // Determine pattern direction based on the first signaling bar
          bool isPatternBullish = close[i] > open[i];
-         
+
+         // Check minimum body size filter
+         if(!CheckMinimumBodySize(BufferBodySizes, i, InpConsecutiveCount, minBodyPrice))
+            continue;
+
          // Check for same direction if required
          if(InpSameDirection && !CheckSameDirection(open, close, i, InpConsecutiveCount, isPatternBullish))
             continue;
-         
+
          // Check for consecutive contractions
          if(!CheckConsecutiveContractions(BufferBodySizes, i, InpConsecutiveCount))
             continue;
-         
+
          // We have a valid contraction pattern, mark the signal
          SetContractionSignal(i, isPatternBullish, rates_total);
       }
    }
-   
+
    //--- Check for expansion patterns if enabled
    if(InpShowExpansions)
    {
+      int debugCount = 0;
+      int signalCount = 0;
+
       for(int i = 1; i < rates_total - InpConsecutiveCount; i++)
       {
          //--- Skip bars that don't have enough preceding bars
          if(i + InpConsecutiveCount >= rates_total)
             continue;
-         
+
          // Determine pattern direction based on the first signaling bar
          bool isPatternBullish = close[i] > open[i];
-         
+
+         // Check minimum body size filter
+         if(!CheckMinimumBodySize(BufferBodySizes, i, InpConsecutiveCount, minBodyPrice))
+            continue;
+
          // Check for same direction if required
          if(InpSameDirection && !CheckSameDirection(open, close, i, InpConsecutiveCount, isPatternBullish))
             continue;
-         
+
          // Check for consecutive expansions
          if(!CheckConsecutiveExpansions(BufferBodySizes, i, InpConsecutiveCount))
             continue;
-         
+
+         // === OVERLAPPING PATTERN FIX ===
+         // Only signal at the END of an expansion sequence (where pattern doesn't extend further)
+         // Check if the pattern would also be valid one bar earlier (i-1, i, i+1)
+         // If yes, this bar is part of a longer sequence - skip it, wait for the end
+         if(i > 0)
+         {
+            bool prevBarSameDirection = true;
+            if(InpSameDirection)
+            {
+               bool isPrevBarBullish = close[i-1] > open[i-1];
+               prevBarSameDirection = (isPrevBarBullish == isPatternBullish);
+            }
+
+            // Check if expansion extends one bar earlier
+            bool extendsEarlier = prevBarSameDirection &&
+                                  CheckMinimumBodySize(BufferBodySizes, i-1, InpConsecutiveCount, minBodyPrice) &&
+                                  (BufferBodySizes[i-1] > BufferBodySizes[i]); // Expansion continues
+
+            if(extendsEarlier)
+               continue; // Skip - this is part of a longer sequence, not the end
+         }
+
+         // DEBUG: Log first 10 signals to understand what's triggering
+         if(debugCount < 10 && prev_calculated == 0)
+         {
+            Print("DEBUG Expansion bar ", i, ": bodies=[",
+                  DoubleToString(BufferBodySizes[i], 5), ", ",
+                  DoubleToString(BufferBodySizes[i+1], 5), ", ",
+                  DoubleToString(BufferBodySizes[i+2], 5), "] ",
+                  isPatternBullish ? "BULL" : "BEAR");
+            debugCount++;
+         }
+         signalCount++;
+
          // We have a valid expansion pattern, mark the signal
          SetExpansionSignal(i, isPatternBullish, high, low, rates_total);
       }
+
+      // Log total signal count on first calculation
+      if(prev_calculated == 0)
+         Print("DEBUG: Total expansion signals: ", signalCount, " out of ", rates_total, " bars");
+   }
+
+   //--- DIAGNOSTIC: Verify actual buffer state after all processing
+   if(prev_calculated == 0)
+   {
+      int bullishDotCount = 0;
+      int bearishDotCount = 0;
+      int coloredBarCount = 0;
+      int firstBullBar = -1, lastBullBar = -1;
+      int firstBearBar = -1, lastBearBar = -1;
+
+      for(int i = 0; i < rates_total; i++)
+      {
+         if(BufferExpBullishSignal[i] != 0.0)  // Check for 0.0, not EMPTY_VALUE
+         {
+            bullishDotCount++;
+            if(firstBullBar == -1) firstBullBar = i;
+            lastBullBar = i;
+         }
+         if(BufferExpBearishSignal[i] != 0.0)  // Check for 0.0, not EMPTY_VALUE
+         {
+            bearishDotCount++;
+            if(firstBearBar == -1) firstBearBar = i;
+            lastBearBar = i;
+         }
+         if(BufferColorIndex[i] != COLOR_NONE)
+         {
+            coloredBarCount++;
+         }
+      }
+
+      Print("=== BUFFER STATE DIAGNOSTIC v1.27 ===");
+      Print("Bullish dots in buffer: ", bullishDotCount, " (first=", firstBullBar, ", last=", lastBullBar, ")");
+      Print("Bearish dots in buffer: ", bearishDotCount, " (first=", firstBearBar, ", last=", lastBearBar, ")");
+      Print("Colored bars in buffer: ", coloredBarCount);
+      Print("Total dots: ", bullishDotCount + bearishDotCount);
+      Print("InpShowDots=", InpShowDots, " InpShowColorBars=", InpShowColorBars);
+
+      // Additional diagnostic: Sample buffer values
+      Print("--- Sample Buffer Values ---");
+      Print("Bar 0 (newest): Bull=", BufferExpBullishSignal[0], " Bear=", BufferExpBearishSignal[0]);
+      Print("Bar 1: Bull=", BufferExpBullishSignal[1], " Bear=", BufferExpBearishSignal[1]);
+      Print("Bar 2: Bull=", BufferExpBullishSignal[2], " Bear=", BufferExpBearishSignal[2]);
+      Print("Bar 3: Bull=", BufferExpBullishSignal[3], " Bear=", BufferExpBearishSignal[3]);
+      Print("Bar 4: Bull=", BufferExpBullishSignal[4], " Bear=", BufferExpBearishSignal[4]);
+      Print("Bar 5: Bull=", BufferExpBullishSignal[5], " Bear=", BufferExpBearishSignal[5]);
+
+      // Find and show first signal bar values
+      for(int i = 0; i < 100 && i < rates_total; i++)
+      {
+         if(BufferExpBullishSignal[i] != 0.0)
+         {
+            Print("FIRST BULL SIGNAL at bar ", i, ": value=", BufferExpBullishSignal[i], " high=", BufferHigh[i]);
+            break;
+         }
+      }
+      for(int i = 0; i < 100 && i < rates_total; i++)
+      {
+         if(BufferExpBearishSignal[i] != 0.0)
+         {
+            Print("FIRST BEAR SIGNAL at bar ", i, ": value=", BufferExpBearishSignal[i], " low=", BufferLow[i]);
+            break;
+         }
+      }
+
+      // Plot properties diagnostic
+      Print("--- Plot Properties ---");
+      Print("Plot 1 (bear): DRAW_TYPE=", PlotIndexGetInteger(1, PLOT_DRAW_TYPE), " ARROW=", PlotIndexGetInteger(1, PLOT_ARROW));
+      Print("Plot 2 (bull): DRAW_TYPE=", PlotIndexGetInteger(2, PLOT_DRAW_TYPE), " ARROW=", PlotIndexGetInteger(2, PLOT_ARROW));
+      Print("=====================================");
    }
 
    //--- return value of prev_calculated for next call

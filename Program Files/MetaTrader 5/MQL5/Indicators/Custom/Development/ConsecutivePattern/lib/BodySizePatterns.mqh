@@ -50,8 +50,8 @@ void SetExpansionSignal(int bar, bool isBullish, const double &high[], const dou
 {
    if(isBullish)
    {
-      // Update consecutive counter
-      if(bar < rates_total - 1 && BufferExpBullishSignal[bar+1] != EMPTY_VALUE)
+      // Update consecutive counter (check for 0.0, not EMPTY_VALUE)
+      if(bar < rates_total - 1 && BufferExpBullishSignal[bar+1] != 0.0)
          BufferExpConsecutiveBullish[bar] = BufferExpConsecutiveBullish[bar+1] + 1;
       else
          BufferExpConsecutiveBullish[bar] = 1;
@@ -59,7 +59,7 @@ void SetExpansionSignal(int bar, bool isBullish, const double &high[], const dou
       // Calculate dot size based on consecutive count
       int dotSize = InpArrowSize + (int)MathMin(BufferExpConsecutiveBullish[bar] - 1, InpMaxDotSize - InpArrowSize);
 
-      // Set the arrow size and position
+      // Set the arrow size and position (always set, the PLOT_EMPTY_VALUE handles "no draw")
       if(InpShowDots)
       {
          PlotIndexSetInteger(2, PLOT_LINE_WIDTH, dotSize);
@@ -68,8 +68,8 @@ void SetExpansionSignal(int bar, bool isBullish, const double &high[], const dou
    }
    else
    {
-      // Update consecutive counter
-      if(bar < rates_total - 1 && BufferExpBearishSignal[bar+1] != EMPTY_VALUE)
+      // Update consecutive counter (check for 0.0, not EMPTY_VALUE)
+      if(bar < rates_total - 1 && BufferExpBearishSignal[bar+1] != 0.0)
          BufferExpConsecutiveBearish[bar] = BufferExpConsecutiveBearish[bar+1] + 1;
       else
          BufferExpConsecutiveBearish[bar] = 1;
@@ -77,7 +77,7 @@ void SetExpansionSignal(int bar, bool isBullish, const double &high[], const dou
       // Calculate dot size based on consecutive count
       int dotSize = InpArrowSize + (int)MathMin(BufferExpConsecutiveBearish[bar] - 1, InpMaxDotSize - InpArrowSize);
 
-      // Set the arrow size and position
+      // Set the arrow size and position (always set, the PLOT_EMPTY_VALUE handles "no draw")
       if(InpShowDots)
       {
          PlotIndexSetInteger(1, PLOT_LINE_WIDTH, dotSize);

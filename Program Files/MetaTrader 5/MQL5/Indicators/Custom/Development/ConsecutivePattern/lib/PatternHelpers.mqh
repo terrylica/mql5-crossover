@@ -45,4 +45,21 @@ bool CheckConsecutiveExpansions(const double &bodySizes[], int startBar, int cou
    }
    return true;
 }
+
+//+------------------------------------------------------------------+
+//| Check if all bars in pattern meet minimum body size requirement  |
+//+------------------------------------------------------------------+
+bool CheckMinimumBodySize(const double &bodySizes[], int startBar, int count, double minBodySize)
+{
+   // If minBodySize is 0 or negative, skip this check
+   if(minBodySize <= 0)
+      return true;
+
+   for(int j = 0; j < count; j++)
+   {
+      if(bodySizes[startBar + j] < minBodySize)
+         return false;
+   }
+   return true;
+}
 //+------------------------------------------------------------------+
