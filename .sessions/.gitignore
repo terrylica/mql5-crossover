@@ -1,6 +1,0 @@
-# .Sessions folder protection - track everything
-# This folder contains conversation history and must be preserved
-
-# Track all files in .sessions directory
-!*
-!*/
