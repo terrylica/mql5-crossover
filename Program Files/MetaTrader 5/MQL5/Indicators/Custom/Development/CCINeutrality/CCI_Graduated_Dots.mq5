@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//|                                            CCI_MultiDot_Test.mq5 |
+//|                                          CCI_Graduated_Dots.mq5 |
 //|          Graduated Dot System - More dots = More extreme CCI     |
 //|          Wine/CrossOver compatible (uses dot symbol 158)         |
 //+------------------------------------------------------------------+

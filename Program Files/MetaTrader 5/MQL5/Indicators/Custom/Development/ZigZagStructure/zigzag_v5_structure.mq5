@@ -1,7 +1,7 @@
 //+------------------------------------------------------------------+
 //|                                           ZigZag_v5_Structure.mq5 |
 //|                                                        Terry Li |
-//|        Enhanced ZigZag with HH/HL/LH/LL, BOS/CHoCH, S/R Zones    |
+//|        Enhanced ZigZag with HH/HL/LH/LL and Level Lines          |
 //+------------------------------------------------------------------+
 #property copyright "Terry Li"
 #property link      ""
@@ -69,7 +69,7 @@
 #property indicator_plots   3
 #property indicator_type1   DRAW_COLOR_ZIGZAG
 #property indicator_color1  clrLimeGreen,clrPurple  // Define default zigzag colors here
-#property indicator_width1  2                 // Make lines thicker
+#property indicator_width1  1                 // Thinnest line (1 pixel)
 #property indicator_type2   DRAW_ARROW
 #property indicator_color2  clrMagenta        // Default color for peak confirmations
 #property indicator_width2  2                 // Make arrows bigger
@@ -92,6 +92,7 @@ input int InpBackstep =3;   // Back Step
 input bool InpNoRepaint=true; // Prevent last leg repainting
 input bool InpShowConfirmation=true; // Show confirmation arrows at reversal points
 input int InpArrowShift=50; // Arrow distance from price in pixels
+input int InpConfirmArrowSize=1; // Confirmation arrow size (1-5)
 input color InpUpColor=clrDarkOliveGreen;   // Uptrend color
 input color InpDownColor=clrSaddleBrown;    // Downtrend color
 input bool InpUpdateOnNewBarOnly=true; // Calculate only on bar completion
@@ -110,17 +111,7 @@ input color  InpHLColor = clrDarkGreen;         // Higher Low color
 input color  InpLHColor = clrRed;               // Lower High color
 input color  InpLLColor = clrDarkRed;           // Lower Low color
 input int    InpLabelFontSize = 8;              // Label font size
-input int    InpLabelOffsetPips = 10;           // Label offset in pips
-
-input group "=== BOS/CHoCH Detection ==="
-input bool   InpShowBOS = true;                 // Show Break of Structure
-input bool   InpShowCHoCH = true;               // Show Change of Character
-input color  InpBOSBullColor = clrDodgerBlue;   // Bullish BOS color
-input color  InpBOSBearColor = clrOrangeRed;    // Bearish BOS color
-input color  InpCHoCHBullColor = clrGold;       // Bullish CHoCH color
-input color  InpCHoCHBearColor = clrMagenta;    // Bearish CHoCH color
-input ENUM_LINE_STYLE InpBOSLineStyle = STYLE_SOLID; // BOS/CHoCH line style
-input int    InpBOSLineWidth = 2;               // BOS/CHoCH line width
+input double InpLabelOffsetPips = 1.0;          // Label offset in pips
 
 input group "=== Level Lines (from Pivots) ==="
 input bool   InpShowLevelLines = true;          // Show extending level lines
@@ -129,15 +120,30 @@ input int    InpLevelLineWidth = 1;             // Level line width
 input int    InpMaxLevelHours = 48;             // Max level duration (hours, 0=unlimited)
 input int    InpLevelDaysBack = 30;             // Only create levels for last N days
 
-input group "=== Support/Resistance Zones ==="
-input bool   InpShowZones = false;              // Show S/R zones
-input bool   InpExtendZones = true;             // Extend zones until broken
-input int    InpZoneWidthPips = 10;             // Zone width in pips
-input color  InpSupportZoneColor = C'20,60,20'; // Support zone color
-input color  InpResistZoneColor = C'60,20,20';  // Resistance zone color
+input group "=== Performance ==="
+input int    InpMaxBarsBack = 1000;             // Max bars to process for drawings (0=all)
 
 input group "=== Debug ==="
 input bool   InpDebugMode = true;               // Enable debug logging (for testing)
+
+//+------------------------------------------------------------------+
+//| Get pip size for current symbol (universal: forex, JPY, metals)  |
+//+------------------------------------------------------------------+
+double PipSize()
+{
+   return 1.0 / MathPow(10, _Digits - 1);
+}
+
+//+------------------------------------------------------------------+
+//| Get lookback start index based on InpMaxBarsBack                  |
+//| Returns the oldest bar index to process (0 = all bars)            |
+//+------------------------------------------------------------------+
+int GetLookbackStartIndex(int rates_total)
+{
+   if(InpMaxBarsBack <= 0 || InpMaxBarsBack >= rates_total)
+      return 0;  // Process all bars
+   return rates_total - InpMaxBarsBack;  // Start from (rates_total - N) to only process last N bars
+}
 
 // Variables to track alerts
 datetime last_alert_time = 0;
@@ -196,26 +202,17 @@ struct ZigzagStructureState
    EnTrendState current_trend;
    EnStructureType last_structure_type;
 
-   // Key levels for BOS/CHoCH
-   double last_significant_high;
-   double last_significant_low;
-   int    last_significant_high_bar;
-   int    last_significant_low_bar;
 };
 
 // Global structure state
-ZigzagStructureState g_structure = {-1, 0, -1, 0, -1, 0, -1, 0, TREND_NONE, STRUCT_NONE, 0, 0, -1, -1};
+ZigzagStructureState g_structure = {-1, 0, -1, 0, -1, 0, -1, 0, TREND_NONE, STRUCT_NONE};
 
 //+------------------------------------------------------------------+
 //| V5 ENHANCEMENT: Object Naming Prefixes                            |
 //+------------------------------------------------------------------+
 const string OBJ_PREFIX_STRUCT = "ZZSTRUCT_";      // Structure labels (HH/HL/LH/LL)
-const string OBJ_PREFIX_BOS = "ZZBOS_";            // Break of Structure lines
-const string OBJ_PREFIX_CHOCH = "ZZCHOCH_";        // Change of Character lines
 const string OBJ_PREFIX_LEVEL_ACTIVE = "ZZLVLA_";  // Active (extending) level lines
 const string OBJ_PREFIX_LEVEL = "ZZLVL_";          // Finalized level lines
-const string OBJ_PREFIX_ZONE_ACTIVE = "ZZZONA_";   // Active S/R zones
-const string OBJ_PREFIX_ZONE = "ZZON_";            // Finalized S/R zones
 
 //--- indicator buffers
 double ZigzagPeakBuffer[];
@@ -229,22 +226,6 @@ double ConfirmBottomBuffer[];  // Buffer for confirmed bottoms
 //--- global variables
 int ExtRecalc=3; // recounting's depth
 datetime g_last_bar_time = 0; // For tracking new bar formation
-
-// V5: BOS/CHoCH line tracking structure
-struct BOSCHoCHLine
-{
-   string   name;
-   double   price;
-   datetime startTime;
-   datetime endTime;
-   bool     isBOS;        // true = BOS, false = CHoCH
-   bool     isBullish;
-   bool     isActive;     // Still extending
-   int      startBar;
-};
-
-BOSCHoCHLine g_bosChochLines[];
-int g_bosChochCount = 0;
 
 // ZigZag state machine enum - defines what type of extreme point we're looking for
 enum EnSearchMode
@@ -295,12 +276,8 @@ void DeleteObjectsByPrefix(const string prefix)
 void DeleteAllV5Objects()
 {
    DeleteObjectsByPrefix(OBJ_PREFIX_STRUCT);
-   DeleteObjectsByPrefix(OBJ_PREFIX_BOS);
-   DeleteObjectsByPrefix(OBJ_PREFIX_CHOCH);
    DeleteObjectsByPrefix(OBJ_PREFIX_LEVEL_ACTIVE);
    DeleteObjectsByPrefix(OBJ_PREFIX_LEVEL);
-   DeleteObjectsByPrefix(OBJ_PREFIX_ZONE_ACTIVE);
-   DeleteObjectsByPrefix(OBJ_PREFIX_ZONE);
 }
 
 //+------------------------------------------------------------------+
@@ -318,14 +295,6 @@ void ResetStructureState()
    g_structure.prev_bottom_price = 0;
    g_structure.current_trend = TREND_NONE;
    g_structure.last_structure_type = STRUCT_NONE;
-   g_structure.last_significant_high = 0;
-   g_structure.last_significant_low = 0;
-   g_structure.last_significant_high_bar = -1;
-   g_structure.last_significant_low_bar = -1;
-
-   // V5: Also reset BOS/CHoCH tracking array
-   g_bosChochCount = 0;
-   ArrayResize(g_bosChochLines, 0);
 }
 
 //+------------------------------------------------------------------+
@@ -353,10 +322,7 @@ void OnInit()
    {
       Print("=== ZigZag v5 Structure Initialized ===");
       PrintFormat("  Structure Labels: %s", InpShowStructureLabels ? "ON" : "OFF");
-      PrintFormat("  BOS Detection: %s", InpShowBOS ? "ON" : "OFF");
-      PrintFormat("  CHoCH Detection: %s", InpShowCHoCH ? "ON" : "OFF");
       PrintFormat("  Level Lines: %s", InpShowLevelLines ? "ON" : "OFF");
-      PrintFormat("  S/R Zones: %s", InpShowZones ? "ON" : "OFF");
       Print("========================================");
    }
   }
@@ -389,7 +355,11 @@ void SetupVisualElements()
    //--- set arrow vertical shift in pixels
    PlotIndexSetInteger(1,PLOT_ARROW_SHIFT,-InpArrowShift); // Peak confirmations shifted UP (away from price)
    PlotIndexSetInteger(2,PLOT_ARROW_SHIFT,InpArrowShift); // Bottom confirmations shifted DOWN (away from price)
-   
+
+   //--- set arrow size (user-adjustable)
+   PlotIndexSetInteger(1,PLOT_LINE_WIDTH,InpConfirmArrowSize); // Peak arrow size
+   PlotIndexSetInteger(2,PLOT_LINE_WIDTH,InpConfirmArrowSize); // Bottom arrow size
+
    //--- Set ZigZag colors - critical for correct color display
    PlotIndexSetInteger(0,PLOT_COLOR_INDEXES,2);          // Number of colors
    PlotIndexSetInteger(0,PLOT_LINE_COLOR,0,InpUpColor);  // Uptrend color (index 0)
@@ -585,19 +555,6 @@ int OnCalculate(const int rates_total,
       ProcessStructureLabels(rates_total, time);
    }
 
-   // V5: Process BOS/CHoCH detection after structure labels
-   if(InpShowBOS || InpShowCHoCH)
-   {
-      // Delete old BOS/CHoCH lines before creating new ones (on full recalculation)
-      if(prev_calculated == 0)
-      {
-         DeleteObjectsByPrefix(OBJ_PREFIX_BOS);
-         DeleteObjectsByPrefix(OBJ_PREFIX_CHOCH);
-      }
-
-      ProcessBOSChoCH(high, low, time, rates_total);
-   }
-
    // V5: Process extending level lines from swing points
    if(InpShowLevelLines)
    {
@@ -609,19 +566,6 @@ int OnCalculate(const int rates_total,
       }
 
       ProcessLevelLines(high, low, time, rates_total);
-   }
-
-   // V5: Process S/R zones from swing points (optional - off by default)
-   if(InpShowZones)
-   {
-      // Delete old zones before creating new ones (on full recalculation)
-      if(prev_calculated == 0)
-      {
-         DeleteObjectsByPrefix(OBJ_PREFIX_ZONE_ACTIVE);
-         DeleteObjectsByPrefix(OBJ_PREFIX_ZONE);
-      }
-
-      ProcessSRZones(high, low, time, rates_total);
    }
 
    // Return value for next calculation
@@ -1548,7 +1492,7 @@ void CreateStructureLabel(int bar, EnStructureType type, double price, datetime 
    ObjectDelete(0, objName);
 
    // Calculate offset for label position
-   double offset = InpLabelOffsetPips * _Point * 10;
+   double offset = InpLabelOffsetPips * PipSize();
    double labelPrice = isPeak ? (price + offset) : (price - offset);
 
    // Create text label
@@ -1585,8 +1529,9 @@ void CreateStructureLabel(int bar, EnStructureType type, double price, datetime 
 
 //+------------------------------------------------------------------+
 //| Update structure state when new swing point is found              |
+//| createLabel: if false, only update state without creating label   |
 //+------------------------------------------------------------------+
-void UpdateStructureState(int bar, bool isPeak, double price, datetime barTime)
+void UpdateStructureState(int bar, bool isPeak, double price, datetime barTime, bool createLabel=true)
 {
    EnStructureType structType = STRUCT_NONE;
 
@@ -1599,13 +1544,6 @@ void UpdateStructureState(int bar, bool isPeak, double price, datetime barTime)
       g_structure.prev_peak_price = g_structure.last_peak_price;
       g_structure.last_peak_bar = bar;
       g_structure.last_peak_price = price;
-
-      // Update significant high for BOS/CHoCH tracking
-      if(price > g_structure.last_significant_high || g_structure.last_significant_high == 0)
-      {
-         g_structure.last_significant_high = price;
-         g_structure.last_significant_high_bar = bar;
-      }
    }
    else
    {
@@ -1616,13 +1554,6 @@ void UpdateStructureState(int bar, bool isPeak, double price, datetime barTime)
       g_structure.prev_bottom_price = g_structure.last_bottom_price;
       g_structure.last_bottom_bar = bar;
       g_structure.last_bottom_price = price;
-
-      // Update significant low for BOS/CHoCH tracking
-      if(price < g_structure.last_significant_low || g_structure.last_significant_low == 0)
-      {
-         g_structure.last_significant_low = price;
-         g_structure.last_significant_low_bar = bar;
-      }
    }
 
    // Store the structure type
@@ -1631,8 +1562,9 @@ void UpdateStructureState(int bar, bool isPeak, double price, datetime barTime)
    // Update trend state based on structure sequence
    UpdateTrendState(structType);
 
-   // Create the label
-   CreateStructureLabel(bar, structType, price, barTime, isPeak);
+   // Create the label (only if requested - skipped for old bars outside lookback)
+   if(createLabel)
+      CreateStructureLabel(bar, structType, price, barTime, isPeak);
 }
 
 //+------------------------------------------------------------------+
@@ -1674,318 +1606,7 @@ void UpdateTrendState(EnStructureType newStructure)
 }
 
 //+------------------------------------------------------------------+
-//| BOS/CHoCH DETECTION FUNCTIONS (Phase 3)                          |
-//+------------------------------------------------------------------+
-
-//+------------------------------------------------------------------+
-//| Create BOS or CHoCH line on chart                                 |
-//+------------------------------------------------------------------+
-void CreateBOSChochLine(int bar, bool isBOS, bool isBullish, double price, datetime barTime)
-{
-   string typePrefix = isBOS ? OBJ_PREFIX_BOS : OBJ_PREFIX_CHOCH;
-   string dirSuffix = isBullish ? "BULL_" : "BEAR_";
-   string objName = typePrefix + dirSuffix + IntegerToString(bar) + "_" + IntegerToString(barTime);
-
-   // Delete if exists
-   ObjectDelete(0, objName);
-
-   // Calculate end time (extend forward by InpMaxLevelHours)
-   datetime endTime = barTime + InpMaxLevelHours * 3600;
-
-   // Create horizontal line (OBJ_TREND)
-   if(!ObjectCreate(0, objName, OBJ_TREND, 0, barTime, price, endTime, price))
-   {
-      if(InpDebugMode)
-         PrintFormat("ZZ_v5: FAILED to create %s line %s, error=%d",
-                     isBOS ? "BOS" : "CHoCH", objName, GetLastError());
-      return;
-   }
-
-   // Set line properties
-   color lineColor;
-   if(isBOS)
-      lineColor = isBullish ? InpBOSBullColor : InpBOSBearColor;
-   else
-      lineColor = isBullish ? InpCHoCHBullColor : InpCHoCHBearColor;
-
-   ObjectSetInteger(0, objName, OBJPROP_COLOR, lineColor);
-   ObjectSetInteger(0, objName, OBJPROP_WIDTH, 2);
-   ObjectSetInteger(0, objName, OBJPROP_STYLE, isBOS ? STYLE_SOLID : STYLE_DASH);
-   ObjectSetInteger(0, objName, OBJPROP_RAY_RIGHT, false);
-   ObjectSetInteger(0, objName, OBJPROP_SELECTABLE, false);
-   ObjectSetInteger(0, objName, OBJPROP_HIDDEN, false);
-
-   // Add label text at the start of line
-   string labelName = objName + "_LBL";
-   string labelText = isBOS ? "BOS" : "CHoCH";
-   double labelOffset = InpLabelOffsetPips * _Point * 10;
-   double labelPrice = isBullish ? (price + labelOffset) : (price - labelOffset);
-
-   ObjectDelete(0, labelName);
-   if(ObjectCreate(0, labelName, OBJ_TEXT, 0, barTime, labelPrice))
-   {
-      ObjectSetString(0, labelName, OBJPROP_TEXT, labelText);
-      ObjectSetInteger(0, labelName, OBJPROP_COLOR, lineColor);
-      ObjectSetInteger(0, labelName, OBJPROP_FONTSIZE, InpLabelFontSize);
-      ObjectSetString(0, labelName, OBJPROP_FONT, "Arial Bold");
-      ObjectSetInteger(0, labelName, OBJPROP_ANCHOR, isBullish ? ANCHOR_LOWER : ANCHOR_UPPER);
-      ObjectSetInteger(0, labelName, OBJPROP_SELECTABLE, false);
-   }
-
-   // Track this line for management
-   ArrayResize(g_bosChochLines, g_bosChochCount + 1);
-   g_bosChochLines[g_bosChochCount].name = objName;
-   g_bosChochLines[g_bosChochCount].price = price;
-   g_bosChochLines[g_bosChochCount].startTime = barTime;
-   g_bosChochLines[g_bosChochCount].endTime = endTime;
-   g_bosChochLines[g_bosChochCount].isBOS = isBOS;
-   g_bosChochLines[g_bosChochCount].isBullish = isBullish;
-   g_bosChochLines[g_bosChochCount].isActive = true;
-   g_bosChochLines[g_bosChochCount].startBar = bar;
-   g_bosChochCount++;
-
-   if(InpDebugMode)
-   {
-      PrintFormat("ZZ_v5: [%s] %s %s at bar=%d, price=%.5f, time=%s",
-                  isBOS ? "BOS" : "CHoCH",
-                  isBullish ? "BULL" : "BEAR",
-                  isBOS ? "Break of Structure" : "Change of Character",
-                  bar, price, TimeToString(barTime, TIME_DATE | TIME_MINUTES));
-   }
-}
-
-//+------------------------------------------------------------------+
-//| Detect BOS: Break of Structure (trend continuation)              |
-//| Bullish BOS: Price breaks above previous swing high in uptrend   |
-//| Bearish BOS: Price breaks below previous swing low in downtrend  |
-//+------------------------------------------------------------------+
-bool DetectBOS(int bar, double high, double low, datetime barTime, bool &isBullish)
-{
-   if(!InpShowBOS)
-      return false;
-
-   // Need at least 2 swing points to detect BOS
-   if(g_structure.last_peak_price == 0 || g_structure.last_bottom_price == 0)
-      return false;
-   if(g_structure.prev_peak_price == 0 || g_structure.prev_bottom_price == 0)
-      return false;
-
-   // Bullish BOS: In uptrend, price breaks above the previous peak
-   if(g_structure.current_trend == TREND_BULLISH)
-   {
-      // Check if high breaks above the previous peak (not the current one being formed)
-      if(high > g_structure.prev_peak_price && g_structure.prev_peak_price > 0)
-      {
-         isBullish = true;
-         CreateBOSChochLine(bar, true, true, g_structure.prev_peak_price, barTime);
-         return true;
-      }
-   }
-
-   // Bearish BOS: In downtrend, price breaks below the previous bottom
-   if(g_structure.current_trend == TREND_BEARISH)
-   {
-      // Check if low breaks below the previous bottom
-      if(low < g_structure.prev_bottom_price && g_structure.prev_bottom_price > 0)
-      {
-         isBullish = false;
-         CreateBOSChochLine(bar, true, false, g_structure.prev_bottom_price, barTime);
-         return true;
-      }
-   }
-
-   return false;
-}
-
-//+------------------------------------------------------------------+
-//| Detect CHoCH: Change of Character (trend reversal signal)        |
-//| Bullish CHoCH: In downtrend, price breaks above significant high |
-//| Bearish CHoCH: In uptrend, price breaks below significant low    |
-//+------------------------------------------------------------------+
-bool DetectCHoCH(int bar, double high, double low, datetime barTime, bool &isBullish)
-{
-   if(!InpShowCHoCH)
-      return false;
-
-   // Need significant levels
-   if(g_structure.last_significant_high == 0 || g_structure.last_significant_low == 0)
-      return false;
-
-   // Bullish CHoCH: In bearish trend, price breaks above significant high
-   if(g_structure.current_trend == TREND_BEARISH)
-   {
-      if(high > g_structure.last_significant_high)
-      {
-         isBullish = true;
-         CreateBOSChochLine(bar, false, true, g_structure.last_significant_high, barTime);
-
-         // Reset significant levels after CHoCH
-         g_structure.last_significant_high = 0;
-         g_structure.last_significant_high_bar = 0;
-         return true;
-      }
-   }
-
-   // Bearish CHoCH: In bullish trend, price breaks below significant low
-   if(g_structure.current_trend == TREND_BULLISH)
-   {
-      if(low < g_structure.last_significant_low)
-      {
-         isBullish = false;
-         CreateBOSChochLine(bar, false, false, g_structure.last_significant_low, barTime);
-
-         // Reset significant levels after CHoCH
-         g_structure.last_significant_low = 0;
-         g_structure.last_significant_low_bar = 0;
-         return true;
-      }
-   }
-
-   return false;
-}
-
-//+------------------------------------------------------------------+
-//| Manage BOS/CHoCH lines - check for mitigation and expiry         |
-//+------------------------------------------------------------------+
-void ManageBOSChochLines(const double &high[], const double &low[],
-                          const datetime &time[], int rates_total)
-{
-   if(!InpShowBOS && !InpShowCHoCH)
-      return;
-
-   for(int i = 0; i < g_bosChochCount; i++)
-   {
-      if(!g_bosChochLines[i].isActive)
-         continue;
-
-      string objName = g_bosChochLines[i].name;
-      double linePrice = g_bosChochLines[i].price;
-      datetime startTime = g_bosChochLines[i].startTime;
-      bool isBullish = g_bosChochLines[i].isBullish;
-
-      // Find start bar
-      int startBar = iBarShift(_Symbol, _Period, startTime);
-      if(startBar < 0)
-         startBar = rates_total - 1;
-
-      bool mitigated = false;
-      int mitigationBar = -1;
-
-      // Check all bars from creation to current
-      for(int b = startBar; b >= 1; b--)
-      {
-         if(b >= rates_total)
-            continue;
-
-         // Bullish lines are mitigated when price goes below
-         // Bearish lines are mitigated when price goes above
-         if(isBullish)
-         {
-            if(low[b] < linePrice)
-            {
-               mitigated = true;
-               mitigationBar = b;
-               break;
-            }
-         }
-         else
-         {
-            if(high[b] > linePrice)
-            {
-               mitigated = true;
-               mitigationBar = b;
-               break;
-            }
-         }
-      }
-
-      if(mitigated && mitigationBar > 0)
-      {
-         // Shorten line to mitigation point
-         datetime mitigationTime = time[mitigationBar];
-         ObjectSetInteger(0, objName, OBJPROP_TIME, 1, mitigationTime);
-         g_bosChochLines[i].isActive = false;
-         g_bosChochLines[i].endTime = mitigationTime;
-
-         if(InpDebugMode)
-         {
-            PrintFormat("ZZ_v5: [MITIGATED] %s line at price=%.5f, bar=%d, time=%s",
-                        g_bosChochLines[i].isBOS ? "BOS" : "CHoCH",
-                        linePrice, mitigationBar,
-                        TimeToString(mitigationTime, TIME_DATE | TIME_MINUTES));
-         }
-      }
-      else
-      {
-         // Check for time expiry
-         datetime currentTime = time[0];
-         if(currentTime > g_bosChochLines[i].endTime)
-         {
-            g_bosChochLines[i].isActive = false;
-         }
-         else
-         {
-            // Extend active line to current bar
-            ObjectSetInteger(0, objName, OBJPROP_TIME, 1, time[0]);
-         }
-      }
-   }
-}
-
-//+------------------------------------------------------------------+
-//| Process BOS/CHoCH detection for all bars                          |
-//+------------------------------------------------------------------+
-void ProcessBOSChoCH(const double &high[], const double &low[],
-                      const datetime &time[], int rates_total)
-{
-   if(!InpShowBOS && !InpShowCHoCH)
-      return;
-
-   // Clear old lines
-   g_bosChochCount = 0;
-   ArrayResize(g_bosChochLines, 0);
-
-   int bosCount = 0, chochCount = 0;
-   int bullBOS = 0, bearBOS = 0, bullCHoCH = 0, bearCHoCH = 0;
-
-   if(InpDebugMode)
-      Print("ZZ_v5: === Starting BOS/CHoCH detection ===");
-
-   // Scan bars oldest to newest (after structure labels are processed)
-   for(int i = 0; i < rates_total; i++)
-   {
-      bool isBullish = false;
-
-      // Detect BOS
-      if(DetectBOS(i, high[i], low[i], time[i], isBullish))
-      {
-         bosCount++;
-         if(isBullish) bullBOS++; else bearBOS++;
-      }
-
-      // Detect CHoCH
-      if(DetectCHoCH(i, high[i], low[i], time[i], isBullish))
-      {
-         chochCount++;
-         if(isBullish) bullCHoCH++; else bearCHoCH++;
-      }
-   }
-
-   // Manage existing lines (mitigation check)
-   ManageBOSChochLines(high, low, time, rates_total);
-
-   if(InpDebugMode)
-   {
-      Print("ZZ_v5: === BOS/CHoCH Summary ===");
-      PrintFormat("ZZ_v5:   BOS detected: %d (Bull=%d, Bear=%d)", bosCount, bullBOS, bearBOS);
-      PrintFormat("ZZ_v5:   CHoCH detected: %d (Bull=%d, Bear=%d)", chochCount, bullCHoCH, bearCHoCH);
-      PrintFormat("ZZ_v5:   Active lines: %d", g_bosChochCount);
-      Print("ZZ_v5: ================================");
-   }
-}
-
-//+------------------------------------------------------------------+
-//| EXTENDING LEVEL LINES (Phase 4) - CC Indicator Pattern           |
+//| EXTENDING LEVEL LINES - CC Indicator Pattern                      |
 //+------------------------------------------------------------------+
 
 //+------------------------------------------------------------------+
@@ -2069,21 +1690,21 @@ void ManageLevelLines(const double &high[], const double &low[],
       // Check if line is from peak (resistance) or bottom (support)
       bool isPeak = (StringFind(objName, "PEAK_") > 0);
 
-      // Find bar index where line was created
-      int lineStartBar = iBarShift(_Symbol, _Period, lineStartTime);
-      if(lineStartBar < 0)
-         lineStartBar = rates_total - 1;
+      // Find bar index where line was created - convert AS_SERIES to non-AS_SERIES
+      int shiftBar = iBarShift(_Symbol, _Period, lineStartTime);
+      int lineStartBar;
+      if(shiftBar < 0)
+         lineStartBar = 0;  // Fallback to oldest bar
+      else
+         lineStartBar = rates_total - 1 - shiftBar;  // Convert: AS_SERIES -> non-AS_SERIES
 
       bool mitigated = false;
       int mitigationBar = -1;
       string mitigationReason = "";
 
-      // Check all bars from line creation to current (bar 1 is last completed)
-      for(int b = lineStartBar; b >= 1; b--)
+      // Check bars AFTER the creation bar (non-AS_SERIES: larger index = newer bar)
+      for(int b = lineStartBar + 1; b < rates_total - 1; b++)  // Skip current forming bar
       {
-         if(b >= rates_total)
-            continue;
-
          // Peak lines (resistance) are mitigated when price goes above
          // Bottom lines (support) are mitigated when price goes below
          if(isPeak)
@@ -2162,20 +1783,21 @@ void ProcessLevelLines(const double &high[], const double &low[],
    if(!InpShowLevelLines)
       return;
 
-   // Calculate lookback limit
+   // Calculate lookback limit (use both bar count and days back)
+   int startIdx = GetLookbackStartIndex(rates_total);
    datetime lookbackLimit = time[rates_total - 1] - (InpLevelDaysBack * 86400);
 
    int levelsCreated = 0;
    int peakLevels = 0, bottomLevels = 0;
 
    if(InpDebugMode)
-      Print("ZZ_v5: === Starting Level Line creation ===");
+      PrintFormat("ZZ_v5: === Starting Level Line creation (from bar %d) ===", startIdx);
 
    // Scan through bars and create level lines at zigzag points
-   // Only create lines within the lookback period
-   for(int i = 0; i < rates_total; i++)
+   // Only create lines within the lookback period (bar limit AND days back)
+   for(int i = startIdx; i < rates_total; i++)
    {
-      // Skip bars older than lookback limit
+      // Skip bars older than days-back limit
       if(time[i] < lookbackLimit)
          continue;
 
@@ -2208,240 +1830,6 @@ void ProcessLevelLines(const double &high[], const double &low[],
 }
 
 //+------------------------------------------------------------------+
-//| S/R ZONES (Phase 5) - Rectangular Zones from Swing Points        |
-//+------------------------------------------------------------------+
-
-//+------------------------------------------------------------------+
-//| Create S/R zone rectangle from swing point                        |
-//+------------------------------------------------------------------+
-void CreateSRZone(int bar, bool isResistance, double price, datetime barTime)
-{
-   if(!InpShowZones)
-      return;
-
-   // Create unique name with ACTIVE prefix for extending zones
-   string zoneSuffix = isResistance ? "RES_" : "SUP_";
-   string objName = OBJ_PREFIX_ZONE_ACTIVE + zoneSuffix +
-                    IntegerToString(bar) + "_" + IntegerToString(barTime);
-
-   // Delete if exists
-   ObjectDelete(0, objName);
-
-   // Calculate zone height based on fixed pips
-   double zoneHeight = InpZoneWidthPips * _Point * 10;
-
-   // Calculate zone boundaries
-   double zoneHigh, zoneLow;
-   if(isResistance)
-   {
-      zoneHigh = price + zoneHeight / 2;
-      zoneLow = price - zoneHeight / 2;
-   }
-   else
-   {
-      zoneHigh = price + zoneHeight / 2;
-      zoneLow = price - zoneHeight / 2;
-   }
-
-   // Calculate end time for zone
-   datetime endTime = barTime + InpMaxLevelHours * 3600;
-
-   // Create rectangle
-   if(!ObjectCreate(0, objName, OBJ_RECTANGLE, 0, barTime, zoneHigh, endTime, zoneLow))
-   {
-      if(InpDebugMode)
-         PrintFormat("ZZ_v5: FAILED to create zone %s, error=%d", objName, GetLastError());
-      return;
-   }
-
-   // Set zone properties
-   color zoneColor = isResistance ? InpResistZoneColor : InpSupportZoneColor;
-   ObjectSetInteger(0, objName, OBJPROP_COLOR, zoneColor);
-   ObjectSetInteger(0, objName, OBJPROP_STYLE, STYLE_SOLID);
-   ObjectSetInteger(0, objName, OBJPROP_WIDTH, 1);
-   ObjectSetInteger(0, objName, OBJPROP_FILL, true);
-   ObjectSetInteger(0, objName, OBJPROP_BACK, true);  // Draw in background
-   ObjectSetInteger(0, objName, OBJPROP_SELECTABLE, false);
-   ObjectSetInteger(0, objName, OBJPROP_HIDDEN, false);
-
-   if(InpDebugMode)
-   {
-      PrintFormat("ZZ_v5: [ZONE] Created %s zone at bar=%d, price=%.5f (%.5f-%.5f), time=%s",
-                  isResistance ? "RESISTANCE" : "SUPPORT",
-                  bar, price, zoneLow, zoneHigh,
-                  TimeToString(barTime, TIME_DATE | TIME_MINUTES));
-   }
-}
-
-//+------------------------------------------------------------------+
-//| Manage S/R zones - extend active ones, check for breaks          |
-//+------------------------------------------------------------------+
-void ManageSRZones(const double &high[], const double &low[],
-                    const datetime &time[], int rates_total)
-{
-   if(!InpShowZones)
-      return;
-
-   datetime currentTime = time[rates_total - 1];
-   int total = ObjectsTotal(0);
-
-   // Calculate max duration in seconds
-   long maxDurationSec = (InpMaxLevelHours > 0) ? (long)InpMaxLevelHours * 3600 : 0;
-
-   int activeCount = 0;
-   int brokenCount = 0;
-   int extendedCount = 0;
-
-   // Loop backwards for safe processing
-   for(int i = total - 1; i >= 0; i--)
-   {
-      string objName = ObjectName(0, i);
-
-      // Only process our active zones
-      if(StringFind(objName, OBJ_PREFIX_ZONE_ACTIVE) != 0)
-         continue;
-
-      activeCount++;
-
-      // Get zone start time and price levels
-      datetime zoneStartTime = (datetime)ObjectGetInteger(0, objName, OBJPROP_TIME, 0);
-      double zoneHigh = ObjectGetDouble(0, objName, OBJPROP_PRICE, 0);
-      double zoneLow = ObjectGetDouble(0, objName, OBJPROP_PRICE, 1);
-
-      // Check if zone is resistance or support
-      bool isResistance = (StringFind(objName, "RES_") > 0);
-
-      // Find bar index where zone was created
-      int zoneStartBar = iBarShift(_Symbol, _Period, zoneStartTime);
-      if(zoneStartBar < 0)
-         zoneStartBar = rates_total - 1;
-
-      bool broken = false;
-      int breakBar = -1;
-
-      // Check all bars from zone creation to current
-      for(int b = zoneStartBar; b >= 1; b--)
-      {
-         if(b >= rates_total)
-            continue;
-
-         // Resistance zones are broken when price closes above zone high
-         // Support zones are broken when price closes below zone low
-         if(isResistance)
-         {
-            if(high[b] > zoneHigh)
-            {
-               broken = true;
-               breakBar = b;
-               break;
-            }
-         }
-         else
-         {
-            if(low[b] < zoneLow)
-            {
-               broken = true;
-               breakBar = b;
-               break;
-            }
-         }
-      }
-
-      if(broken && breakBar > 0)
-      {
-         // Shorten zone to break point
-         datetime breakTime = time[breakBar];
-         ObjectSetInteger(0, objName, OBJPROP_TIME, 1, breakTime);
-
-         brokenCount++;
-
-         if(InpDebugMode)
-         {
-            PrintFormat("ZZ_v5: [BROKEN] %s zone at price=%.5f-%.5f, bar=%d",
-                        isResistance ? "RESISTANCE" : "SUPPORT",
-                        zoneLow, zoneHigh, breakBar);
-         }
-      }
-      else
-      {
-         // Check for time expiry
-         long zoneDuration = (long)(currentTime - zoneStartTime);
-         if(maxDurationSec > 0 && zoneDuration > maxDurationSec)
-         {
-            // Mark as expired
-            ObjectDelete(0, objName);
-         }
-         else if(InpExtendZones)
-         {
-            // Extend active zone to current bar
-            ObjectSetInteger(0, objName, OBJPROP_TIME, 1, currentTime);
-            extendedCount++;
-         }
-      }
-   }
-
-   if(InpDebugMode && activeCount > 0)
-   {
-      PrintFormat("ZZ_v5: [ZONES] Active=%d, Extended=%d, Broken=%d",
-                  activeCount, extendedCount, brokenCount);
-   }
-}
-
-//+------------------------------------------------------------------+
-//| Process S/R zones from zigzag swing points                        |
-//+------------------------------------------------------------------+
-void ProcessSRZones(const double &high[], const double &low[],
-                     const datetime &time[], int rates_total)
-{
-   if(!InpShowZones)
-      return;
-
-   // Calculate lookback limit (use same as level lines)
-   datetime lookbackLimit = time[rates_total - 1] - (InpLevelDaysBack * 86400);
-
-   int zonesCreated = 0;
-   int resZones = 0, supZones = 0;
-
-   if(InpDebugMode)
-      Print("ZZ_v5: === Starting S/R Zone creation ===");
-
-   // Scan through bars and create zones at zigzag points
-   for(int i = 0; i < rates_total; i++)
-   {
-      // Skip bars older than lookback limit
-      if(time[i] < lookbackLimit)
-         continue;
-
-      // Create resistance zone at peaks
-      if(ZigzagPeakBuffer[i] != 0)
-      {
-         CreateSRZone(i, true, ZigzagPeakBuffer[i], time[i]);
-         resZones++;
-         zonesCreated++;
-      }
-
-      // Create support zone at bottoms
-      if(ZigzagBottomBuffer[i] != 0)
-      {
-         CreateSRZone(i, false, ZigzagBottomBuffer[i], time[i]);
-         supZones++;
-         zonesCreated++;
-      }
-   }
-
-   // Now manage all zones (extend or check for breaks)
-   ManageSRZones(high, low, time, rates_total);
-
-   if(InpDebugMode)
-   {
-      Print("ZZ_v5: === S/R Zones Summary ===");
-      PrintFormat("ZZ_v5:   Created: %d (Resistance=%d, Support=%d)",
-                  zonesCreated, resZones, supZones);
-      Print("ZZ_v5: ================================");
-   }
-}
-
-//+------------------------------------------------------------------+
 //| Process structure labels for all zigzag points                    |
 //+------------------------------------------------------------------+
 void ProcessStructureLabels(const int rates_total, const datetime &time[])
@@ -2452,40 +1840,54 @@ void ProcessStructureLabels(const int rates_total, const datetime &time[])
    // Reset structure state for fresh calculation
    ResetStructureState();
 
+   // Calculate lookback start index for label creation
+   // We still process ALL bars for structure state, but only create labels within lookback
+   int lookbackStartIdx = GetLookbackStartIndex(rates_total);
+
    // Counters for debug summary
    int totalPeaks = 0, totalBottoms = 0;
    int hhCount = 0, hlCount = 0, lhCount = 0, llCount = 0;
    int labelsCreated = 0;
 
    if(InpDebugMode)
-      Print("ZZ_v5: === Starting structure label processing ===");
+      PrintFormat("ZZ_v5: === Starting structure label processing (labels from bar %d) ===", lookbackStartIdx);
 
    // Scan through all bars and find zigzag points (oldest to newest for proper comparison)
    // In MQL5 with AS_SERIES=false: index 0 = oldest, rates_total-1 = newest
+   // Process ALL bars for structure state, but only create labels within lookback
    for(int i = 0; i < rates_total; i++)
    {
       bool hasPeak = (ZigzagPeakBuffer[i] != 0);
       bool hasBottom = (ZigzagBottomBuffer[i] != 0);
 
+      // Determine if we should create labels for this bar (within lookback limit)
+      bool createLabel = (i >= lookbackStartIdx);
+
       if(hasPeak)
       {
          totalPeaks++;
-         UpdateStructureState(i, true, ZigzagPeakBuffer[i], time[i]);
+         UpdateStructureState(i, true, ZigzagPeakBuffer[i], time[i], createLabel);
 
-         // Count structure types
-         if(g_structure.last_structure_type == STRUCT_HH) { hhCount++; labelsCreated++; }
-         else if(g_structure.last_structure_type == STRUCT_LH) { lhCount++; labelsCreated++; }
-         else if(g_structure.last_structure_type != STRUCT_NONE) labelsCreated++;
+         // Count structure types (only count labels actually created)
+         if(createLabel)
+         {
+            if(g_structure.last_structure_type == STRUCT_HH) { hhCount++; labelsCreated++; }
+            else if(g_structure.last_structure_type == STRUCT_LH) { lhCount++; labelsCreated++; }
+            else if(g_structure.last_structure_type != STRUCT_NONE) labelsCreated++;
+         }
       }
       else if(hasBottom)
       {
          totalBottoms++;
-         UpdateStructureState(i, false, ZigzagBottomBuffer[i], time[i]);
+         UpdateStructureState(i, false, ZigzagBottomBuffer[i], time[i], createLabel);
 
-         // Count structure types
-         if(g_structure.last_structure_type == STRUCT_HL) { hlCount++; labelsCreated++; }
-         else if(g_structure.last_structure_type == STRUCT_LL) { llCount++; labelsCreated++; }
-         else if(g_structure.last_structure_type != STRUCT_NONE) labelsCreated++;
+         // Count structure types (only count labels actually created)
+         if(createLabel)
+         {
+            if(g_structure.last_structure_type == STRUCT_HL) { hlCount++; labelsCreated++; }
+            else if(g_structure.last_structure_type == STRUCT_LL) { llCount++; labelsCreated++; }
+            else if(g_structure.last_structure_type != STRUCT_NONE) labelsCreated++;
+         }
       }
    }
 

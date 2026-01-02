@@ -12,7 +12,7 @@
 //|  6. ObjectFind check before ObjectMove (safety guard)            |
 //+------------------------------------------------------------------+
 #property copyright   "Terry Li"
-#property version     "3.0.0"
+#property version     "3.0.1"
 #property description "Lightweight session markers using vertical lines"
 #property description "Supports: New York and London sessions with DST"
 #property description ""
@@ -445,13 +445,12 @@ void UpdateLabelPositions()
 
    // [OPT] Cache ObjectsTotal before loop
    int total = ObjectsTotal(0);
-   int prefix_len = StringLen(g_ObjPrefix);
 
    for(int i = 0; i < total; i++)
      {
       string name = ObjectName(0, i);
-      // [OPT] Check prefix first (cheaper), then label suffix
-      if(StringSubstr(name, 0, prefix_len) != g_ObjPrefix)
+      // [FIX] Use StringFind for reliable string matching in MQL5
+      if(StringFind(name, g_ObjPrefix) != 0)
          continue;
       if(StringFind(name, "_Lbl") < 0)
          continue;
@@ -468,24 +467,25 @@ void UpdateLabelPositions()
 void UpdateStripPositions()
   {
    if(!InpShowTopStrip)
-      return;  // [OPT] Early exit if strips disabled
+      return;  // Early exit if strips disabled
 
-   // [OPT] Cache chart values once
+   // Cache chart values once
    double top_price = ChartGetDouble(0, CHART_PRICE_MAX);
    double bottom_price = ChartGetDouble(0, CHART_PRICE_MIN);
    double range = top_price - bottom_price;
    double strip_top = top_price;
    double strip_bottom = top_price - (range * InpStripHeight / 100.0);
 
-   // [OPT] Cache ObjectsTotal and prefix length before loop
+   // Find and update strip objects
    int total = ObjectsTotal(0);
-   int prefix_len = StringLen(g_ObjPrefix);
+   int strips_updated = 0;
 
    for(int i = 0; i < total; i++)
      {
       string name = ObjectName(0, i);
-      // [OPT] Check prefix first (cheaper), then strip suffix
-      if(StringSubstr(name, 0, prefix_len) != g_ObjPrefix)
+
+      // Check if this is one of our strip objects
+      if(StringFind(name, g_ObjPrefix) != 0)
          continue;
       if(StringFind(name, "_Strip_") < 0)
          continue;
@@ -497,7 +497,14 @@ void UpdateStripPositions()
       // Move both anchor points to new price levels
       ObjectMove(0, name, 0, time_start, strip_top);
       ObjectMove(0, name, 1, time_end, strip_bottom);
+      strips_updated++;
+
+      if(InpDebugMode)
+         PrintFormat("DEBUG: Moved strip '%s' to top=%.5f, bottom=%.5f", name, strip_top, strip_bottom);
      }
+
+   if(InpDebugMode)
+      PrintFormat("DEBUG: UpdateStripPositions - total_objects=%d, strips_updated=%d, top_price=%.5f", total, strips_updated, top_price);
   }
 
 //+------------------------------------------------------------------+
@@ -666,10 +673,20 @@ void OnChartEvent(const int id,
                   const double &dparam,
                   const string &sparam)
   {
+   // CHARTEVENT_CHART_CHANGE fires on scroll, zoom, resize, scale change
    if(id == CHARTEVENT_CHART_CHANGE)
      {
-      // [OPT] Update positions only - no object recreation needed
-      // ChartRedraw is needed here since ObjectMove is async
+      static datetime last_update = 0;
+      datetime now = TimeCurrent();
+
+      // Throttle debug output to avoid spam (once per second max)
+      if(InpDebugMode && now > last_update)
+        {
+         last_update = now;
+         PrintFormat("DEBUG: OnChartEvent CHARTEVENT_CHART_CHANGE fired");
+        }
+
+      // Update positions to keep at chart top during scaling
       UpdateLabelPositions();
       UpdateStripPositions();
       ChartRedraw(0);
