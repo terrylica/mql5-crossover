@@ -1,3 +1,10 @@
+## [6.0.1](https://github.com/terrylica/mql5-crossover/compare/v6.0.0...v6.0.1) (2026-01-02)
+
+
+### Bug Fixes
+
+* **fvg:** add optimization research documentation and sync version to 6.1.0 ([e7870c6](https://github.com/terrylica/mql5-crossover/commit/e7870c6e3b95f4825a645933b3d4fa5195dc0826))
+
 # [6.0.0](https://github.com/terrylica/mql5-crossover/compare/v5.0.0...v6.0.0) (2026-01-02)
 
 
