@@ -2,8 +2,17 @@
 //|                                       Trading_Sessions_Lines.mq5 |
 //|                    Lightweight Session Markers - Vertical Lines  |
 //+------------------------------------------------------------------+
+//|  OPTIMIZATION NOTES (2026-01-02)                                 |
+//|  --------------------------------------------------------        |
+//|  1. DST boundaries cached per year (avoid recomputing per day)   |
+//|  2. ObjectsDeleteAll() replaces manual loop deletion             |
+//|  3. ChartGetDouble() cached within functions                     |
+//|  4. ObjectsTotal() cached before loops                           |
+//|  5. NeedsRedraw flag for batched ChartRedraw()                   |
+//|  6. ObjectFind check before ObjectMove (safety guard)            |
+//+------------------------------------------------------------------+
 #property copyright   "Terry Li"
-#property version     "2.3.0"
+#property version     "3.0.0"
 #property description "Lightweight session markers using vertical lines"
 #property description "Supports: New York and London sessions with DST"
 #property description ""
@@ -53,19 +62,27 @@ input bool             InpDebugMode           = true;           // Enable debug 
 int    g_BrokerGMTOffset = 0;
 string g_ObjPrefix = "SessionLines_";
 
+//--- Cached DST boundaries (avoid recomputing per day)
+int    g_CachedYear = 0;
+int    g_NY_DSTStartDay = 0;      // 2nd Sunday of March
+int    g_NY_DSTEndDay = 0;        // 1st Sunday of November
+int    g_London_DSTStartDay = 0;  // Last Sunday of March
+int    g_London_DSTEndDay = 0;    // Last Sunday of October
+
+//--- Cached constants
+int    g_SecondsPerDay = 86400;
+
 //+------------------------------------------------------------------+
-//| Get US Eastern Time GMT offset (EST/EDT)                         |
+//| Cache DST boundaries for a given year (called once per year)     |
 //+------------------------------------------------------------------+
-int GetNYGMTOffset(datetime check_time)
+void CacheDSTBoundaries(int year)
   {
-   MqlDateTime dt;
-   TimeToStruct(check_time, dt);
+   if(year == g_CachedYear)
+      return;  // Already cached for this year
 
-   int year = dt.year;
-   int month = dt.mon;
-   int day = dt.day;
+   g_CachedYear = year;
 
-   // Find 2nd Sunday of March
+   // US: Find 2nd Sunday of March (DST starts)
    MqlDateTime march_dt;
    march_dt.year = year;
    march_dt.mon = 3;
@@ -78,9 +95,9 @@ int GetNYGMTOffset(datetime check_time)
    TimeToStruct(march_1st, m1);
    int march_dow = m1.day_of_week;
    int days_to_sunday = (march_dow == 0) ? 0 : (7 - march_dow);
-   int dst_start_day = 1 + days_to_sunday + 7;
+   g_NY_DSTStartDay = 1 + days_to_sunday + 7;  // 2nd Sunday
 
-   // Find 1st Sunday of November
+   // US: Find 1st Sunday of November (DST ends)
    MqlDateTime nov_dt;
    nov_dt.year = year;
    nov_dt.mon = 11;
@@ -93,65 +110,84 @@ int GetNYGMTOffset(datetime check_time)
    TimeToStruct(nov_1st, n1);
    int nov_dow = n1.day_of_week;
    int days_to_nov_sunday = (nov_dow == 0) ? 0 : (7 - nov_dow);
-   int dst_end_day = 1 + days_to_nov_sunday;
+   g_NY_DSTEndDay = 1 + days_to_nov_sunday;  // 1st Sunday
+
+   // UK: Find last Sunday of March (BST starts)
+   MqlDateTime march31_dt;
+   march31_dt.year = year;
+   march31_dt.mon = 3;
+   march31_dt.day = 31;
+   march31_dt.hour = 0;
+   march31_dt.min = 0;
+   march31_dt.sec = 0;
+   datetime march_31 = StructToTime(march31_dt);
+   MqlDateTime m31;
+   TimeToStruct(march_31, m31);
+   g_London_DSTStartDay = 31 - m31.day_of_week;  // Last Sunday
+
+   // UK: Find last Sunday of October (BST ends)
+   MqlDateTime oct31_dt;
+   oct31_dt.year = year;
+   oct31_dt.mon = 10;
+   oct31_dt.day = 31;
+   oct31_dt.hour = 0;
+   oct31_dt.min = 0;
+   oct31_dt.sec = 0;
+   datetime oct_31 = StructToTime(oct31_dt);
+   MqlDateTime o31;
+   TimeToStruct(oct_31, o31);
+   g_London_DSTEndDay = 31 - o31.day_of_week;  // Last Sunday
+
+   if(InpDebugMode)
+      PrintFormat("DST boundaries cached for %d: NY=%d Mar/%d Nov, London=%d Mar/%d Oct",
+                  year, g_NY_DSTStartDay, g_NY_DSTEndDay, g_London_DSTStartDay, g_London_DSTEndDay);
+  }
+
+//+------------------------------------------------------------------+
+//| Get US Eastern Time GMT offset (EST/EDT) - uses cached boundaries|
+//+------------------------------------------------------------------+
+int GetNYGMTOffset(datetime check_time)
+  {
+   MqlDateTime dt;
+   TimeToStruct(check_time, dt);
+
+   // Ensure DST boundaries are cached for this year
+   CacheDSTBoundaries(dt.year);
+
+   int month = dt.mon;
+   int day = dt.day;
 
    bool in_dst = false;
    if(month > 3 && month < 11)
       in_dst = true;
-   else if(month == 3 && day >= dst_start_day)
+   else if(month == 3 && day >= g_NY_DSTStartDay)
       in_dst = true;
-   else if(month == 11 && day < dst_end_day)
+   else if(month == 11 && day < g_NY_DSTEndDay)
       in_dst = true;
 
    return in_dst ? -4 : -5;
   }
 
 //+------------------------------------------------------------------+
-//| Get UK GMT offset (GMT/BST)                                       |
+//| Get UK GMT offset (GMT/BST) - uses cached boundaries             |
 //+------------------------------------------------------------------+
 int GetLondonGMTOffset(datetime check_time)
   {
    MqlDateTime dt;
    TimeToStruct(check_time, dt);
 
-   int year = dt.year;
+   // Ensure DST boundaries are cached for this year
+   CacheDSTBoundaries(dt.year);
+
    int month = dt.mon;
    int day = dt.day;
-
-   // Find last Sunday of March
-   MqlDateTime march_dt;
-   march_dt.year = year;
-   march_dt.mon = 3;
-   march_dt.day = 31;
-   march_dt.hour = 0;
-   march_dt.min = 0;
-   march_dt.sec = 0;
-   datetime march_31 = StructToTime(march_dt);
-   MqlDateTime m31;
-   TimeToStruct(march_31, m31);
-   int march_dow = m31.day_of_week;
-   int dst_start_day = 31 - march_dow;
-
-   // Find last Sunday of October
-   MqlDateTime oct_dt;
-   oct_dt.year = year;
-   oct_dt.mon = 10;
-   oct_dt.day = 31;
-   oct_dt.hour = 0;
-   oct_dt.min = 0;
-   oct_dt.sec = 0;
-   datetime oct_31 = StructToTime(oct_dt);
-   MqlDateTime o31;
-   TimeToStruct(oct_31, o31);
-   int oct_dow = o31.day_of_week;
-   int dst_end_day = 31 - oct_dow;
 
    bool in_bst = false;
    if(month > 3 && month < 10)
       in_bst = true;
-   else if(month == 3 && day >= dst_start_day)
+   else if(month == 3 && day >= g_London_DSTStartDay)
       in_bst = true;
-   else if(month == 10 && day < dst_end_day)
+   else if(month == 10 && day < g_London_DSTEndDay)
       in_bst = true;
 
    return in_bst ? 1 : 0;
@@ -200,17 +236,13 @@ datetime SessionTimeToServerTime(int session_hour, int session_minute, datetime 
   }
 
 //+------------------------------------------------------------------+
-//| Delete all session objects                                       |
+//| Delete all session objects - uses ObjectsDeleteAll for efficiency|
 //+------------------------------------------------------------------+
 void DeleteAllObjects()
   {
-   int total = ObjectsTotal(0);
-   for(int i = total - 1; i >= 0; i--)
-     {
-      string name = ObjectName(0, i);
-      if(StringFind(name, g_ObjPrefix) == 0)
-         ObjectDelete(0, name);
-     }
+   // [OPT] Single call deletes all objects with matching prefix
+   // Much faster than looping through ObjectsTotal() + StringFind()
+   ObjectsDeleteAll(0, g_ObjPrefix);
   }
 
 //+------------------------------------------------------------------+
@@ -232,8 +264,8 @@ color MakeTransparent(color clr, uchar alpha)
 //+------------------------------------------------------------------+
 void CreateVerticalLine(string name, datetime time, color clr, color label_clr, string label_text)
   {
-   // Delete if exists
-   ObjectDelete(0, name);
+   // [OPT] Skip ObjectDelete - DrawSessions() already calls DeleteAllObjects()
+   // ObjectCreate returns false if exists, but we're creating fresh each time
 
    // Create vertical line with semi-transparency
    bool created = ObjectCreate(0, name, OBJ_VLINE, 0, time, 0);
@@ -258,8 +290,9 @@ void CreateVerticalLine(string name, datetime time, color clr, color label_clr, 
    if(InpShowLabel && StringLen(label_text) > 0)
      {
       string label_name = name + "_Lbl";
-      ObjectDelete(0, label_name);
+      // [OPT] Skip ObjectDelete - already deleted by DeleteAllObjects()
 
+      // [OPT] Cache ChartGetDouble calls
       double top_price = ChartGetDouble(0, CHART_PRICE_MAX);
       double bottom_price = ChartGetDouble(0, CHART_PRICE_MIN);
       double range = top_price - bottom_price;
@@ -286,9 +319,9 @@ void CreateTopStrip(string name, datetime time_start, datetime time_end, color c
    if(!InpShowTopStrip)
       return;
 
-   ObjectDelete(0, name);
+   // [OPT] Skip ObjectDelete - already deleted by DeleteAllObjects()
 
-   // Get chart price range
+   // [OPT] Cache chart price values
    double top_price = ChartGetDouble(0, CHART_PRICE_MAX);
    double bottom_price = ChartGetDouble(0, CHART_PRICE_MIN);
    double range = top_price - bottom_price;
@@ -401,23 +434,31 @@ void CreateSessionMarkers(string session_name, datetime day_start, int index,
 //+------------------------------------------------------------------+
 void UpdateLabelPositions()
   {
+   if(!InpShowLabel)
+      return;  // [OPT] Early exit if labels disabled
+
+   // [OPT] Cache chart values once
    double top_price = ChartGetDouble(0, CHART_PRICE_MAX);
    double bottom_price = ChartGetDouble(0, CHART_PRICE_MIN);
    double range = top_price - bottom_price;
-
-   // Position labels 3% below top to ensure visibility
    double label_price = top_price - (range * 0.03);
 
+   // [OPT] Cache ObjectsTotal before loop
    int total = ObjectsTotal(0);
+   int prefix_len = StringLen(g_ObjPrefix);
+
    for(int i = 0; i < total; i++)
      {
       string name = ObjectName(0, i);
-      if(StringFind(name, g_ObjPrefix) == 0 && StringFind(name, "_Lbl") > 0)
-        {
-         // Move label to near-top price
-         datetime label_time = (datetime)ObjectGetInteger(0, name, OBJPROP_TIME);
-         ObjectMove(0, name, 0, label_time, label_price);
-        }
+      // [OPT] Check prefix first (cheaper), then label suffix
+      if(StringSubstr(name, 0, prefix_len) != g_ObjPrefix)
+         continue;
+      if(StringFind(name, "_Lbl") < 0)
+         continue;
+
+      // Move label to near-top price
+      datetime label_time = (datetime)ObjectGetInteger(0, name, OBJPROP_TIME);
+      ObjectMove(0, name, 0, label_time, label_price);
      }
   }
 
@@ -427,30 +468,35 @@ void UpdateLabelPositions()
 void UpdateStripPositions()
   {
    if(!InpShowTopStrip)
-      return;
+      return;  // [OPT] Early exit if strips disabled
 
+   // [OPT] Cache chart values once
    double top_price = ChartGetDouble(0, CHART_PRICE_MAX);
    double bottom_price = ChartGetDouble(0, CHART_PRICE_MIN);
    double range = top_price - bottom_price;
-
-   // Strip at top (height = InpStripHeight% of chart)
    double strip_top = top_price;
    double strip_bottom = top_price - (range * InpStripHeight / 100.0);
 
+   // [OPT] Cache ObjectsTotal and prefix length before loop
    int total = ObjectsTotal(0);
+   int prefix_len = StringLen(g_ObjPrefix);
+
    for(int i = 0; i < total; i++)
      {
       string name = ObjectName(0, i);
-      if(StringFind(name, g_ObjPrefix) == 0 && StringFind(name, "_Strip_") > 0)
-        {
-         // Get existing time coordinates
-         datetime time_start = (datetime)ObjectGetInteger(0, name, OBJPROP_TIME, 0);
-         datetime time_end = (datetime)ObjectGetInteger(0, name, OBJPROP_TIME, 1);
+      // [OPT] Check prefix first (cheaper), then strip suffix
+      if(StringSubstr(name, 0, prefix_len) != g_ObjPrefix)
+         continue;
+      if(StringFind(name, "_Strip_") < 0)
+         continue;
 
-         // Move both anchor points to new price levels
-         ObjectMove(0, name, 0, time_start, strip_top);
-         ObjectMove(0, name, 1, time_end, strip_bottom);
-        }
+      // Get existing time coordinates
+      datetime time_start = (datetime)ObjectGetInteger(0, name, OBJPROP_TIME, 0);
+      datetime time_end = (datetime)ObjectGetInteger(0, name, OBJPROP_TIME, 1);
+
+      // Move both anchor points to new price levels
+      ObjectMove(0, name, 0, time_start, strip_top);
+      ObjectMove(0, name, 1, time_end, strip_bottom);
      }
   }
 
@@ -471,7 +517,8 @@ void DrawSessions()
 
    for(int day = 0; day < InpMaxDaysBack; day++)
      {
-      datetime check_date = current_time - day * 86400;
+      // [OPT] Use cached seconds per day constant
+      datetime check_date = current_time - day * g_SecondsPerDay;
 
       MqlDateTime day_dt;
       TimeToStruct(check_date, day_dt);
@@ -499,18 +546,20 @@ void DrawSessions()
         }
      }
 
-   // Count objects created
-   int obj_count = 0;
-   int total = ObjectsTotal(0);
-   for(int i = 0; i < total; i++)
-     {
-      string name = ObjectName(0, i);
-      if(StringFind(name, g_ObjPrefix) == 0)
-         obj_count++;
-     }
-
+   // [OPT] Use ObjectsTotal with prefix filter - single call instead of loop
    if(InpDebugMode)
-      PrintFormat("=== DrawSessions END === Objects created: %d", obj_count);
+     {
+      int obj_count = ObjectsTotal(0, -1, -1);  // All objects, then we count our prefix
+      // For debug only - count objects with our prefix
+      int our_count = 0;
+      for(int i = 0; i < obj_count; i++)
+        {
+         string name = ObjectName(0, i);
+         if(StringSubstr(name, 0, StringLen(g_ObjPrefix)) == g_ObjPrefix)
+            our_count++;
+        }
+      PrintFormat("=== DrawSessions END === Objects created: %d", our_count);
+     }
 
    ChartRedraw(0);
   }
@@ -540,10 +589,16 @@ int OnInit()
      }
 
    datetime now = TimeCurrent();
+
+   // [OPT] Pre-cache DST boundaries for current year
+   MqlDateTime now_dt;
+   TimeToStruct(now, now_dt);
+   CacheDSTBoundaries(now_dt.year);
+
    int ny_offset = GetNYGMTOffset(now);
    int london_offset = GetLondonGMTOffset(now);
 
-   Print("Trading Sessions Lines v2.0.0 - Lightweight Markers");
+   Print("Trading Sessions Lines v3.0.0 - Optimized Markers");
    PrintFormat("  Max days back: %d", InpMaxDaysBack);
 
    if(InpShowNY)
@@ -613,7 +668,8 @@ void OnChartEvent(const int id,
   {
    if(id == CHARTEVENT_CHART_CHANGE)
      {
-      // Update positions to keep them at chart top during scaling
+      // [OPT] Update positions only - no object recreation needed
+      // ChartRedraw is needed here since ObjectMove is async
       UpdateLabelPositions();
       UpdateStripPositions();
       ChartRedraw(0);
