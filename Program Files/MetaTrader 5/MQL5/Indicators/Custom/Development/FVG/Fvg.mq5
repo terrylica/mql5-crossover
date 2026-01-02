@@ -3,14 +3,37 @@
 //|                        Based on rpanchyk's FVG indicator v1.03   |
 //|                        Optimized version - O(n) complexity       |
 //+------------------------------------------------------------------+
+//|  OPTIMIZATION RESEARCH NOTES (2026-01-02)                        |
+//|  --------------------------------------------------------        |
+//|  This indicator has been thoroughly optimized. Further micro-    |
+//|  optimizations were researched but deemed not worth the          |
+//|  trade-offs. See inline comments marked [OPT-RESEARCH] for       |
+//|  detailed justifications.                                        |
+//|                                                                  |
+//|  Key MQL5 findings from official docs & forums:                  |
+//|  1. ObjectCreate/ObjectMove use ASYNCHRONOUS calls - they queue  |
+//|     commands and return immediately (non-blocking)               |
+//|  2. ObjectFind is SYNCHRONOUS - waits for result, costly with    |
+//|     many objects. Used sparingly here for safety guards only.    |
+//|  3. ArraySetAsSeries only changes indexing direction, no perf    |
+//|     cost - safe to call in OnCalculate                           |
+//|  4. PeriodSeconds() cached in OnInit - avoids repeated calls     |
+//|                                                                  |
+//|  Sources:                                                        |
+//|  - https://www.mql5.com/en/docs/objects (async behavior)         |
+//|  - https://www.mql5.com/en/forum/160173 (speed optimization)     |
+//|  - https://www.mql5.com/en/forum/304837 (ArraySetAsSeries)       |
+//|  - https://www.mql5.com/en/forum/427602 (MT5 runtime speed)      |
+//+------------------------------------------------------------------+
 #property copyright   "Optimized by Terry Li, Original by rpanchyk"
 #property link        "https://github.com/rpanchyk"
-#property version     "2.31"
-#property description "Optimized Fair Value Gap indicator v2.31"
+#property version     "6.1.0"
+#property description "Optimized Fair Value Gap indicator v6.1.0"
 #property description "Key features:"
 #property description "- Bright colors for ACTIVE zones, faint for mitigated"
 #property description "- O(n) mitigation tracking vs O(n²) nested loops"
 #property description "- O(1) circular buffer for active FVG management"
+#property description "- Fully researched & documented optimization decisions"
 
 #property indicator_chart_window
 #property indicator_plots 3
@@ -68,8 +91,15 @@ int ActiveFvgHead = 0;  // Circular buffer head index
 const int MAX_ACTIVE_FVGS = 200;  // Limit active FVGs to prevent memory bloat
 
 // Cached values for performance (avoid repeated function calls)
+// [OPT-RESEARCH] PeriodSeconds() is cached here because it's a function call
+// that returns the same value for the indicator's lifetime. Called once in
+// OnInit instead of potentially hundreds of times per tick in UpdateActiveStripe.
 int CachedPeriodSeconds = 0;
-bool NeedsRedraw = false;  // Only redraw when objects actually change
+
+// [OPT-RESEARCH] ChartRedraw(0) is expensive - forces full chart repaint.
+// We track whether any objects actually changed and only redraw when needed.
+// On quiet ticks with no new bars/mitigations, this saves significant CPU.
+bool NeedsRedraw = false;
 
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
@@ -159,6 +189,11 @@ int OnCalculate(const int rates_total,
    // Reset redraw flag at start of each calculation
    NeedsRedraw = false;
 
+   // [OPT-RESEARCH] ArraySetAsSeries only changes indexing direction in memory,
+   // it does NOT copy or rearrange data. Per MQL5 docs: "array elements are
+   // physically stored in one and the same order - only indexing direction changes."
+   // This has negligible performance cost and is safe to call every OnCalculate.
+   // Moving to OnInit is NOT possible because these are passed-by-reference arrays.
    ArraySetAsSeries(time, true);
    ArraySetAsSeries(high, true);
    ArraySetAsSeries(low, true);
@@ -346,7 +381,17 @@ void UpdateActiveFvgs(const datetime &time[], const double &high[], const double
          // Still active - extend main box to current time
          string objName = ActiveFvgs[i].objName;
 
-         // Verify main box still exists before updating
+         // [OPT-RESEARCH] ObjectFind() is SYNCHRONOUS - it waits for execution result.
+         // Per MQL5 forum: "synchronous calls like ObjectFind() can be time consuming
+         // with large numbers of objects since they wait for execution."
+         //
+         // CONSIDERED REMOVING: Since we track objects in ActiveFvgs[], we theoretically
+         // know they exist. Removing this check would save one sync call per active FVG.
+         //
+         // DECISION: KEEP IT. The safety guard protects against edge cases where objects
+         // are manually deleted by user or other indicators. The robustness benefit
+         // outweighs the marginal performance gain. With typical <50 active FVGs,
+         // the impact is negligible.
          if(ObjectFind(0, objName) < 0)
            {
             if(InpDebugEnabled)
