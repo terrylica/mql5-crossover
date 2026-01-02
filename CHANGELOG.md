@@ -1,3 +1,10 @@
+# [6.2.0](https://github.com/terrylica/mql5-crossover/compare/v6.1.0...v6.2.0) (2026-01-02)
+
+
+### Features
+
+* **zigzag:** add user-adjustable confirmation arrow size and reduce label offset ([70843ea](https://github.com/terrylica/mql5-crossover/commit/70843eae0b841a1bd508288dbc72734e902039cd))
+
 # [6.1.0](https://github.com/terrylica/mql5-crossover/compare/v6.0.1...v6.1.0) (2026-01-02)
 
 
