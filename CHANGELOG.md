@@ -1,3 +1,10 @@
+# [6.1.0](https://github.com/terrylica/mql5-crossover/compare/v6.0.1...v6.1.0) (2026-01-02)
+
+
+### Features
+
+* **sessions:** optimize Trading_Sessions_Lines indicator to v3.0.0 ([1275527](https://github.com/terrylica/mql5-crossover/commit/1275527a1e91cb8ba32c6cc934e81bbcfa7d121e))
+
 ## [6.0.1](https://github.com/terrylica/mql5-crossover/compare/v6.0.0...v6.0.1) (2026-01-02)
 
 
