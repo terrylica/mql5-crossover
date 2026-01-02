@@ -76,11 +76,14 @@ alias m5='cd "$MQL5_ROOT"'
 
 ## Quick Reference
 
-**Compile MQL5**:
+**Compile MQL5** (ALWAYS after editing .mq5/.mqh files):
 ```bash
-./tools/compile_mql5.sh "Indicators/Custom/Development/MyIndicator.mq5"
-# Or use: /mql5-x-compile
+# Use skill - handles X: drive path conversion automatically
+/mql5-x-compile Indicators/Custom/Development/MyIndicator.mq5
+
+# Exit code 1 is NORMAL - always verify by checking .ex5 file exists
 ```
+**⚠️ PROACTIVE RULE**: After ANY edit to `.mq5` or `.mqh` files, immediately compile using `/mql5-x-compile`.
 
 **Export Data (v3.0.0)**:
 ```bash
@@ -97,8 +100,13 @@ python validate_indicator.py --csv exports/Export.csv --indicator laguerre_rsi -
 
 ---
 
-## Key Discoveries (2025-10-17)
+## Key Discoveries
 
+**2026-01-02**:
+- **Wine exit code 1**: CrossOver/Wine returns exit 1 even on successful compilation - IGNORE exit code, verify `.ex5` file exists
+- **Per-file .log**: Compilation log is created next to `.mq5` file (e.g., `Fvg.log`), not in `logs/metaeditor.log`
+
+**2025-10-17**:
 - **v4.0.0 File-Based Config**: Config reader working, GUI mode
 - **v2.1.0 startup.ini**: NOT VIABLE (named sections unsupported)
 - **/inc parameter**: OVERRIDES default paths (omit unless external includes)

@@ -62,8 +62,13 @@ CX="$HOME/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
 |-------|----------|
 | Path has spaces | Use X: drive or copy to C:/ root |
 | Exit 0 but no .ex5 | Path problem, check log |
+| **Exit 1 but .ex5 exists** | **Success!** Wine returns exit 1 even on success - always verify .ex5 file |
 | /inc behavior | OVERRIDES default paths (omit unless needed) |
 | CrossOver path | `~/Applications/` NOT `/Applications/` |
+
+**Critical**: Exit code is unreliable. Always verify compilation by checking:
+1. `.ex5` file exists and has recent timestamp
+2. Per-file `.log` shows "0 errors, 0 warnings"
 
 ---
 
@@ -88,11 +93,21 @@ Both UTF-8 and UTF-16LE compile successfully. Prefer UTF-8 for easier editing an
 
 ## Logs Location
 
-| Log | Path |
-|-----|------|
-| MetaEditor | `../../../Program Files/MetaTrader 5/logs/metaeditor.log` |
-| MQL5 Runtime | `Logs/` (this directory) |
-| Expert Advisors | `../../../Program Files/MetaTrader 5/logs/` |
+| Log | Path | Encoding |
+|-----|------|----------|
+| **Per-file compile log** | Same dir as `.mq5` (e.g., `Fvg.log`) | UTF-16LE |
+| MetaEditor global | `../../../Program Files/MetaTrader 5/logs/metaeditor.log` | UTF-16LE |
+| MQL5 Runtime | `Logs/` (this directory) | UTF-8 |
+| Expert Advisors | `../../../Program Files/MetaTrader 5/logs/` | varies |
+
+**Preferred**: Use the per-file `.log` next to your `.mq5` - it's always created and contains the exact compilation result.
+
+```bash
+# Read per-file compilation log (UTF-16LE encoded)
+cat "/path/to/YourIndicator.log"
+# Or with proper decoding:
+iconv -f UTF-16LE -t UTF-8 "/path/to/YourIndicator.log"
+```
 
 **Skill**: `/mt5-log-reader` (validates compilation and execution)
 

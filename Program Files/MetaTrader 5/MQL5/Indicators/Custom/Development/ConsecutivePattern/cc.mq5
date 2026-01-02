@@ -4,7 +4,7 @@
 //|                                                                 |
 //+------------------------------------------------------------------+
 #property copyright "Terry Li"
-#property version   "1.27"
+#property version   "1.35"
 #property description "Detects consecutive expansions/contractions in bar body size (inside bars removed)"
 #property indicator_chart_window
 #property indicator_buffers 13
@@ -64,6 +64,16 @@ input group "Dot Signal Settings"
 input int                 InpArrowCode        = 159;         // Arrow code
 input int                 InpArrowSize        = 3;           // Arrow size
 input int                 InpMaxDotSize       = 14;          // Maximum dot size for consecutive signals
+input double              InpDotOffsetPips    = 1.5;         // Dot distance from price in pips
+
+// Extending line settings
+input group "Extending Line Settings"
+input bool                InpShowExtendingLines = true;      // Show extending lines from dots
+input ENUM_LINE_STYLE     InpLineStyle        = STYLE_DOT;   // Line style
+input int                 InpLineWidth        = 1;           // Line width (1=thinnest)
+input int                 InpMaxLineHours     = 48;          // Max line duration in hours (0=unlimited)
+input int                 InpLineDaysBack     = 30;          // Only create lines for last N days
+input bool                InpLineDebug        = true;        // Enable debug logging for lines
 
 // Noise filter settings
 input group "Noise Filter Settings"
@@ -89,16 +99,269 @@ double         BufferExpConsecutiveBullish[]; // Count of consecutive bullish ex
 double         BufferExpConsecutiveBearish[]; // Count of consecutive bearish expansion signals
 double         BufferSignalBar[];       // Buffer to mark signal bars
 
+//--- Line object constants
+const string LINE_PREFIX = "CCEXP_";        // Prefix for expansion line objects
+const string LINE_PREFIX_ACTIVE = "CCEXPA_"; // Prefix for active (unmitigated) lines
+
 //--- Include helper functions (after variable declarations)
 #include "lib/PatternHelpers.mqh"
 #include "lib/BodySizePatterns.mqh"
 // #include "lib/CandlePatterns.mqh"  // Removed: inside bar patterns disabled
 
 //+------------------------------------------------------------------+
+//| Create horizontal extending line from expansion signal           |
+//+------------------------------------------------------------------+
+void CreateExpansionLine(int bar, bool isBullish, double linePrice, datetime barTime)
+{
+   if(!InpShowExtendingLines)
+      return;
+
+   // Check if bar is within the allowed days back
+   datetime currentTime = TimeCurrent();
+   long maxAgeSec = (long)InpLineDaysBack * 24 * 3600;  // Days to seconds
+
+   if((currentTime - barTime) > maxAgeSec)
+   {
+      // Bar is older than InpLineDaysBack days - skip
+      return;
+   }
+
+   // Create unique name using ONLY barTime (stable) - NOT bar index (shifts with new bars)
+   // Format: PREFIX_DIRECTION_TIMESTAMP
+   string objName = LINE_PREFIX_ACTIVE
+                    + (isBullish ? "BULL_" : "BEAR_")
+                    + IntegerToString(barTime);
+
+   // IDEMPOTENCY: If line already exists at this barTime, do NOT recreate
+   // This prevents duplicates and geometry changes on recalculation
+   if(ObjectFind(0, objName) >= 0)
+      return;  // Line already exists - skip
+
+   // Also check if a finalized (mitigated) line exists at this barTime
+   string finalName = LINE_PREFIX
+                    + (isBullish ? "BULL_" : "BEAR_")
+                    + IntegerToString(barTime);
+   if(ObjectFind(0, finalName) >= 0)
+      return;  // Finalized line exists - skip
+
+   // Create horizontal trend line (2 points at same price)
+   datetime endTime = currentTime;
+   bool created = ObjectCreate(0, objName, OBJ_TREND, 0,
+                               barTime, linePrice,    // Start point
+                               endTime, linePrice);   // End point (current time)
+   if(!created)
+   {
+      if(InpLineDebug)
+         PrintFormat("LINE DEBUG: FAILED to create line '%s' at bar %d, error=%d", objName, bar, GetLastError());
+      return;
+   }
+
+   // Style the line
+   color lineColor = isBullish ? InpBullishColor : InpBearishColor;
+   ObjectSetInteger(0, objName, OBJPROP_COLOR, lineColor);
+   ObjectSetInteger(0, objName, OBJPROP_STYLE, InpLineStyle);
+   ObjectSetInteger(0, objName, OBJPROP_WIDTH, InpLineWidth);
+   ObjectSetInteger(0, objName, OBJPROP_BACK, true);           // Behind candles
+   ObjectSetInteger(0, objName, OBJPROP_SELECTABLE, false);
+   ObjectSetInteger(0, objName, OBJPROP_HIDDEN, false);
+   ObjectSetInteger(0, objName, OBJPROP_RAY_RIGHT, false);     // Don't extend infinitely
+   ObjectSetInteger(0, objName, OBJPROP_RAY_LEFT, false);
+
+   // Debug logging
+   if(InpLineDebug)
+   {
+      double ageHours = (double)(currentTime - barTime) / 3600.0;
+      PrintFormat("LINE DEBUG: CREATED %s line at bar %d | Price=%.5f | Time=%s | Age=%.1f hrs | Name=%s",
+                  isBullish ? "BULL" : "BEAR",
+                  bar,
+                  linePrice,
+                  TimeToString(barTime, TIME_DATE | TIME_MINUTES),
+                  ageHours,
+                  objName);
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Extend active lines to current time & check for mitigation       |
+//| FIX v1.34: Check ALL bars from line creation to current, not just bar[1] |
+//+------------------------------------------------------------------+
+void ManageExpansionLines(const double &high[], const double &low[], int rates_total)
+{
+   if(!InpShowExtendingLines)
+      return;
+
+   datetime currentTime = TimeCurrent();
+   int total = ObjectsTotal(0);
+
+   // Calculate max duration in seconds (0 = unlimited)
+   long maxDurationSec = (InpMaxLineHours > 0) ? (long)InpMaxLineHours * 3600 : 0;
+
+   // Debug counters
+   static int lastDebugBar = -1;
+   int currentBar = Bars(_Symbol, _Period);
+   int activeCount = 0;
+   int mitigatedCount = 0;
+   int expiredCount = 0;
+   int extendedCount = 0;
+
+   // Loop backwards for safe deletion
+   for(int i = total - 1; i >= 0; i--)
+   {
+      string objName = ObjectName(0, i);
+
+      // Only process our active lines
+      if(StringFind(objName, LINE_PREFIX_ACTIVE) != 0)
+         continue;
+
+      activeCount++;
+
+      // Get line start time and price level
+      datetime lineStartTime = (datetime)ObjectGetInteger(0, objName, OBJPROP_TIME, 0);
+      double linePrice = ObjectGetDouble(0, objName, OBJPROP_PRICE, 0);
+
+      // Check if line is bullish or bearish from name
+      bool isBullish = (StringFind(objName, "BULL_") > 0);
+
+      // Find bar index where line was created
+      int lineStartBar = iBarShift(_Symbol, _Period, lineStartTime);
+      if(lineStartBar < 0)
+         lineStartBar = rates_total - 1;  // Fallback to oldest bar
+
+      // FIX: Check ALL bars from line creation to bar 1 (last completed bar)
+      bool mitigated = false;
+      string mitigationReason = "";
+      int mitigationBar = -1;
+
+      for(int b = lineStartBar; b >= 1; b--)
+      {
+         if(b >= rates_total)
+            continue;  // Safety check
+
+         if(isBullish)
+         {
+            // Bullish line above price - mitigated if high touches/exceeds
+            if(high[b] >= linePrice)
+            {
+               mitigated = true;
+               mitigationBar = b;
+               mitigationReason = StringFormat("high[%d]=%.5f >= linePrice=%.5f", b, high[b], linePrice);
+               break;  // Found first mitigation, stop searching
+            }
+         }
+         else
+         {
+            // Bearish line below price - mitigated if low touches/drops below
+            if(low[b] <= linePrice)
+            {
+               mitigated = true;
+               mitigationBar = b;
+               mitigationReason = StringFormat("low[%d]=%.5f <= linePrice=%.5f", b, low[b], linePrice);
+               break;  // Found first mitigation, stop searching
+            }
+         }
+      }
+
+      // Check for time expiry (max duration reached)
+      bool expired = false;
+      double ageHours = (double)(currentTime - lineStartTime) / 3600.0;
+      if(maxDurationSec > 0 && (currentTime - lineStartTime) >= maxDurationSec)
+         expired = true;
+
+      if(mitigated)
+      {
+         mitigatedCount++;
+         datetime endTime = iTime(_Symbol, _Period, mitigationBar);
+
+         // Move endpoint to mitigation bar
+         ObjectMove(0, objName, 1, endTime, linePrice);
+
+         // Rename to final (non-active) prefix
+         string finalName = LINE_PREFIX + StringSubstr(objName, StringLen(LINE_PREFIX_ACTIVE));
+         ObjectSetString(0, objName, OBJPROP_NAME, finalName);
+
+         if(InpLineDebug)
+         {
+            PrintFormat("LINE DEBUG: MITIGATED %s line | Price=%.5f | Age=%.1f hrs | Bar=%d | Reason: %s | Name=%s",
+                        isBullish ? "BULL" : "BEAR",
+                        linePrice,
+                        ageHours,
+                        mitigationBar,
+                        mitigationReason,
+                        objName);
+         }
+      }
+      else if(expired)
+      {
+         expiredCount++;
+
+         // Move endpoint to current time
+         ObjectMove(0, objName, 1, currentTime, linePrice);
+
+         // Rename to final (non-active) prefix
+         string finalName = LINE_PREFIX + StringSubstr(objName, StringLen(LINE_PREFIX_ACTIVE));
+         ObjectSetString(0, objName, OBJPROP_NAME, finalName);
+
+         if(InpLineDebug)
+         {
+            PrintFormat("LINE DEBUG: EXPIRED %s line | Price=%.5f | Age=%.1f hrs (max=%d hrs) | Name=%s",
+                        isBullish ? "BULL" : "BEAR",
+                        linePrice,
+                        ageHours,
+                        InpMaxLineHours,
+                        objName);
+         }
+      }
+      else
+      {
+         extendedCount++;
+         // Still active - extend to current time
+         ObjectMove(0, objName, 1, currentTime, linePrice);
+      }
+   }
+
+   // Summary debug on new bar only
+   if(InpLineDebug && currentBar != lastDebugBar && (activeCount > 0 || mitigatedCount > 0 || expiredCount > 0))
+   {
+      lastDebugBar = currentBar;
+      PrintFormat("LINE DEBUG: === SUMMARY === Active=%d | Extended=%d | Mitigated=%d | Expired=%d | Time=%s",
+                  activeCount,
+                  extendedCount,
+                  mitigatedCount,
+                  expiredCount,
+                  TimeToString(currentTime, TIME_DATE | TIME_MINUTES));
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Delete all expansion line objects                                |
+//+------------------------------------------------------------------+
+void DeleteAllExpansionLines()
+{
+   int deleted = 0;
+   int total = ObjectsTotal(0);
+   for(int i = total - 1; i >= 0; i--)
+   {
+      string objName = ObjectName(0, i);
+      // Check for both prefixes (active and finalized lines)
+      if(StringFind(objName, LINE_PREFIX_ACTIVE) == 0 || StringFind(objName, LINE_PREFIX) == 0)
+      {
+         ObjectDelete(0, objName);
+         deleted++;
+      }
+   }
+   // Force chart redraw to ensure visual cleanup
+   if(deleted > 0)
+      ChartRedraw(0);
+}
+
+//+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
 int OnInit()
 {
+   //--- Clean up any existing expansion lines from previous instance
+   DeleteAllExpansionLines();
+
    //--- indicator buffers mapping for DRAW_COLOR_CANDLES
    SetIndexBuffer(0, BufferOpen, INDICATOR_DATA);
    SetIndexBuffer(1, BufferHigh, INDICATOR_DATA);
@@ -199,8 +462,37 @@ int OnInit()
    PlotIndexSetDouble(1, PLOT_EMPTY_VALUE, 0.0);
    PlotIndexSetDouble(2, PLOT_EMPTY_VALUE, 0.0);
 
+   //--- Debug: Log line settings
+   if(InpLineDebug && InpShowExtendingLines)
+   {
+      Print("=== CC INDICATOR v1.35 - LINE SETTINGS ===");
+      PrintFormat("  Extending Lines: ENABLED");
+      PrintFormat("  Line Style: %s",
+                  InpLineStyle == STYLE_DOT ? "DOTTED" :
+                  InpLineStyle == STYLE_DASH ? "DASHED" :
+                  InpLineStyle == STYLE_SOLID ? "SOLID" : "OTHER");
+      PrintFormat("  Line Width: %d", InpLineWidth);
+      PrintFormat("  Max Duration: %d hours", InpMaxLineHours);
+      PrintFormat("  Days Back Limit: %d days", InpLineDaysBack);
+      PrintFormat("  Dot Offset: %d pips", InpDotOffsetPips);
+      Print("==========================================");
+   }
+
    //--- initialization done
    return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Custom indicator deinitialization function                       |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+   //--- Clean up all expansion line objects
+   //--- Critical for timeframe changes (REASON_CHARTCHANGE) and recompilation
+   DeleteAllExpansionLines();
+
+   //--- Force immediate visual update
+   ChartRedraw(0);
 }
 
 //+------------------------------------------------------------------+
@@ -253,15 +545,49 @@ int OnCalculate(const int rates_total,
       BufferHigh[i] = high[i];
       BufferLow[i] = low[i];
       BufferClose[i] = close[i];
-      
+
       //--- Calculate absolute body size
       BufferBodySizes[i] = MathAbs(close[i] - open[i]);
-      
-      //--- Reset signals and colors (use 0.0 for arrows)
-      BufferExpBearishSignal[i] = 0.0;
-      BufferExpBullishSignal[i] = 0.0;
+
+      //--- SYNC FIX: Check if line exists at this bar's time before resetting buffer
+      //--- This keeps dot (buffer) in sync with line (object)
+      datetime barTime = time[i];
+      string bullLineName = LINE_PREFIX_ACTIVE + "BULL_" + IntegerToString(barTime);
+      string bearLineName = LINE_PREFIX_ACTIVE + "BEAR_" + IntegerToString(barTime);
+      string bullFinalName = LINE_PREFIX + "BULL_" + IntegerToString(barTime);
+      string bearFinalName = LINE_PREFIX + "BEAR_" + IntegerToString(barTime);
+
+      // Check for bullish line (active or finalized)
+      if(ObjectFind(0, bullLineName) >= 0)
+      {
+         // Line exists - restore buffer from line price
+         BufferExpBullishSignal[i] = ObjectGetDouble(0, bullLineName, OBJPROP_PRICE, 0);
+      }
+      else if(ObjectFind(0, bullFinalName) >= 0)
+      {
+         BufferExpBullishSignal[i] = ObjectGetDouble(0, bullFinalName, OBJPROP_PRICE, 0);
+      }
+      else
+      {
+         BufferExpBullishSignal[i] = 0.0;  // No line - reset to empty
+      }
+
+      // Check for bearish line (active or finalized)
+      if(ObjectFind(0, bearLineName) >= 0)
+      {
+         BufferExpBearishSignal[i] = ObjectGetDouble(0, bearLineName, OBJPROP_PRICE, 0);
+      }
+      else if(ObjectFind(0, bearFinalName) >= 0)
+      {
+         BufferExpBearishSignal[i] = ObjectGetDouble(0, bearFinalName, OBJPROP_PRICE, 0);
+      }
+      else
+      {
+         BufferExpBearishSignal[i] = 0.0;  // No line - reset to empty
+      }
+
       BufferColorIndex[i] = COLOR_NONE; // Default color
-      
+
       // Reset consecutive counters and signal markers for this bar
       BufferConsecutiveBullish[i] = 0;
       BufferConsecutiveBearish[i] = 0;
@@ -271,7 +597,7 @@ int OnCalculate(const int rates_total,
    }
    
    //--- Calculate minimum body size in price units
-   double minBodyPrice = InpMinBodyPips * Point() * 10;  // Convert pips to price
+   double minBodyPrice = InpMinBodyPips * PipSize();  // Universal pip conversion
 
    //--- Check for contraction patterns if enabled
    if(InpShowContractions)
@@ -364,7 +690,7 @@ int OnCalculate(const int rates_total,
          signalCount++;
 
          // We have a valid expansion pattern, mark the signal
-         SetExpansionSignal(i, isPatternBullish, high, low, rates_total);
+         SetExpansionSignal(i, isPatternBullish, high, low, time, rates_total);
       }
 
       // Log total signal count on first calculation
@@ -441,6 +767,9 @@ int OnCalculate(const int rates_total,
       Print("Plot 2 (bull): DRAW_TYPE=", PlotIndexGetInteger(2, PLOT_DRAW_TYPE), " ARROW=", PlotIndexGetInteger(2, PLOT_ARROW));
       Print("=====================================");
    }
+
+   //--- Manage extending lines: extend active ones to current bar, finalize mitigated ones
+   ManageExpansionLines(high, low, rates_total);
 
    //--- return value of prev_calculated for next call
    return(rates_total);

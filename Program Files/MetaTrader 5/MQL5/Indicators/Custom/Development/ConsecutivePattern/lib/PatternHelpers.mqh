@@ -5,6 +5,19 @@
 //+------------------------------------------------------------------+
 
 //+------------------------------------------------------------------+
+//| Get pip size for current symbol (universal: forex, JPY, metals)  |
+//| Works with 5-digit, 4-digit, 3-digit, and 2-digit brokers        |
+//+------------------------------------------------------------------+
+double PipSize()
+{
+   // Universal formula: pip = 1 / 10^(digits-1)
+   // 5-digit EURUSD: 1/10^4 = 0.0001 (1 pip)
+   // 3-digit USDJPY: 1/10^2 = 0.01   (1 pip)
+   // 2-digit XAUUSD: 1/10^1 = 0.1    (1 pip)
+   return 1.0 / MathPow(10, _Digits - 1);
+}
+
+//+------------------------------------------------------------------+
 //| Check if all bars in the pattern have the same direction         |
 //+------------------------------------------------------------------+
 bool CheckSameDirection(const double &open[], const double &close[], int startBar, int count, bool isBullish)

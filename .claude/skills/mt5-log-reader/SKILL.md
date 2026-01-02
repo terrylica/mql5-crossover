@@ -1,6 +1,7 @@
 ---
 name: mt5-log-reader
-description: Reads MetaTrader 5 log files to validate indicator execution, unit tests, and compilation errors. Use when user mentions Experts pane, MT5 logs, errors, or asks "did it work".
+description: Reads MetaTrader 5 log files to validate indicator execution, unit tests, and compilation errors. Use when user mentions Experts pane, MT5 logs, errors, or asks "did it work". Triggers - check logs, did it work, Experts pane, Print output, runtime errors, debug output. (project)
+allowed-tools: Read, Grep, Bash
 ---
 
 # MT5 Log Reader
@@ -21,7 +22,9 @@ Use this skill when:
 
 ## Log File Structure
 
-MT5 logs are stored at:
+### Runtime Logs (Experts Pane)
+
+MT5 runtime logs are stored at:
 ```
 $MQL5_ROOT/Program Files/MetaTrader 5/MQL5/Logs/YYYYMMDD.log
 ```
@@ -30,6 +33,21 @@ $MQL5_ROOT/Program Files/MetaTrader 5/MQL5/Logs/YYYYMMDD.log
 - Encoding: UTF-16LE (Little Endian) - Read tool handles automatically
 - Structure: Tab-separated fields (timestamp, source, message)
 - Size: Grows throughout day (typically 10-100KB, can reach 5MB+)
+
+### Compilation Logs (Per-File)
+
+MetaEditor creates a `.log` file next to each compiled `.mq5`:
+```
+# Example: Fvg.mq5 creates Fvg.log in the same directory
+$MQL5_ROOT/Program Files/MetaTrader 5/MQL5/Indicators/Custom/Development/FVG/Fvg.log
+```
+
+**File Format**:
+- Encoding: UTF-16LE (often readable with plain `cat`)
+- Contains: Compilation progress, error count, warnings, timing
+- Success indicator: "0 errors, 0 warnings"
+
+**Important**: Wine/CrossOver returns exit code 1 even on successful compilation. Always check the `.log` file or verify `.ex5` exists.
 
 ## Workflow
 

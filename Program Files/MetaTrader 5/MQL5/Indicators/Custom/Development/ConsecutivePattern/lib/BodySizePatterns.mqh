@@ -46,7 +46,7 @@ void SetContractionSignal(int bar, bool isBullish, int rates_total)
 //| Set expansion signal based on pattern direction                  |
 //| Requires: Global buffers and input parameters from parent        |
 //+------------------------------------------------------------------+
-void SetExpansionSignal(int bar, bool isBullish, const double &high[], const double &low[], int rates_total)
+void SetExpansionSignal(int bar, bool isBullish, const double &high[], const double &low[], const datetime &time[], int rates_total)
 {
    if(isBullish)
    {
@@ -59,12 +59,19 @@ void SetExpansionSignal(int bar, bool isBullish, const double &high[], const dou
       // Calculate dot size based on consecutive count
       int dotSize = InpArrowSize + (int)MathMin(BufferExpConsecutiveBullish[bar] - 1, InpMaxDotSize - InpArrowSize);
 
+      // Offset in price: InpDotOffsetPips pips above high
+      double offset = InpDotOffsetPips * PipSize();  // Universal pip conversion
+      double linePrice = high[bar] + offset;
+
       // Set the arrow size and position (always set, the PLOT_EMPTY_VALUE handles "no draw")
       if(InpShowDots)
       {
          PlotIndexSetInteger(2, PLOT_LINE_WIDTH, dotSize);
-         BufferExpBullishSignal[bar] = high[bar] + (10 * Point());
+         BufferExpBullishSignal[bar] = linePrice;
       }
+
+      // Create extending line from this signal
+      CreateExpansionLine(bar, true, linePrice, time[bar]);
    }
    else
    {
@@ -77,12 +84,19 @@ void SetExpansionSignal(int bar, bool isBullish, const double &high[], const dou
       // Calculate dot size based on consecutive count
       int dotSize = InpArrowSize + (int)MathMin(BufferExpConsecutiveBearish[bar] - 1, InpMaxDotSize - InpArrowSize);
 
+      // Offset in price: InpDotOffsetPips pips below low
+      double offset = InpDotOffsetPips * PipSize();  // Universal pip conversion
+      double linePrice = low[bar] - offset;
+
       // Set the arrow size and position (always set, the PLOT_EMPTY_VALUE handles "no draw")
       if(InpShowDots)
       {
          PlotIndexSetInteger(1, PLOT_LINE_WIDTH, dotSize);
-         BufferExpBearishSignal[bar] = low[bar] - (10 * Point());
+         BufferExpBearishSignal[bar] = linePrice;
       }
+
+      // Create extending line from this signal
+      CreateExpansionLine(bar, false, linePrice, time[bar]);
    }
 }
 //+------------------------------------------------------------------+

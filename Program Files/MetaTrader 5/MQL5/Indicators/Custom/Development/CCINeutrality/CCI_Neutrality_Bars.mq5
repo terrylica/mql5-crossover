@@ -4,19 +4,19 @@
 //+------------------------------------------------------------------+
 #property copyright   "Terry Li"
 #property link        "https://github.com/terrylica/mql5-crossover"
-#property version     "1.0.1"
-#property description "Colors price bars based on CCI Neutrality: White=Calm/Neutral (Green state), Default=Normal/Volatile"
+#property version     "1.1.0"
+#property description "Colors OHLC bars (not candlesticks) based on CCI Neutrality: White=Calm/Neutral (Green state), Default=Normal/Volatile"
 
 #property indicator_chart_window
 #property indicator_buffers 7  // 7 buffers: OHLC (4) + Color (1) + CCI (1) + Score (1)
-#property indicator_plots   1  // Only 1 visible plot (colored candles)
+#property indicator_plots   1  // Only 1 visible plot (colored OHLC bars)
 
 // Force recalculation in Strategy Tester
 #property tester_everytick_calculate
 
-// Plot 1: Colored Candlesticks Based on CCI Neutrality
+// Plot 1: Colored OHLC Bars Based on CCI Neutrality
 #property indicator_label1    "Open;High;Low;Close"
-#property indicator_type1     DRAW_COLOR_CANDLES
+#property indicator_type1     DRAW_COLOR_BARS
 #property indicator_color1    clrLightGray,clrNONE,clrNONE  // Index 0=White(Calm), 1=Default(Normal), 2=Default(Volatile)
 #property indicator_width1    1
 

@@ -1,12 +1,26 @@
 ---
 name: mql5-x-compile
-description: Compile MQL5 indicators via CLI using X: drive mapping to bypass 'Program Files' path spaces issue. Use when compiling MQL5, MetaEditor, indicators, scripts, or when user mentions compilation errors related to paths with spaces.
+description: Compile MQL5 indicators via CLI using X: drive mapping to bypass 'Program Files' path spaces issue. Use PROACTIVELY after editing ANY .mq5 or .mqh file. Triggers - after editing MQL5 code, compile, build, MetaEditor, .mq5, .mqh, indicator, script, EA, expert advisor, "test it", "try it", "run it", path space errors. (project)
 allowed-tools: Bash, Read
 ---
 
 # MQL5 X-Drive CLI Compilation
 
 Compile MQL5 indicators/scripts via command line using X: drive mapping to avoid "Program Files" path spaces that cause silent compilation failures.
+
+## When to Use (Proactive Triggers)
+
+**ALWAYS use this skill after:**
+- Editing any `.mq5` file (indicator, script, EA)
+- Editing any `.mqh` file (library/include)
+- User says "compile", "build", "test it", "try it", "run it"
+- User asks to verify changes work
+- Making code changes that need validation
+
+**Also use when:**
+- User mentions MetaEditor, compilation errors, or path issues
+- Exit code 1 appears (reminder: exit 1 is normal, check .ex5 file)
+- Need to verify .ex5 file was created
 
 ## Prerequisites
 
@@ -57,22 +71,28 @@ ME="C:/Program Files/MetaTrader 5/MetaEditor64.exe"
 
 ### Step 3: Verify Compilation
 
+**CRITICAL**: Wine/CrossOver returns exit code 1 even on successful compilation. **Ignore the exit code** - always verify by checking the .ex5 file and per-file log.
+
 Check if .ex5 file was created:
 
 ```bash
 BOTTLE="$HOME/Library/Application Support/CrossOver/Bottles/MetaTrader 5"
 EX5_FILE="$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Indicators/Custom/YourFile.ex5"
+LOG_FILE="$BOTTLE/drive_c/Program Files/MetaTrader 5/MQL5/Indicators/Custom/YourFile.log"
 
+# Check .ex5 exists with recent timestamp
 if [ -f "$EX5_FILE" ]; then
   ls -lh "$EX5_FILE"
   echo "✅ Compilation successful"
 else
   echo "❌ Compilation failed"
-  # Check log
-  iconv -f UTF-16LE -t UTF-8 \
-    "$BOTTLE/drive_c/Program Files/MetaTrader 5/logs/metaeditor.log" | tail -5
 fi
+
+# Check per-file log (UTF-16LE, but often readable with cat)
+cat "$LOG_FILE" | grep -i "error\|warning\|Result"
 ```
+
+**Per-file log location**: The `.log` file is created in the same directory as the `.mq5` file (e.g., `Fvg.mq5` → `Fvg.log`). This is more reliable than `logs/metaeditor.log`.
 
 ## Common Patterns
 
@@ -109,6 +129,13 @@ CX="$HOME/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
 
 ## Troubleshooting
 
+### Issue: Exit code 1 but compilation succeeded
+
+**Cause**: Wine/CrossOver always returns exit code 1, even on success
+**Solution**: **Ignore exit code.** Always verify by:
+1. Check `.ex5` file exists with recent timestamp: `ls -la YourFile.ex5`
+2. Check per-file log for "0 errors, 0 warnings": `cat YourFile.log`
+
 ### Issue: 42 errors, include file not found
 
 **Cause**: Compiling from simple path (e.g., `C:/file.mq5`) without X: drive
@@ -128,6 +155,11 @@ CX="$HOME/Applications/CrossOver.app/Contents/SharedSupport/CrossOver/bin/wine"
 
 **Cause**: Using `/Applications/CrossOver.app` instead of `~/Applications/`
 **Solution**: Verify CrossOver location with `ls ~/Applications/CrossOver.app`
+
+### Issue: Can't find metaeditor.log
+
+**Cause**: Looking in wrong location
+**Solution**: Use per-file log instead - it's in the same directory as your `.mq5` file (e.g., `Fvg.mq5` creates `Fvg.log`)
 
 ## Benefits of X: Drive Method
 
@@ -175,4 +207,4 @@ wine --bottle "MetaTrader 5" \
 
 **X: drive maps to**: `MQL5/` folder inside bottle
 
-**Verification**: Check for `.ex5` file and review `logs/metaeditor.log`
+**Verification**: Check for `.ex5` file and review per-file `.log` (ignore exit code - it's always 1)
