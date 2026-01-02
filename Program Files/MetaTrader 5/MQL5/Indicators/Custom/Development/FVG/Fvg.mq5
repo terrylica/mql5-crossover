@@ -27,8 +27,8 @@
 //+------------------------------------------------------------------+
 #property copyright   "Optimized by Terry Li, Original by rpanchyk"
 #property link        "https://github.com/rpanchyk"
-#property version     "6.1.0"
-#property description "Optimized Fair Value Gap indicator v6.1.0"
+#property version     "6.0.1"
+#property description "Optimized Fair Value Gap indicator v6.0.1"
 #property description "Key features:"
 #property description "- Bright colors for ACTIVE zones, faint for mitigated"
 #property description "- O(n) mitigation tracking vs O(n²) nested loops"
