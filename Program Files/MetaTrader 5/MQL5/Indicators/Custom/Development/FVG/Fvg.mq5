@@ -27,8 +27,8 @@
 //+------------------------------------------------------------------+
 #property copyright   "Optimized by Terry Li, Original by rpanchyk"
 #property link        "https://github.com/rpanchyk"
-#property version     "7.00"
-#property description "Optimized Fair Value Gap indicator v7.0.0"
+#property version     "7.1.1"
+#property description "Optimized Fair Value Gap indicator v7.1.0"
 #property description "Key features:"
 #property description "- 3-bar ICT FVG detection (original)"
 #property description "- N-bar void-chain FVG detection (4-bar, 5-bar, etc.)"
@@ -89,6 +89,7 @@ struct FvgData
    int               trend;        // 1 = up, -1 = down
    bool              mitigated;
    string            objName;
+   bool              isNBar;       // true if N-bar void-chain FVG
   };
 
 FvgData ActiveFvgs[];
@@ -303,18 +304,35 @@ void DebugLog3BarAnalysis(int i, datetime rightTime, datetime midTime, datetime 
 void OnDeinit(const int reason)
   {
    if(InpDebugEnabled)
-      Print("Fvg_Optimized indicator deinitialization started");
+      PrintFormat("Fvg_Optimized indicator deinitialization started (reason=%d)", reason);
 
-   // Clean up objects (boxes and stripes) - both 3-bar and N-bar
-   ObjectsDeleteAll(0, OBJECT_PREFIX);
-   ObjectsDeleteAll(0, STRIPE_PREFIX);
-   ObjectsDeleteAll(0, NBAR_PREFIX);
-   ObjectsDeleteAll(0, NBAR_STRIPE_PREFIX);
+   if(reason == REASON_CHARTCHANGE)
+     {
+      // Chart change: Delete ONLY stripes (boxes persist for visual continuity)
+      // Stripes will be recreated by OnCalculate during full recalc
+      // This prevents orphaned stripes (stripes without tracking data)
+      // The bug was: OnInit resets ActiveFvgs array, but stripes existed → orphaned
+      ObjectsDeleteAll(0, STRIPE_PREFIX);
+      ObjectsDeleteAll(0, NBAR_STRIPE_PREFIX);
 
-   // Free arrays
-   ArrayFree(ActiveFvgs);
-   ActiveFvgCount = 0;
-   ActiveFvgHead = 0;
+      if(InpDebugEnabled)
+         Print("Chart change: Deleted stripes only, boxes preserved for recalc");
+     }
+   else
+     {
+      // Full cleanup: recompile, remove, parameters change, etc.
+      // REASON_PARAMETERS (5) = input parameters changed - need to redraw
+      // REASON_RECOMPILE (2), REASON_REMOVE (1), REASON_PROGRAM (0) = full cleanup
+      ObjectsDeleteAll(0, OBJECT_PREFIX);
+      ObjectsDeleteAll(0, STRIPE_PREFIX);
+      ObjectsDeleteAll(0, NBAR_PREFIX);
+      ObjectsDeleteAll(0, NBAR_STRIPE_PREFIX);
+
+      // Free arrays
+      ArrayFree(ActiveFvgs);
+      ActiveFvgCount = 0;
+      ActiveFvgHead = 0;
+     }
 
    if(InpDebugEnabled)
       Print("Fvg_Optimized indicator deinitialization finished");
@@ -544,8 +562,9 @@ void UpdateActiveFvgs(const datetime &time[], const double &high[], const double
          color mitigatedColor = (trend == 1) ? InpUpTrendColor : InpDownTrendColor;
          ObjectSetInteger(0, ActiveFvgs[i].objName, OBJPROP_COLOR, mitigatedColor);
 
-         // Delete the active stripe
-         string stripeName = STRIPE_PREFIX + IntegerToString((int)ActiveFvgs[i].startTime) + "_" + IntegerToString(trend > 0 ? 1 : 0);
+         // Delete the active stripe (use correct prefix based on FVG type)
+         string stripePrefix = ActiveFvgs[i].isNBar ? NBAR_STRIPE_PREFIX : STRIPE_PREFIX;
+         string stripeName = stripePrefix + IntegerToString((int)ActiveFvgs[i].startTime) + "_" + IntegerToString(trend > 0 ? 1 : 0);
          ObjectDelete(0, stripeName);
 
          if(InpDebugEnabled)
@@ -590,7 +609,9 @@ void UpdateActiveFvgs(const datetime &time[], const double &high[], const double
          ObjectMove(0, objName, 1, currentTime, lowPrice);
 
          // Update stripe position - pass high/low in correct order (top, bottom)
-         string stripeName = STRIPE_PREFIX + IntegerToString((int)ActiveFvgs[i].startTime) + "_" + IntegerToString(trend > 0 ? 1 : 0);
+         // Use correct prefix based on FVG type
+         string stripePrefix = ActiveFvgs[i].isNBar ? NBAR_STRIPE_PREFIX : STRIPE_PREFIX;
+         string stripeName = stripePrefix + IntegerToString((int)ActiveFvgs[i].startTime) + "_" + IntegerToString(trend > 0 ? 1 : 0);
          color stripeColor = (trend > 0) ? InpUpTrendActiveColor : InpDownTrendActiveColor;
          UpdateActiveStripe(stripeName, currentTime, highPrice, lowPrice, stripeColor);
          NeedsRedraw = true;
@@ -604,7 +625,7 @@ void UpdateActiveFvgs(const datetime &time[], const double &high[], const double
 //| Add FVG to active tracking list - O(1) using circular overwrite  |
 //+------------------------------------------------------------------+
 void AddActiveFvg(datetime startTime, datetime endTime, double highPrice,
-                  double lowPrice, int trend, string objName)
+                  double lowPrice, int trend, string objName, bool isNBar = false)
   {
    int insertIdx;
 
@@ -628,6 +649,7 @@ void AddActiveFvg(datetime startTime, datetime endTime, double highPrice,
    ActiveFvgs[insertIdx].trend = trend;
    ActiveFvgs[insertIdx].mitigated = false;
    ActiveFvgs[insertIdx].objName = objName;
+   ActiveFvgs[insertIdx].isNBar = isNBar;
   }
 
 //+------------------------------------------------------------------+
@@ -666,6 +688,17 @@ string CreateFvgBox(datetime leftDt, double leftPrice, datetime rightDt,
          ObjectMove(0, objName, 1, rightDt, rightPrice);
          UpdateActiveStripe(stripeName, rightDt, leftPrice, rightPrice, stripeColor);
          NeedsRedraw = true;
+        }
+      else
+        {
+         // Box exists but NOT active anymore - delete orphan stripe if it exists
+         if(ObjectFind(0, stripeName) >= 0)
+           {
+            ObjectDelete(0, stripeName);
+            NeedsRedraw = true;
+            if(InpDebugEnabled)
+               PrintFormat("Deleted orphan 3-bar stripe: %s (FVG now mitigated)", stripeName);
+           }
         }
       return objName;
      }
@@ -742,6 +775,17 @@ string CreateFvgBoxNBar(datetime leftDt, double leftPrice, datetime rightDt,
          UpdateActiveStripe(stripeName, rightDt, leftPrice, rightPrice, stripeColor);
          NeedsRedraw = true;
         }
+      else
+        {
+         // Box exists but NOT active anymore - delete orphan stripe if it exists
+         if(ObjectFind(0, stripeName) >= 0)
+           {
+            ObjectDelete(0, stripeName);
+            NeedsRedraw = true;
+            if(InpDebugEnabled)
+               PrintFormat("Deleted orphan N-bar stripe: %s (FVG now mitigated)", stripeName);
+           }
+        }
       return objName;
      }
 
@@ -779,12 +823,21 @@ void DetectVoidChainFvg(int i, const datetime &time[], const double &high[],
    if(!InpDetectVoidChainFvg || i < 1)  // Skip bar 0
       return;
 
+   // Debug: Log every 10000th bar to verify function is being called
+   if(InpDebugEnabled && i % 10000 == 0)
+      PrintFormat("DetectVoidChainFvg called: i=%d, time=%s", i, TimeToString(time[i]));
+
    // ===== BULLISH VOID-CHAIN FVG =====
    // Bullish void: older bar's HIGH < newer bar's LOW (price gaps up)
 
    // Step 0: Chain-end check - only detect if NO bullish void to the RIGHT
    // If high[i] < low[i-1], bullish void exists rightward - NOT chain-end
    bool bullishChainEnd = (high[i] >= low[i - 1]);
+
+   // Debug specific time range (Dec 11 17:00-17:10)
+   if(InpDebugEnabled && ShouldDebugBar(time[i]))
+      PrintFormat("NBAR DEBUG i=%d time=%s: chainEnd=%s (high[i]=%.2f >= low[i-1]=%.2f)",
+                  i, TimeToString(time[i]), bullishChainEnd ? "YES" : "NO", high[i], low[i-1]);
 
    if(bullishChainEnd)
      {
@@ -795,7 +848,12 @@ void DetectVoidChainFvg(int i, const datetime &time[], const double &high[],
       while(scanIdx + 1 < rates_total && bullishVoidCount < InpMaxVoidChain)
         {
          // Check void between scanIdx+1 (older) and scanIdx (newer)
-         if(high[scanIdx + 1] < low[scanIdx])  // Bullish void exists
+         bool hasVoid = (high[scanIdx + 1] < low[scanIdx]);
+         if(InpDebugEnabled && ShouldDebugBar(time[i]))
+            PrintFormat("  VOID SCAN: scanIdx=%d high[%d]=%.2f < low[%d]=%.2f ? %s",
+                        scanIdx, scanIdx+1, high[scanIdx+1], scanIdx, low[scanIdx],
+                        hasVoid ? "YES" : "NO");
+         if(hasVoid)  // Bullish void exists
            {
             bullishVoidCount++;
             scanIdx++;
@@ -804,11 +862,21 @@ void DetectVoidChainFvg(int i, const datetime &time[], const double &high[],
             break;  // No more voids leftward
         }
 
+      // Debug void count result
+      if(InpDebugEnabled && ShouldDebugBar(time[i]) && bullishVoidCount > 0)
+         PrintFormat("  FOUND %d bullish voids, leftBoundary will be %d", bullishVoidCount, scanIdx+1);
+
       // Step 2: If at least one void found, check N-bar FVG
       if(bullishVoidCount >= 1)
         {
          int leftBoundary = scanIdx + 1;   // Oldest bar (left edge)
          int rightBoundary = i;             // Current bar (right edge)
+
+         // Debug FVG check
+         if(InpDebugEnabled && ShouldDebugBar(time[i]))
+            PrintFormat("  FVG CHECK: high[%d]=%.2f < low[%d]=%.2f ? %s",
+                        leftBoundary, high[leftBoundary], rightBoundary, low[rightBoundary],
+                        (high[leftBoundary] < low[rightBoundary]) ? "YES->CREATE" : "NO");
 
          if(leftBoundary < rates_total && high[leftBoundary] < low[rightBoundary])
            {
@@ -843,7 +911,7 @@ void DetectVoidChainFvg(int i, const datetime &time[], const double &high[],
                              stillActive, 1, objName);
 
             if(stillActive && InpContinueToMitigation)
-               AddActiveFvg(fvgStartTime, endTime, fvgTop, fvgBottom, 1, objName);
+               AddActiveFvg(fvgStartTime, endTime, fvgBottom, fvgTop, 1, objName, true);  // isNBar=true, match 3-bar convention: highPrice=bottom, lowPrice=top
 
             if(InpDebugEnabled && ShouldDebugBar(time[rightBoundary]))
                PrintFormat(">>> %d-BAR BULLISH FVG: %d voids, zone %.5f to %.5f",
@@ -916,7 +984,7 @@ void DetectVoidChainFvg(int i, const datetime &time[], const double &high[],
                              stillActive, -1, objName);
 
             if(stillActive && InpContinueToMitigation)
-               AddActiveFvg(fvgStartTime, endTime, fvgTop, fvgBottom, -1, objName);
+               AddActiveFvg(fvgStartTime, endTime, fvgTop, fvgBottom, -1, objName, true);  // isNBar=true
 
             if(InpDebugEnabled && ShouldDebugBar(time[rightBoundary]))
                PrintFormat(">>> %d-BAR BEARISH FVG: %d voids, zone %.5f to %.5f",
