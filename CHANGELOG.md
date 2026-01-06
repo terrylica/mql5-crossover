@@ -1,3 +1,10 @@
+# [6.5.0](https://github.com/terrylica/mql5-crossover/compare/v6.4.1...v6.5.0) (2026-01-06)
+
+
+### Features
+
+* **cci:** implement time-aligned trading day percentile window ([001fea9](https://github.com/terrylica/mql5-crossover/commit/001fea9a3a1cebb74a9e1e4cde5ded5354ed5af6))
+
 ## [6.4.1](https://github.com/terrylica/mql5-crossover/compare/v6.4.0...v6.4.1) (2026-01-06)
 
 
