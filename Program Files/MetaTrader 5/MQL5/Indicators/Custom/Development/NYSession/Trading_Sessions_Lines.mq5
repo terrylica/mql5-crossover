@@ -2,22 +2,23 @@
 //|                                       Trading_Sessions_Lines.mq5 |
 //|                    Lightweight Session Markers - Vertical Lines  |
 //+------------------------------------------------------------------+
-//|  OPTIMIZATION NOTES (2026-01-02)                                 |
+//|  OPTIMIZATION NOTES (2026-01-05)                                 |
 //|  --------------------------------------------------------        |
 //|  1. DST boundaries cached per year (avoid recomputing per day)   |
 //|  2. ObjectsDeleteAll() replaces manual loop deletion             |
 //|  3. ChartGetDouble() cached within functions                     |
-//|  4. ObjectsTotal() cached before loops                           |
-//|  5. NeedsRedraw flag for batched ChartRedraw()                   |
-//|  6. ObjectFind check before ObjectMove (safety guard)            |
+//|  4. Strip/label names cached at creation (O(m) vs O(n) updates)  |
+//|  5. Millisecond-based throttling in OnChartEvent (50ms debounce) |
+//|  6. Early-exit when price range unchanged (horizontal panning)   |
 //+------------------------------------------------------------------+
 #property copyright   "Terry Li"
-#property version     "3.0.1"
+#property version     "3.3.0"
 #property description "Lightweight session markers using vertical lines"
-#property description "Supports: New York and London sessions with DST"
+#property description "Supports: New York, London, Tokyo sessions with DST"
 #property description ""
 #property description "NY: 9:30 AM - 4:00 PM Eastern Time"
 #property description "London: 8:00 AM - 4:30 PM UK Time"
+#property description "Tokyo: 9:00 AM - 3:00 PM Japan Time"
 
 #property indicator_chart_window
 #property indicator_buffers 0
@@ -42,6 +43,15 @@ input int              InpLondonCloseMinute   = 30;             // London Close 
 input color            InpLondonColor         = C'120,40,40';   // London Session color (muted red)
 input color            InpLondonLabelColor    = clrCoral;       // London Label color (bright)
 
+input group "=== Tokyo Session (Japan Time) ==="
+input bool             InpShowTokyo           = true;           // Show Tokyo Session
+input int              InpTokyoOpenHour       = 9;              // Tokyo Open Hour (0-23)
+input int              InpTokyoOpenMinute     = 0;              // Tokyo Open Minute (0-59)
+input int              InpTokyoCloseHour      = 15;             // Tokyo Close Hour (0-23)
+input int              InpTokyoCloseMinute    = 0;              // Tokyo Close Minute (0-59)
+input color            InpTokyoColor          = C'40,120,80';   // Tokyo Session color (muted green)
+input color            InpTokyoLabelColor     = clrLime;        // Tokyo Label color (bright)
+
 input group "=== Timezone Settings ==="
 input bool             InpAutoDetectGMT       = true;           // Auto-detect broker GMT offset
 input int              InpBrokerGMTOffset     = 2;              // Broker Server GMT Offset (hours)
@@ -55,8 +65,8 @@ input bool             InpShowTopStrip        = true;           // Show horizont
 input int              InpStripHeight         = 3;              // Strip height in percent of chart
 
 input group "=== Display Options ==="
-input int              InpMaxDaysBack         = 10;             // Maximum days to draw back
-input bool             InpDebugMode           = true;           // Enable debug logging
+input int              InpMaxDaysBack         = 100;            // Maximum days to draw back
+input bool             InpDebugMode           = false;          // Enable debug logging
 
 //--- Global variables
 int    g_BrokerGMTOffset = 0;
@@ -71,6 +81,12 @@ int    g_London_DSTEndDay = 0;    // Last Sunday of October
 
 //--- Cached constants
 int    g_SecondsPerDay = 86400;
+
+//--- Object name caches (avoid O(n) full chart scans on every update)
+string g_StripNames[];
+string g_LabelNames[];
+int    g_StripCount = 0;
+int    g_LabelCount = 0;
 
 //+------------------------------------------------------------------+
 //| Cache DST boundaries for a given year (called once per year)     |
@@ -194,6 +210,15 @@ int GetLondonGMTOffset(datetime check_time)
   }
 
 //+------------------------------------------------------------------+
+//| Get Tokyo GMT offset (JST) - Japan does not observe DST          |
+//+------------------------------------------------------------------+
+int GetTokyoGMTOffset(datetime check_time)
+  {
+   // Japan Standard Time is always GMT+9 (no DST)
+   return 9;
+  }
+
+//+------------------------------------------------------------------+
 //| Calculate broker GMT offset                                       |
 //+------------------------------------------------------------------+
 int CalculateBrokerGMTOffset()
@@ -243,6 +268,12 @@ void DeleteAllObjects()
    // [OPT] Single call deletes all objects with matching prefix
    // Much faster than looping through ObjectsTotal() + StringFind()
    ObjectsDeleteAll(0, g_ObjPrefix);
+
+   // Reset object name caches
+   ArrayResize(g_StripNames, 0);
+   ArrayResize(g_LabelNames, 0);
+   g_StripCount = 0;
+   g_LabelCount = 0;
   }
 
 //+------------------------------------------------------------------+
@@ -307,6 +338,10 @@ void CreateVerticalLine(string name, datetime time, color clr, color label_clr, 
          ObjectSetInteger(0, label_name, OBJPROP_ANCHOR, ANCHOR_LEFT_LOWER);
          ObjectSetInteger(0, label_name, OBJPROP_SELECTABLE, false);
          ObjectSetInteger(0, label_name, OBJPROP_HIDDEN, true);
+
+         // Cache label name for fast updates
+         ArrayResize(g_LabelNames, g_LabelCount + 1);
+         g_LabelNames[g_LabelCount++] = label_name;
         }
      }
   }
@@ -346,6 +381,10 @@ void CreateTopStrip(string name, datetime time_start, datetime time_end, color c
    ObjectSetInteger(0, name, OBJPROP_SELECTABLE, false);
    ObjectSetInteger(0, name, OBJPROP_HIDDEN, true);
    ObjectSetInteger(0, name, OBJPROP_WIDTH, 0);  // No border
+
+   // Cache strip name for fast updates
+   ArrayResize(g_StripNames, g_StripCount + 1);
+   g_StripNames[g_StripCount++] = name;
   }
 
 //+------------------------------------------------------------------+
@@ -401,6 +440,22 @@ void CreateSessionMarkers(string session_name, datetime day_start, int index,
       return;
      }
 
+   // Holiday detection: verify bar is on the same day as session
+   // Reuses dt_open from weekend check above
+   datetime bar_time = iTime(_Symbol, _Period, bar_start);
+   MqlDateTime bar_dt;
+   TimeToStruct(bar_time, bar_dt);
+
+   if(bar_dt.year != dt_open.year || bar_dt.mon != dt_open.mon || bar_dt.day != dt_open.day)
+     {
+      if(InpDebugMode)
+         PrintFormat("DEBUG [%s] Day=%d: SKIP - holiday/no data (bar=%d-%02d-%02d, session=%d-%02d-%02d)",
+                     session_name, index,
+                     bar_dt.year, bar_dt.mon, bar_dt.day,
+                     dt_open.year, dt_open.mon, dt_open.day);
+      return;
+     }
+
    // Create start line with label
    string open_name = g_ObjPrefix + session_name + "_Open_" + IntegerToString(index);
    CreateVerticalLine(open_name, session_open, session_color, label_color, session_name);
@@ -434,26 +489,27 @@ void CreateSessionMarkers(string session_name, datetime day_start, int index,
 //+------------------------------------------------------------------+
 void UpdateLabelPositions()
   {
-   if(!InpShowLabel)
-      return;  // [OPT] Early exit if labels disabled
+   if(!InpShowLabel || g_LabelCount == 0)
+      return;  // Early exit if labels disabled or none exist
 
-   // [OPT] Cache chart values once
+   // Cache chart values once
    double top_price = ChartGetDouble(0, CHART_PRICE_MAX);
    double bottom_price = ChartGetDouble(0, CHART_PRICE_MIN);
+
+   // Early exit if price range hasn't changed (common during horizontal panning)
+   static double s_last_top = 0, s_last_bottom = 0;
+   if(top_price == s_last_top && bottom_price == s_last_bottom)
+      return;
+   s_last_top = top_price;
+   s_last_bottom = bottom_price;
+
    double range = top_price - bottom_price;
    double label_price = top_price - (range * 0.03);
 
-   // [OPT] Cache ObjectsTotal before loop
-   int total = ObjectsTotal(0);
-
-   for(int i = 0; i < total; i++)
+   // Iterate only cached label names (O(m) instead of O(n) full chart scan)
+   for(int i = 0; i < g_LabelCount; i++)
      {
-      string name = ObjectName(0, i);
-      // [FIX] Use StringFind for reliable string matching in MQL5
-      if(StringFind(name, g_ObjPrefix) != 0)
-         continue;
-      if(StringFind(name, "_Lbl") < 0)
-         continue;
+      string name = g_LabelNames[i];
 
       // Move label to near-top price
       datetime label_time = (datetime)ObjectGetInteger(0, name, OBJPROP_TIME);
@@ -466,29 +522,28 @@ void UpdateLabelPositions()
 //+------------------------------------------------------------------+
 void UpdateStripPositions()
   {
-   if(!InpShowTopStrip)
-      return;  // Early exit if strips disabled
+   if(!InpShowTopStrip || g_StripCount == 0)
+      return;  // Early exit if strips disabled or none exist
 
    // Cache chart values once
    double top_price = ChartGetDouble(0, CHART_PRICE_MAX);
    double bottom_price = ChartGetDouble(0, CHART_PRICE_MIN);
+
+   // Early exit if price range hasn't changed (common during horizontal panning)
+   static double s_last_top = 0, s_last_bottom = 0;
+   if(top_price == s_last_top && bottom_price == s_last_bottom)
+      return;
+   s_last_top = top_price;
+   s_last_bottom = bottom_price;
+
    double range = top_price - bottom_price;
    double strip_top = top_price;
    double strip_bottom = top_price - (range * InpStripHeight / 100.0);
 
-   // Find and update strip objects
-   int total = ObjectsTotal(0);
-   int strips_updated = 0;
-
-   for(int i = 0; i < total; i++)
+   // Iterate only cached strip names (O(m) instead of O(n) full chart scan)
+   for(int i = 0; i < g_StripCount; i++)
      {
-      string name = ObjectName(0, i);
-
-      // Check if this is one of our strip objects
-      if(StringFind(name, g_ObjPrefix) != 0)
-         continue;
-      if(StringFind(name, "_Strip_") < 0)
-         continue;
+      string name = g_StripNames[i];
 
       // Get existing time coordinates
       datetime time_start = (datetime)ObjectGetInteger(0, name, OBJPROP_TIME, 0);
@@ -497,14 +552,10 @@ void UpdateStripPositions()
       // Move both anchor points to new price levels
       ObjectMove(0, name, 0, time_start, strip_top);
       ObjectMove(0, name, 1, time_end, strip_bottom);
-      strips_updated++;
-
-      if(InpDebugMode)
-         PrintFormat("DEBUG: Moved strip '%s' to top=%.5f, bottom=%.5f", name, strip_top, strip_bottom);
      }
 
    if(InpDebugMode)
-      PrintFormat("DEBUG: UpdateStripPositions - total_objects=%d, strips_updated=%d, top_price=%.5f", total, strips_updated, top_price);
+      PrintFormat("DEBUG: UpdateStripPositions - strips_updated=%d, top_price=%.5f", g_StripCount, top_price);
   }
 
 //+------------------------------------------------------------------+
@@ -551,6 +602,15 @@ void DrawSessions()
                               InpLondonCloseHour, InpLondonCloseMinute,
                               london_offset, InpLondonColor, InpLondonLabelColor);
         }
+
+      if(InpShowTokyo)
+        {
+         int tokyo_offset = GetTokyoGMTOffset(day_start);
+         CreateSessionMarkers("TKY", day_start, day,
+                              InpTokyoOpenHour, InpTokyoOpenMinute,
+                              InpTokyoCloseHour, InpTokyoCloseMinute,
+                              tokyo_offset, InpTokyoColor, InpTokyoLabelColor);
+        }
      }
 
    // [OPT] Use ObjectsTotal with prefix filter - single call instead of loop
@@ -579,7 +639,9 @@ int OnInit()
    if(InpNYOpenHour < 0 || InpNYOpenHour > 23 ||
       InpNYCloseHour < 0 || InpNYCloseHour > 23 ||
       InpLondonOpenHour < 0 || InpLondonOpenHour > 23 ||
-      InpLondonCloseHour < 0 || InpLondonCloseHour > 23)
+      InpLondonCloseHour < 0 || InpLondonCloseHour > 23 ||
+      InpTokyoOpenHour < 0 || InpTokyoOpenHour > 23 ||
+      InpTokyoCloseHour < 0 || InpTokyoCloseHour > 23)
      {
       Print("ERROR: Invalid time parameters");
       return INIT_PARAMETERS_INCORRECT;
@@ -604,8 +666,9 @@ int OnInit()
 
    int ny_offset = GetNYGMTOffset(now);
    int london_offset = GetLondonGMTOffset(now);
+   int tokyo_offset = GetTokyoGMTOffset(now);
 
-   Print("Trading Sessions Lines v3.0.0 - Optimized Markers");
+   Print("Trading Sessions Lines v3.3.0 - Removed Frankfurt (overlaps London)");
    PrintFormat("  Max days back: %d", InpMaxDaysBack);
 
    if(InpShowNY)
@@ -615,6 +678,10 @@ int OnInit()
    if(InpShowLondon)
       PrintFormat("  London: %02d:%02d - %02d:%02d UK (GMT%+d)",
                   InpLondonOpenHour, InpLondonOpenMinute, InpLondonCloseHour, InpLondonCloseMinute, london_offset);
+
+   if(InpShowTokyo)
+      PrintFormat("  Tokyo: %02d:%02d - %02d:%02d JST (GMT%+d)",
+                  InpTokyoOpenHour, InpTokyoOpenMinute, InpTokyoCloseHour, InpTokyoCloseMinute, tokyo_offset);
 
    DrawSessions();
 
@@ -676,15 +743,16 @@ void OnChartEvent(const int id,
    // CHARTEVENT_CHART_CHANGE fires on scroll, zoom, resize, scale change
    if(id == CHARTEVENT_CHART_CHANGE)
      {
-      static datetime last_update = 0;
-      datetime now = TimeCurrent();
+      // Millisecond-based throttling (50ms = max 20 updates/sec)
+      static uint s_last_update_ms = 0;
+      uint now_ms = GetTickCount();
 
-      // Throttle debug output to avoid spam (once per second max)
-      if(InpDebugMode && now > last_update)
-        {
-         last_update = now;
-         PrintFormat("DEBUG: OnChartEvent CHARTEVENT_CHART_CHANGE fired");
-        }
+      if(now_ms - s_last_update_ms < 50)
+         return;  // Skip if less than 50ms since last update
+      s_last_update_ms = now_ms;
+
+      if(InpDebugMode)
+         PrintFormat("DEBUG: OnChartEvent CHARTEVENT_CHART_CHANGE fired (throttled)");
 
       // Update positions to keep at chart top during scaling
       UpdateLabelPositions();
