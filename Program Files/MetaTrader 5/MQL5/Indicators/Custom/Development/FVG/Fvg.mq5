@@ -27,13 +27,14 @@
 //+------------------------------------------------------------------+
 #property copyright   "Optimized by Terry Li, Original by rpanchyk"
 #property link        "https://github.com/rpanchyk"
-#property version     "6.0.1"
-#property description "Optimized Fair Value Gap indicator v6.0.1"
+#property version     "7.00"
+#property description "Optimized Fair Value Gap indicator v7.0.0"
 #property description "Key features:"
+#property description "- 3-bar ICT FVG detection (original)"
+#property description "- N-bar void-chain FVG detection (4-bar, 5-bar, etc.)"
+#property description "- Chain-end only detection prevents duplicate boxes"
 #property description "- Bright colors for ACTIVE zones, faint for mitigated"
-#property description "- O(n) mitigation tracking vs O(n²) nested loops"
-#property description "- O(1) circular buffer for active FVG management"
-#property description "- Fully researched & documented optimization decisions"
+#property description "- O(n) mitigation tracking with circular buffer"
 
 #property indicator_chart_window
 #property indicator_plots 3
@@ -55,6 +56,8 @@ double FvgTrendBuffer[];      // Trend of FVG [0: NO, -1: DOWN, 1: UP]
 input group "Section :: Main";
 input bool InpContinueToMitigation = true; // Continue to mitigation
 input int  InpMaxFvgAge = 0;               // Max bars to track FVGs (0=unlimited)
+input bool InpDetectVoidChainFvg = true;   // Detect void-chain FVGs (N-bar patterns)
+input int  InpMaxVoidChain = 10;           // Max consecutive voids to scan (default 10)
 
 input group "Section :: Style";
 input color InpDownTrendColor = C'25,12,12';        // Down trend color (base - very faint)
@@ -67,11 +70,14 @@ input ENUM_BORDER_STYLE InpBoderStyle = BORDER_STYLE_SOLID; // Border line style
 input int InpBorderWidth = 0;                        // Border line width (0 = no border)
 
 input group "Section :: Dev";
-input bool InpDebugEnabled = false; // Enable debug (verbose logging)
+input bool InpDebugEnabled = true;                     // Enable debug (verbose logging)
+input string InpDebugTimeFilter = "2025.12.11 17:02";  // Debug specific time (YYYY.MM.DD HH:MM or empty for recent bars)
 
 // constants
-const string OBJECT_PREFIX = "FVGO_";         // Main FVG box prefix
+const string OBJECT_PREFIX = "FVGO_";         // Main FVG box prefix (3-bar ICT)
 const string STRIPE_PREFIX = "FVGO_STRIPE_";  // Active end stripe prefix
+const string NBAR_PREFIX = "FVGN";            // N-bar void-chain FVG prefix (e.g., FVGN4_, FVGN5_)
+const string NBAR_STRIPE_PREFIX = "FVGN_STRIPE_";  // N-bar active stripe prefix
 
 // Global tracking for active FVGs (avoid object iteration)
 struct FvgData
@@ -148,6 +154,150 @@ int OnInit()
   }
 
 //+------------------------------------------------------------------+
+//| Check if bar time matches debug filter (±10 bars radius)          |
+//+------------------------------------------------------------------+
+bool ShouldDebugBar(datetime barTime)
+  {
+   if(!InpDebugEnabled) return false;
+   if(InpDebugTimeFilter == "") return true;  // Log all if no filter
+
+   // Parse filter time and check if within 10 minutes (for M1 = 10 bars)
+   datetime filterTime = StringToTime(InpDebugTimeFilter);
+   if(filterTime == 0) return true;  // Invalid filter, log all
+
+   // Check if bar is within ±10 minutes of filter time
+   return (MathAbs((long)barTime - (long)filterTime) <= 600);
+  }
+
+//+------------------------------------------------------------------+
+//| Log bars in vicinity with full OHLC data                          |
+//| If filter is empty, shows most recent 30 bars                     |
+//+------------------------------------------------------------------+
+void DebugLogAllBarsInVicinity(const datetime &time[], const double &open[],
+                               const double &high[], const double &low[],
+                               const double &close[], int rates_total)
+  {
+   if(!InpDebugEnabled) return;
+
+   Print("========================================================================");
+
+   if(InpDebugTimeFilter == "")
+     {
+      // No filter: Show chart time range and most recent bars
+      Print("           FORENSIC: CHART TIME RANGE                                  ");
+      PrintFormat("           Oldest visible: %s (bar %d)",
+                  TimeToString(time[rates_total-1], TIME_DATE|TIME_MINUTES), rates_total-1);
+      PrintFormat("           Newest visible: %s (bar 0)",
+                  TimeToString(time[0], TIME_DATE|TIME_MINUTES));
+      Print("========================================================================");
+      Print("           MOST RECENT 30 BARS (set InpDebugTimeFilter to filter)      ");
+     }
+   else
+     {
+      // Filter specified: Show target time
+      Print("           FORENSIC PRICE DATA AROUND TARGET TIME                       ");
+      PrintFormat("           Target: %s", InpDebugTimeFilter);
+     }
+
+   Print("========================================================================");
+   Print("Bar#  |      Time        |    Open   |   High    |    Low    |   Close   ");
+   Print("------+------------------+-----------+-----------+-----------+-----------");
+
+   datetime filterTime = StringToTime(InpDebugTimeFilter);
+
+   if(InpDebugTimeFilter == "" || filterTime == 0)
+     {
+      // No filter or invalid: Show most recent 30 bars
+      int showCount = MathMin(30, rates_total);
+      for(int i = 0; i < showCount; i++)
+        {
+         PrintFormat("%4d  | %s | %.5f | %.5f | %.5f | %.5f",
+                     i, TimeToString(time[i], TIME_DATE|TIME_MINUTES),
+                     open[i], high[i], low[i], close[i]);
+        }
+     }
+   else
+     {
+      // Filter specified: Find bars within ±15 minutes of target
+      // Search ALL bars, not just first 500
+      int foundCount = 0;
+      for(int i = 0; i < rates_total; i++)
+        {
+         if(MathAbs((long)time[i] - (long)filterTime) <= 900)  // ±15 minutes
+           {
+            string marker = "";
+            if(MathAbs((long)time[i] - (long)filterTime) <= 60)
+               marker = " <<<TARGET";
+
+            PrintFormat("%4d  | %s | %.5f | %.5f | %.5f | %.5f%s",
+                        i, TimeToString(time[i], TIME_DATE|TIME_MINUTES),
+                        open[i], high[i], low[i], close[i], marker);
+            foundCount++;
+           }
+        }
+
+      if(foundCount == 0)
+        {
+         Print(">>> NO BARS FOUND within ±15 min of target time!");
+         PrintFormat(">>> Chart range: %s to %s",
+                     TimeToString(time[rates_total-1], TIME_DATE|TIME_MINUTES),
+                     TimeToString(time[0], TIME_DATE|TIME_MINUTES));
+         Print(">>> Scroll chart to target time or clear InpDebugTimeFilter");
+        }
+     }
+
+   Print("========================================================================");
+   Print("");
+  }
+
+//+------------------------------------------------------------------+
+//| Log detailed 3-bar FVG analysis for debugging                     |
+//+------------------------------------------------------------------+
+void DebugLog3BarAnalysis(int i, datetime rightTime, datetime midTime, datetime leftTime,
+                          double rightHigh, double rightLow,
+                          double midHigh, double midLow,
+                          double leftHigh, double leftLow)
+  {
+   if(!ShouldDebugBar(midTime)) return;
+
+   // Up trend conditions
+   bool upLeft = midLow <= leftHigh && midLow > leftLow;
+   bool upRight = midHigh >= rightLow && midHigh < rightHigh;
+   bool upGap = leftHigh < rightLow;
+
+   // Down trend conditions
+   bool downLeft = midHigh >= leftLow && midHigh < leftHigh;
+   bool downRight = midLow <= rightHigh && midLow > rightLow;
+   bool downGap = leftLow > rightHigh;
+
+   PrintFormat("========== FVG DEBUG @ Bar %d ==========", i);
+   PrintFormat("Times: Left=%s | Mid=%s | Right=%s",
+               TimeToString(leftTime, TIME_DATE|TIME_MINUTES),
+               TimeToString(midTime, TIME_DATE|TIME_MINUTES),
+               TimeToString(rightTime, TIME_DATE|TIME_MINUTES));
+   PrintFormat("Left:  High=%.5f, Low=%.5f", leftHigh, leftLow);
+   PrintFormat("Mid:   High=%.5f, Low=%.5f", midHigh, midLow);
+   PrintFormat("Right: High=%.5f, Low=%.5f", rightHigh, rightLow);
+   PrintFormat("------- UP TREND FVG -------");
+   PrintFormat("  upLeft:  midLow(%.5f) <= leftHigh(%.5f) = %s", midLow, leftHigh, (midLow <= leftHigh) ? "PASS" : "FAIL");
+   PrintFormat("           midLow(%.5f) > leftLow(%.5f) = %s", midLow, leftLow, (midLow > leftLow) ? "PASS" : "FAIL");
+   PrintFormat("  upRight: midHigh(%.5f) >= rightLow(%.5f) = %s", midHigh, rightLow, (midHigh >= rightLow) ? "PASS" : "FAIL");
+   PrintFormat("           midHigh(%.5f) < rightHigh(%.5f) = %s", midHigh, rightHigh, (midHigh < rightHigh) ? "PASS" : "FAIL");
+   PrintFormat("  upGap:   leftHigh(%.5f) < rightLow(%.5f) = %s (gap=%.5f pips=%.1f)",
+               leftHigh, rightLow, upGap ? "PASS" : "FAIL", rightLow - leftHigh, (rightLow - leftHigh)/_Point);
+   PrintFormat("  >>> UP FVG RESULT: %s", (upLeft && upRight && upGap) ? "DETECTED" : "NOT DETECTED");
+   PrintFormat("------- DOWN TREND FVG -------");
+   PrintFormat("  downLeft:  midHigh(%.5f) >= leftLow(%.5f) = %s", midHigh, leftLow, (midHigh >= leftLow) ? "PASS" : "FAIL");
+   PrintFormat("             midHigh(%.5f) < leftHigh(%.5f) = %s", midHigh, leftHigh, (midHigh < leftHigh) ? "PASS" : "FAIL");
+   PrintFormat("  downRight: midLow(%.5f) <= rightHigh(%.5f) = %s", midLow, rightHigh, (midLow <= rightHigh) ? "PASS" : "FAIL");
+   PrintFormat("             midLow(%.5f) > rightLow(%.5f) = %s", midLow, rightLow, (midLow > rightLow) ? "PASS" : "FAIL");
+   PrintFormat("  downGap:   leftLow(%.5f) > rightHigh(%.5f) = %s (gap=%.5f pips=%.1f)",
+               leftLow, rightHigh, downGap ? "PASS" : "FAIL", leftLow - rightHigh, (leftLow - rightHigh)/_Point);
+   PrintFormat("  >>> DOWN FVG RESULT: %s", (downLeft && downRight && downGap) ? "DETECTED" : "NOT DETECTED");
+   PrintFormat("==========================================");
+  }
+
+//+------------------------------------------------------------------+
 //| Custom indicator deinitialization function                       |
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
@@ -155,9 +305,11 @@ void OnDeinit(const int reason)
    if(InpDebugEnabled)
       Print("Fvg_Optimized indicator deinitialization started");
 
-   // Clean up objects (boxes and stripes)
+   // Clean up objects (boxes and stripes) - both 3-bar and N-bar
    ObjectsDeleteAll(0, OBJECT_PREFIX);
    ObjectsDeleteAll(0, STRIPE_PREFIX);
+   ObjectsDeleteAll(0, NBAR_PREFIX);
+   ObjectsDeleteAll(0, NBAR_STRIPE_PREFIX);
 
    // Free arrays
    ArrayFree(ActiveFvgs);
@@ -195,8 +347,19 @@ int OnCalculate(const int rates_total,
    // This has negligible performance cost and is safe to call every OnCalculate.
    // Moving to OnInit is NOT possible because these are passed-by-reference arrays.
    ArraySetAsSeries(time, true);
+   ArraySetAsSeries(open, true);
    ArraySetAsSeries(high, true);
    ArraySetAsSeries(low, true);
+   ArraySetAsSeries(close, true);
+
+   // FORENSIC DEBUG: Log all bars in vicinity of target time
+   // Runs on first calc OR when doing full recalc (prev_calculated == 0)
+   static bool forensicDumpDone = false;
+   if(InpDebugEnabled && InpDebugTimeFilter != "" && (prev_calculated == 0 || !forensicDumpDone))
+     {
+      DebugLogAllBarsInVicinity(time, open, high, low, close, rates_total);
+      forensicDumpDone = true;
+     }
 
    //=== PHASE 1: Update active FVGs with current bar (O(active_count)) ===
    if(InpContinueToMitigation && ActiveFvgCount > 0)
@@ -230,7 +393,23 @@ int OnCalculate(const int rates_total,
       double leftLowPrice = low[i + 2];
 
       datetime rightTime = time[i];
+      datetime midTime = time[i + 1];
       datetime leftTime = time[i + 2];
+
+      // FORENSIC DEBUG: Log detailed 3-bar analysis for bars near target time
+      DebugLog3BarAnalysis(i, rightTime, midTime, leftTime,
+                           rightHighPrice, rightLowPrice,
+                           midHighPrice, midLowPrice,
+                           leftHighPrice, leftLowPrice);
+
+      // Debug: Check for 2-bar voids that might explain missed FVG
+      if(ShouldDebugBar(midTime))
+        {
+         double gap2Bar = rightLowPrice - midHighPrice;  // Bullish 2-bar gap (mid to right)
+         double gap2BarPrev = midLowPrice - leftHighPrice; // Bullish 2-bar gap (left to mid)
+         PrintFormat(">>> 2-BAR GAPS: [Left->Mid] gap=%.1f pips | [Mid->Right] gap=%.1f pips",
+                     gap2BarPrev/_Point, gap2Bar/_Point);
+        }
 
       // Up trend FVG detection
       bool upLeft = midLowPrice <= leftHighPrice && midLowPrice > leftLowPrice;
@@ -303,8 +482,12 @@ int OnCalculate(const int rates_total,
          continue;
         }
 
-      // No FVG detected
+      // No FVG detected (for 3-bar pattern)
       SetBuffers(i + 1, 0, 0, 0);
+
+      // ===== N-BAR VOID-CHAIN FVG DETECTION =====
+      // Detect N-bar patterns (4-bar, 5-bar, etc.) triggered by consecutive voids
+      DetectVoidChainFvg(i, time, high, low, rates_total);
      }
 
    // Only redraw when objects actually changed
@@ -535,6 +718,211 @@ void UpdateActiveStripe(string stripeName, datetime rightDt, double topPrice,
       ObjectSetInteger(0, stripeName, OBJPROP_BACK, true);
       ObjectSetInteger(0, stripeName, OBJPROP_SELECTABLE, false);
       ObjectSetInteger(0, stripeName, OBJPROP_HIDDEN, false);
+     }
+  }
+
+//+------------------------------------------------------------------+
+//| Create N-bar FVG box with custom object name                      |
+//+------------------------------------------------------------------+
+string CreateFvgBoxNBar(datetime leftDt, double leftPrice, datetime rightDt,
+                        double rightPrice, bool active, int trend, string objName)
+  {
+   string stripeName = NBAR_STRIPE_PREFIX + IntegerToString((int)leftDt) + "_" + IntegerToString(trend > 0 ? 1 : 0);
+
+   // Base color is always the same (faint) for main box
+   color boxColor = (trend > 0) ? InpUpTrendColor : InpDownTrendColor;
+   color stripeColor = (trend > 0) ? InpUpTrendActiveColor : InpDownTrendActiveColor;
+
+   if(ObjectFind(0, objName) >= 0)
+     {
+      // Box exists - update endpoint only if active
+      if(active)
+        {
+         ObjectMove(0, objName, 1, rightDt, rightPrice);
+         UpdateActiveStripe(stripeName, rightDt, leftPrice, rightPrice, stripeColor);
+         NeedsRedraw = true;
+        }
+      return objName;
+     }
+
+   // Create main N-bar FVG box
+   ObjectCreate(0, objName, OBJ_RECTANGLE, 0, leftDt, leftPrice, rightDt, rightPrice);
+   ObjectSetInteger(0, objName, OBJPROP_COLOR, boxColor);
+   ObjectSetInteger(0, objName, OBJPROP_FILL, InpFill);
+   ObjectSetInteger(0, objName, OBJPROP_STYLE, InpBoderStyle);
+   ObjectSetInteger(0, objName, OBJPROP_WIDTH, InpBorderWidth);
+   ObjectSetInteger(0, objName, OBJPROP_BACK, true);
+   ObjectSetInteger(0, objName, OBJPROP_SELECTABLE, false);
+   ObjectSetInteger(0, objName, OBJPROP_HIDDEN, false);
+
+   // Create bright stripe at right edge for active zones
+   if(active)
+      UpdateActiveStripe(stripeName, rightDt, leftPrice, rightPrice, stripeColor);
+
+   NeedsRedraw = true;
+
+   if(InpDebugEnabled)
+      PrintFormat("Created N-bar FVG box: %s (active=%s)", objName, active ? "YES+STRIPE" : "NO");
+
+   return objName;
+  }
+
+//+------------------------------------------------------------------+
+//| Detect N-bar void-chain FVG                                       |
+//| Scans for consecutive voids and expands to N-bar pattern          |
+//| 1 void = 4 bars, 2 voids = 5 bars, N voids = (N+3) bars          |
+//| CRITICAL: Only detects at chain-end to prevent duplicates         |
+//+------------------------------------------------------------------+
+void DetectVoidChainFvg(int i, const datetime &time[], const double &high[],
+                        const double &low[], int rates_total)
+  {
+   if(!InpDetectVoidChainFvg || i < 1)  // Skip bar 0
+      return;
+
+   // ===== BULLISH VOID-CHAIN FVG =====
+   // Bullish void: older bar's HIGH < newer bar's LOW (price gaps up)
+
+   // Step 0: Chain-end check - only detect if NO bullish void to the RIGHT
+   // If high[i] < low[i-1], bullish void exists rightward - NOT chain-end
+   bool bullishChainEnd = (high[i] >= low[i - 1]);
+
+   if(bullishChainEnd)
+     {
+      // Step 1: Scan for consecutive bullish voids LEFTWARD (older bars)
+      int bullishVoidCount = 0;
+      int scanIdx = i + 1;
+
+      while(scanIdx + 1 < rates_total && bullishVoidCount < InpMaxVoidChain)
+        {
+         // Check void between scanIdx+1 (older) and scanIdx (newer)
+         if(high[scanIdx + 1] < low[scanIdx])  // Bullish void exists
+           {
+            bullishVoidCount++;
+            scanIdx++;
+           }
+         else
+            break;  // No more voids leftward
+        }
+
+      // Step 2: If at least one void found, check N-bar FVG
+      if(bullishVoidCount >= 1)
+        {
+         int leftBoundary = scanIdx + 1;   // Oldest bar (left edge)
+         int rightBoundary = i;             // Current bar (right edge)
+
+         if(leftBoundary < rates_total && high[leftBoundary] < low[rightBoundary])
+           {
+            // N-bar bullish FVG confirmed!
+            double fvgTop = low[rightBoundary];
+            double fvgBottom = high[leftBoundary];
+            datetime fvgStartTime = time[leftBoundary];
+            int barCount = bullishVoidCount + 3;
+
+            // Check mitigation
+            datetime endTime = time[0];
+            bool stillActive = true;
+
+            if(InpContinueToMitigation)
+              {
+               for(int j = i - 1; j >= 1; j--)
+                 {
+                  if((fvgBottom < high[j] && fvgBottom >= low[j]) ||
+                     (fvgTop > low[j] && fvgTop <= high[j]))
+                    {
+                     endTime = time[j];
+                     stillActive = false;
+                     break;
+                    }
+                 }
+              }
+
+            // Create object name: FVGN{barCount}_{timestamp}_{direction}
+            string objName = NBAR_PREFIX + IntegerToString(barCount) + "_" +
+                             IntegerToString((int)fvgStartTime) + "_1";
+            CreateFvgBoxNBar(fvgStartTime, fvgBottom, endTime, fvgTop,
+                             stillActive, 1, objName);
+
+            if(stillActive && InpContinueToMitigation)
+               AddActiveFvg(fvgStartTime, endTime, fvgTop, fvgBottom, 1, objName);
+
+            if(InpDebugEnabled && ShouldDebugBar(time[rightBoundary]))
+               PrintFormat(">>> %d-BAR BULLISH FVG: %d voids, zone %.5f to %.5f",
+                           barCount, bullishVoidCount, fvgBottom, fvgTop);
+           }
+        }
+     }
+
+   // ===== BEARISH VOID-CHAIN FVG =====
+   // Bearish void: older bar's LOW > newer bar's HIGH (price gaps down)
+
+   // Step 0: Chain-end check - only detect if NO bearish void to the RIGHT
+   // If low[i] > high[i-1], bearish void exists rightward - NOT chain-end
+   bool bearishChainEnd = (low[i] <= high[i - 1]);
+
+   if(bearishChainEnd)
+     {
+      // Step 1: Scan for consecutive bearish voids LEFTWARD (older bars)
+      int bearishVoidCount = 0;
+      int scanIdx = i + 1;
+
+      while(scanIdx + 1 < rates_total && bearishVoidCount < InpMaxVoidChain)
+        {
+         // Check void between scanIdx+1 (older) and scanIdx (newer)
+         if(low[scanIdx + 1] > high[scanIdx])  // Bearish void exists
+           {
+            bearishVoidCount++;
+            scanIdx++;
+           }
+         else
+            break;  // No more voids leftward
+        }
+
+      // Step 2: If at least one void found, check N-bar FVG
+      if(bearishVoidCount >= 1)
+        {
+         int leftBoundary = scanIdx + 1;   // Oldest bar (left edge)
+         int rightBoundary = i;             // Current bar (right edge)
+
+         if(leftBoundary < rates_total && low[leftBoundary] > high[rightBoundary])
+           {
+            // N-bar bearish FVG confirmed!
+            double fvgTop = low[leftBoundary];
+            double fvgBottom = high[rightBoundary];
+            datetime fvgStartTime = time[leftBoundary];
+            int barCount = bearishVoidCount + 3;
+
+            // Check mitigation
+            datetime endTime = time[0];
+            bool stillActive = true;
+
+            if(InpContinueToMitigation)
+              {
+               for(int j = i - 1; j >= 1; j--)
+                 {
+                  if((fvgBottom <= high[j] && fvgBottom > low[j]) ||
+                     (fvgTop >= low[j] && fvgTop < high[j]))
+                    {
+                     endTime = time[j];
+                     stillActive = false;
+                     break;
+                    }
+                 }
+              }
+
+            // Create object name: FVGN{barCount}_{timestamp}_{direction}
+            string objName = NBAR_PREFIX + IntegerToString(barCount) + "_" +
+                             IntegerToString((int)fvgStartTime) + "_0";
+            CreateFvgBoxNBar(fvgStartTime, fvgTop, endTime, fvgBottom,
+                             stillActive, -1, objName);
+
+            if(stillActive && InpContinueToMitigation)
+               AddActiveFvg(fvgStartTime, endTime, fvgTop, fvgBottom, -1, objName);
+
+            if(InpDebugEnabled && ShouldDebugBar(time[rightBoundary]))
+               PrintFormat(">>> %d-BAR BEARISH FVG: %d voids, zone %.5f to %.5f",
+                           barCount, bearishVoidCount, fvgBottom, fvgTop);
+           }
+        }
      }
   }
 //+------------------------------------------------------------------+
