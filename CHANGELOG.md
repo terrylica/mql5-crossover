@@ -1,3 +1,10 @@
+## [6.4.1](https://github.com/terrylica/mql5-crossover/compare/v6.4.0...v6.4.1) (2026-01-06)
+
+
+### Bug Fixes
+
+* **fvg:** correct N-bar bullish FVG mitigation parameter order ([662ddb1](https://github.com/terrylica/mql5-crossover/commit/662ddb1fb800d90ea19f67d759adbe56e5a2c604))
+
 # [6.4.0](https://github.com/terrylica/mql5-crossover/compare/v6.3.0...v6.4.0) (2026-01-06)
 
 
