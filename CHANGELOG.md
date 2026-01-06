@@ -1,3 +1,10 @@
+# [6.4.0](https://github.com/terrylica/mql5-crossover/compare/v6.3.0...v6.4.0) (2026-01-06)
+
+
+### Features
+
+* **sessions:** add Tokyo session support and optimize refresh performance ([62b518e](https://github.com/terrylica/mql5-crossover/commit/62b518e1fc54f07ab3b67a90995efa0b73e28c6e))
+
 # [6.3.0](https://github.com/terrylica/mql5-crossover/compare/v6.2.0...v6.3.0) (2026-01-06)
 
 
