@@ -1,3 +1,10 @@
+# [6.3.0](https://github.com/terrylica/mql5-crossover/compare/v6.2.0...v6.3.0) (2026-01-06)
+
+
+### Features
+
+* **fvg:** add N-bar void-chain FVG detection ([269e9ff](https://github.com/terrylica/mql5-crossover/commit/269e9ff8ce2d931051985cc52bba0b31759afae5))
+
 # [6.2.0](https://github.com/terrylica/mql5-crossover/compare/v6.1.0...v6.2.0) (2026-01-02)
 
 
