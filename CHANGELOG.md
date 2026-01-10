@@ -1,3 +1,10 @@
+# [6.6.0](https://github.com/terrylica/mql5-crossover/compare/v6.5.0...v6.6.0) (2026-01-10)
+
+
+### Features
+
+* **sessions:** add day-of-week labels and fix weekend strip overflow ([d478dda](https://github.com/terrylica/mql5-crossover/commit/d478ddaa2bcd63daaae6adc95f2957319a63f184))
+
 # [6.5.0](https://github.com/terrylica/mql5-crossover/compare/v6.4.1...v6.5.0) (2026-01-06)
 
 
