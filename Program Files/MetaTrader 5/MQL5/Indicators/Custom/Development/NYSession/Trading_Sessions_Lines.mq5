@@ -12,7 +12,7 @@
 //|  6. Early-exit when price range unchanged (horizontal panning)   |
 //+------------------------------------------------------------------+
 #property copyright   "Terry Li"
-#property version     "3.3.0"
+#property version     "3.60"
 #property description "Lightweight session markers using vertical lines"
 #property description "Supports: New York, London, Tokyo sessions with DST"
 #property description ""
@@ -49,8 +49,8 @@ input int              InpTokyoOpenHour       = 9;              // Tokyo Open Ho
 input int              InpTokyoOpenMinute     = 0;              // Tokyo Open Minute (0-59)
 input int              InpTokyoCloseHour      = 15;             // Tokyo Close Hour (0-23)
 input int              InpTokyoCloseMinute    = 0;              // Tokyo Close Minute (0-59)
-input color            InpTokyoColor          = C'40,120,80';   // Tokyo Session color (muted green)
-input color            InpTokyoLabelColor     = clrLime;        // Tokyo Label color (bright)
+input color            InpTokyoColor          = C'120,60,100';  // Tokyo Session color (muted pink/magenta)
+input color            InpTokyoLabelColor     = clrMagenta;     // Tokyo Label color (bright)
 
 input group "=== Timezone Settings ==="
 input bool             InpAutoDetectGMT       = true;           // Auto-detect broker GMT offset
@@ -291,6 +291,18 @@ color MakeTransparent(color clr, uchar alpha)
   }
 
 //+------------------------------------------------------------------+
+//| Get full day-of-week name from datetime                          |
+//| Returns: "Monday", "Tuesday", "Wednesday", etc.                  |
+//+------------------------------------------------------------------+
+string GetDayOfWeekName(datetime dt)
+  {
+   MqlDateTime mdt;
+   TimeToStruct(dt, mdt);
+   string days[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+   return days[mdt.day_of_week];
+  }
+
+//+------------------------------------------------------------------+
 //| Create vertical line at specified time                           |
 //+------------------------------------------------------------------+
 void CreateVerticalLine(string name, datetime time, color clr, color label_clr, string label_text)
@@ -329,11 +341,15 @@ void CreateVerticalLine(string name, datetime time, color clr, color label_clr, 
       double range = top_price - bottom_price;
       double label_price = top_price - (range * 0.03);
 
+      // Get full day-of-week name and combine with session name
+      string day_name = GetDayOfWeekName(time);
+      string combined_label = label_text + " | " + day_name;  // e.g., "LDN | Wednesday"
+
       bool label_created = ObjectCreate(0, label_name, OBJ_TEXT, 0, time, label_price);
       if(label_created)
         {
-         ObjectSetString(0, label_name, OBJPROP_TEXT, label_text);
-         ObjectSetInteger(0, label_name, OBJPROP_COLOR, label_clr);
+         ObjectSetString(0, label_name, OBJPROP_TEXT, combined_label);
+         ObjectSetInteger(0, label_name, OBJPROP_COLOR, clrWhite);  // All white for clarity
          ObjectSetInteger(0, label_name, OBJPROP_FONTSIZE, InpLabelFontSize);
          ObjectSetInteger(0, label_name, OBJPROP_ANCHOR, ANCHOR_LEFT_LOWER);
          ObjectSetInteger(0, label_name, OBJPROP_SELECTABLE, false);
@@ -426,6 +442,17 @@ void CreateSessionMarkers(string session_name, datetime day_start, int index,
    // Get bar indices
    int bar_start = iBarShift(_Symbol, _Period, session_open);
    int bar_end = iBarShift(_Symbol, _Period, session_close);
+
+   // Fix for weekend/holiday: If session_close is in the past but bar_end is -1,
+   // the session HAS closed but there's no bar at exact close time (e.g., market closed early).
+   // In this case, use the last bar before session_close instead of treating as "still open".
+   if(bar_end < 0 && session_close < TimeCurrent())
+     {
+      // Find last bar before session close - use exact=false to get nearest bar
+      bar_end = iBarShift(_Symbol, _Period, session_close, false);
+      if(InpDebugMode)
+         PrintFormat("DEBUG [%s] Day=%d: session_close in past, adjusted bar_end=%d", session_name, index, bar_end);
+     }
 
    if(InpDebugMode)
      {
